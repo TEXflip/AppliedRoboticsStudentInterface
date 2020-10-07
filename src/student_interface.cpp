@@ -48,6 +48,10 @@ namespace student
 
       std::cout << "Saved image: " << img_file << std::endl;
     }
+    case 27: // Esc key
+    {
+      exit(0);
+    }
     break;
     default:
       break;
@@ -63,7 +67,7 @@ namespace student
                       const cv::Mat &cam_matrix, const cv::Mat &dist_coeffs, const std::string &config_folder)
   {
 
-    throw std::logic_error("STUDENT FUNCTION - IMAGE UNDISTORT - NOT IMPLEMENTED");
+    undistort(img_in, img_out, cam_matrix, dist_coeffs); // TODO: fast undistort
   }
 
   void findPlaneTransform(const cv::Mat &cam_matrix, const cv::Mat &rvec,
