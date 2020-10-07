@@ -67,7 +67,7 @@ namespace student
                       const cv::Mat &cam_matrix, const cv::Mat &dist_coeffs, const std::string &config_folder)
   {
 
-    undistort(img_in, img_out, cam_matrix, dist_coeffs); // TODO: fast undistort
+    cv::undistort(img_in, img_out, cam_matrix, dist_coeffs); // TODO: fast undistort
   }
 
   void findPlaneTransform(const cv::Mat &cam_matrix, const cv::Mat &rvec,

@@ -23,6 +23,14 @@ target_link_libraries(student
   ${OpenCV_LIBRARIES}  
 )
 
+## COMPILE CALIBRATION EXECUTABLE
+add_executable(camera_calibration
+  src/camera_calibration.cpp
+)
+target_link_libraries(camera_calibration
+  ${OpenCV_LIBRARIES}
+)
+
 ## COMPILE DEMO EXECUTABLE
 add_executable(demo_dilatation_erosion
   src/demo_shape_detection/demo_dilatation_erosion.cpp
