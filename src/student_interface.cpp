@@ -5,6 +5,10 @@
 #include <sstream>
 #include <experimental/filesystem>
 
+#include <vector>
+#include <atomic>
+#include <unistd.h>
+
 namespace student
 {
   const std::string RAW_IMAGE("/image/raw");
@@ -58,15 +62,75 @@ namespace student
     }
   }
 
+#pragma region extrinsicCalib functions
+
+  // funcions for extrinsic calibration
+  static cv::Mat bg_img;
+  static std::vector<cv::Point2f> result;
+  static std::string name;
+  static std::atomic<bool> done;
+  static int n;
+  static double show_scale = 1.0;
+
+  void mouseCallback(int event, int x, int y, int, void* p) // function from professor interface
+  {
+    if (event != cv::EVENT_LBUTTONDOWN || done.load()) return;
+    
+    result.emplace_back(x*show_scale, y*show_scale);
+    cv::circle(bg_img, cv::Point(x,y), 20/show_scale, cv::Scalar(0,0,255), -1);
+    cv::imshow(name.c_str(), bg_img);
+
+    if (result.size() >= n) {
+      usleep(500*1000);
+      done.store(true);
+    }
+  }
+
+  std::vector<cv::Point2f> pickNPoints(int n0, const cv::Mat& img) // function from professor interface
+  {
+    result.clear();
+    cv::Size small_size(img.cols/show_scale, img.rows/show_scale);
+    cv::resize(img, bg_img, small_size);
+    //bg_img = img.clone();
+    name = "Pick " + std::to_string(n0) + " points";
+    cv::imshow(name.c_str(), bg_img);
+    cv::namedWindow(name.c_str());
+    n = n0;
+
+    done.store(false);
+
+    cv::setMouseCallback(name.c_str(), &mouseCallback, nullptr);
+    while (!done.load()) {
+      cv::waitKey(500);
+    }
+
+    cv::destroyWindow(name.c_str());
+    return result;
+  }
+
   bool extrinsicCalib(const cv::Mat &img_in, std::vector<cv::Point3f> object_points, const cv::Mat &camera_matrix, cv::Mat &rvec, cv::Mat &tvec, const std::string &config_folder)
   {
-    throw std::logic_error("STUDENT FUNCTION - EXTRINSIC CALIB - NOT IMPLEMENTED");
+    // std::string file_path(config_folder + "/extrinsicCalib.csv");
+
+    std::vector<cv::Point2f> image_points;
+    image_points = pickNPoints(4, img_in);
+
+    cv::Mat dist_coeffs(1,4, CV_32F);
+    bool ok = cv::solvePnP(object_points, image_points, camera_matrix, dist_coeffs, rvec, tvec);
+
+    if (!ok) {
+      std::cerr << "FAILED SOLVE_PNP" << std::endl;
+    }
+
+    return ok;
   }
+
+#pragma endregion
 
   void imageUndistort(const cv::Mat &img_in, cv::Mat &img_out,
                       const cv::Mat &cam_matrix, const cv::Mat &dist_coeffs, const std::string &config_folder)
   {
-
+    // TODO: capire come e dove (nel codice) va a prendersi i parametri per la calibrazione + implementazione del salvataggio dei parametri (da fare in camera_calibration.cpp)
     cv::undistort(img_in, img_out, cam_matrix, dist_coeffs); // TODO: fast undistort
   }
 

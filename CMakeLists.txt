@@ -23,7 +23,7 @@ target_link_libraries(student
   ${OpenCV_LIBRARIES}  
 )
 
-## COMPILE CALIBRATION EXECUTABLE
+## COMPILE CAMERA_CALIBRATION EXECUTABLE
 add_executable(camera_calibration
   src/camera_calibration.cpp
 )
