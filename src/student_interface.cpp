@@ -8,7 +8,7 @@
 #include <vector>
 #include <atomic>
 #include <unistd.h>
-
+// COMMENT DA DAVID
 namespace student
 {
   const std::string RAW_IMAGE("/image/raw");
