@@ -33,10 +33,10 @@ namespace student
         save_path = config_folder + "/saved_images" + std::to_string(i) + "/";
         exist = std::experimental::filesystem::exists(save_path);
       }
-      
+
       if (i > 999 || !std::experimental::filesystem::create_directories(save_path))
         throw std::logic_error("NO EMPTY FOLDER AVAILABLE");
-      
+
       folderCreated = true;
     }
 
@@ -45,21 +45,22 @@ namespace student
 
     switch (c)
     {
-    case 's':
-    {
-      std::string img_file(save_path + "img" + std::to_string(id++) + ".jpg");
-      cv::imwrite(img_file, img_in);
+      case 's':
+      {
+        std::string img_file(save_path + "img" + std::to_string(id++) + ".jpg");
+        cv::imwrite(img_file, img_in);
 
-      std::cout << "Saved image: " << img_file << std::endl;
-    }
-    case 27: // Esc key
-    {
-      exit(0);
-    }
-    break;
-    default:
-      break;
-    }
+        std::cout << "Saved image: " << img_file <<std::endl;
+        break;
+      }
+      case 27: // Esc key
+      {
+        exit(0);
+        break;
+      }
+      default:
+        break;
+      }
   }
 
 #pragma region extrinsicCalib functions
@@ -72,24 +73,26 @@ namespace student
   static int n;
   static double show_scale = 1.0;
 
-  void mouseCallback(int event, int x, int y, int, void* p) // function from professor interface
+  void mouseCallback(int event, int x, int y, int, void *p) // function from professor interface
   {
-    if (event != cv::EVENT_LBUTTONDOWN || done.load()) return;
-    
-    result.emplace_back(x*show_scale, y*show_scale);
-    cv::circle(bg_img, cv::Point(x,y), 20/show_scale, cv::Scalar(0,0,255), -1);
+    if (event != cv::EVENT_LBUTTONDOWN || done.load())
+      return;
+
+    result.emplace_back(x * show_scale, y * show_scale);
+    cv::circle(bg_img, cv::Point(x, y), 20 / show_scale, cv::Scalar(0, 0, 255), -1);
     cv::imshow(name.c_str(), bg_img);
 
-    if (result.size() >= n) {
-      usleep(500*1000);
+    if (result.size() >= n)
+    {
+      usleep(500 * 1000);
       done.store(true);
     }
   }
 
-  std::vector<cv::Point2f> pickNPoints(int n0, const cv::Mat& img) // function from professor interface
+  std::vector<cv::Point2f> pickNPoints(int n0, const cv::Mat &img) // function from professor interface
   {
     result.clear();
-    cv::Size small_size(img.cols/show_scale, img.rows/show_scale);
+    cv::Size small_size(img.cols / show_scale, img.rows / show_scale);
     cv::resize(img, bg_img, small_size);
     //bg_img = img.clone();
     name = "Pick " + std::to_string(n0) + " points";
@@ -100,7 +103,8 @@ namespace student
     done.store(false);
 
     cv::setMouseCallback(name.c_str(), &mouseCallback, nullptr);
-    while (!done.load()) {
+    while (!done.load())
+    {
       cv::waitKey(500);
     }
 
@@ -115,10 +119,11 @@ namespace student
     std::vector<cv::Point2f> image_points;
     image_points = pickNPoints(4, img_in);
 
-    cv::Mat dist_coeffs(1,4, CV_32F);
+    cv::Mat dist_coeffs(1, 4, CV_32F);
     bool ok = cv::solvePnP(object_points, image_points, camera_matrix, dist_coeffs, rvec, tvec);
 
-    if (!ok) {
+    if (!ok)
+    {
       std::cerr << "FAILED SOLVE_PNP" << std::endl;
     }
 
