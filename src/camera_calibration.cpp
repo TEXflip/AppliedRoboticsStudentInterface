@@ -21,10 +21,12 @@
 using namespace cv;
 using namespace std;
 
+static string DEFAULT_CONFIG_FILE_PATH("../config/calib_config.xml");
+
 static void help()
 {
     cout <<  "This is a camera calibration sample." << endl
-         <<  "Usage: camera_calibration [configuration_file -- default ./default.xml]"  << endl
+         <<  "Usage: camera_calibration [configuration_file -- default " + DEFAULT_CONFIG_FILE_PATH << endl
          <<  "Near the sample file you'll find the configuration file, which has detailed help of "
              "how to edit it.  It may be any OpenCV supported file format XML/YAML." << endl;
 }
@@ -262,7 +264,7 @@ int main(int argc, char* argv[])
 
     //! [file_read]
     Settings s;
-    const string inputSettingsFile = argc > 1 ? argv[1] : "default.xml";
+    const string inputSettingsFile = argc > 1 ? argv[1] : DEFAULT_CONFIG_FILE_PATH;
     FileStorage fs(inputSettingsFile, FileStorage::READ); // Read the settings
     if (!fs.isOpened())
     {

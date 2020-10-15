@@ -4,6 +4,7 @@
 #include <stdexcept>
 #include <sstream>
 #include <experimental/filesystem>
+#include <cstdlib>
 
 #include <vector>
 #include <atomic>
@@ -55,6 +56,7 @@ namespace student
     }
     case 27: // Esc key
     {
+      //std::system("./camera_calibration");
       exit(0);
       break;
     }
@@ -164,7 +166,7 @@ namespace student
                       const cv::Mat &cam_matrix, const cv::Mat &dist_coeffs, const std::string &config_folder)
   {
     // TODO: capire come e dove (nel codice) va a prendersi i parametri per la calibrazione + implementazione del salvataggio dei parametri (da fare in camera_calibration.cpp)
-    //cv::undistort(img_in, img_out, cam_matrix, dist_coeffs); // TODO: fast undistort
+    //cv::undistort(img_in, img_out, cam_matrix, dist_coeffs);
 
     static bool maps_initialized = false;
     static cv::Mat full_map1, full_map2;
