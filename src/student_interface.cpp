@@ -45,22 +45,22 @@ namespace student
 
     switch (c)
     {
-      case 's':
-      {
-        std::string img_file(save_path + "img" + std::to_string(id++) + ".jpg");
-        cv::imwrite(img_file, img_in);
+    case 's':
+    {
+      std::string img_file(save_path + "img" + std::to_string(id++) + ".jpg");
+      cv::imwrite(img_file, img_in);
 
-        std::cout << "Saved image: " << img_file <<std::endl;
-        break;
-      }
-      case 27: // Esc key
-      {
-        exit(0);
-        break;
-      }
-      default:
-        break;
-      }
+      std::cout << "Saved image: " << img_file << std::endl;
+      break;
+    }
+    case 27: // Esc key
+    {
+      exit(0);
+      break;
+    }
+    default:
+      break;
+    }
   }
 
 #pragma region extrinsicCalib functions
@@ -114,18 +114,46 @@ namespace student
 
   bool extrinsicCalib(const cv::Mat &img_in, std::vector<cv::Point3f> object_points, const cv::Mat &camera_matrix, cv::Mat &rvec, cv::Mat &tvec, const std::string &config_folder)
   {
-    // std::string file_path(config_folder + "/extrinsicCalib.csv");
+    std::string file_path(config_folder + "/extrinsicCalib.csv");
 
     std::vector<cv::Point2f> image_points;
-    image_points = pickNPoints(4, img_in);
+
+    if (!std::experimental::filesystem::exists(file_path))
+    {
+
+      std::experimental::filesystem::create_directories(config_folder);
+      image_points = pickNPoints(4, img_in);
+
+      std::ofstream output(file_path);
+      if (!output.is_open())
+        throw std::runtime_error("Cannot write file: " + file_path);
+      for (const auto pt : image_points)
+        output << pt.x << " " << pt.y << std::endl;
+      output.close();
+    }
+    else
+    {
+      std::ifstream input(file_path);
+      if (!input.is_open())
+        throw std::runtime_error("Cannot read file: " + file_path);
+      while (!input.eof())
+      {
+        double x, y;
+        if (!(input >> x >> y))
+          if (input.eof())
+            break;
+          else
+            throw std::runtime_error("Bad file: " + file_path);
+        image_points.emplace_back(x, y);
+      }
+      input.close();
+    }
 
     cv::Mat dist_coeffs(1, 4, CV_32F);
     bool ok = cv::solvePnP(object_points, image_points, camera_matrix, dist_coeffs, rvec, tvec);
 
     if (!ok)
-    {
       std::cerr << "FAILED SOLVE_PNP" << std::endl;
-    }
 
     return ok;
   }
@@ -136,7 +164,19 @@ namespace student
                       const cv::Mat &cam_matrix, const cv::Mat &dist_coeffs, const std::string &config_folder)
   {
     // TODO: capire come e dove (nel codice) va a prendersi i parametri per la calibrazione + implementazione del salvataggio dei parametri (da fare in camera_calibration.cpp)
-    cv::undistort(img_in, img_out, cam_matrix, dist_coeffs); // TODO: fast undistort
+    //cv::undistort(img_in, img_out, cam_matrix, dist_coeffs); // TODO: fast undistort
+
+    static bool maps_initialized = false;
+    static cv::Mat full_map1, full_map2;
+
+    if(!maps_initialized){
+      cv::Mat R;
+      cv::initUndistortRectifyMap(cam_matrix, dist_coeffs, R, cam_matrix, img_in.size(), CV_16SC2, full_map1, full_map2);
+
+      maps_initialized = true;
+    }
+ 
+    cv::remap(img_in, img_out, full_map1, full_map2, cv::INTER_LINEAR);    
   }
 
   void findPlaneTransform(const cv::Mat &cam_matrix, const cv::Mat &rvec,
