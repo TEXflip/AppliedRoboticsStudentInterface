@@ -214,7 +214,7 @@ namespace student
     static const int OFFSET_H = 100;
 
     // cv::imwrite("test_image.jpg",img_in);
-    // std::cout << std::experimental::filesystem::current_path().relative_path() << "\n";
+    
 
     /*! we need a obstacle list
       0. convert imput image in hsv colorspace 
@@ -231,7 +231,7 @@ namespace student
     cv::cvtColor(img_in, hsv_img, cv::COLOR_BGR2HSV);
 
     // Matrix for the colormasks
-    cv::Mat red_mask_high, red_mask_low, red_obstacle_mask, green_victim_mask, black_border_mask, purple_gate_mask;
+    cv::Mat red_mask_high, red_mask_low, red_obstacle_mask, green_victim_mask, black_border_mask;
 
     /*!
       values for masks (H_low,S_low,V_low) (H_hight,S_hight,V_hight)
@@ -240,15 +240,19 @@ namespace student
       Black   (0,0,0)   (0-180..doesnt mater,1-180,225) !! the V value is important to be at 224
       The values change if applied to real images
   */
-
+    
     //selecting the red_obstacles
-    cv::inRange(hsv_img, cv::Scalar(0, 30, 113), cv::Scalar(10, 255, 218), red_mask_low);
+    cv::inRange(hsv_img, cv::Scalar(0, 30, 113), cv::Scalar(10, 255, 218), red_mask_high);
+    // cv::imwrite("/home/ubuntu/Desktop/Redmask.jpg", red_mask_high);
     //for real images use hue values left and right from 0 in order to get the best result
+
     cv::inRange(hsv_img, cv::Scalar(142, 29, 199), cv::Scalar(180, 255, 255), red_mask_low);
+
     cv::addWeighted(red_mask_low, 1.0, red_mask_high, 1.0, 0.0, red_obstacle_mask);
 
-    cv::imshow("Redmask",red_obstacle_mask);
+    
     //selecting the green_victims AND the gate
+        
     cv::inRange(hsv_img, cv::Scalar(52,12,151), cv::Scalar(82,255,255), green_victim_mask);
     // cv::imshow("input",green_victim_mask);
     
@@ -279,7 +283,7 @@ namespace student
 
       //scaling loop
       Polygon scaled_contour; //typedev vector
-
+        
       for (const auto &pt : approx_curve)
       {
         scaled_contour.emplace_back(pt.x / scale, pt.y / scale);
@@ -322,7 +326,6 @@ namespace student
 
       if (approx_curve.size() == 4) //if i have a gate(a quadratic figure in green)
       {
-        Polygon gate;
         for (const auto &pt : approx_curve)
         {
           scaled_contour_green.emplace_back(pt.x / scale, pt.y / scale);
@@ -335,7 +338,7 @@ namespace student
         boundRect[i] = boundingRect(cv::Mat(approx_curve)); // finds bounding box for each green blob
       }
     }
-
+    
     ////////////////TEMLATEMATCHING////////////
     /*!
         5. create and invert the obtained bitmap 
@@ -383,8 +386,8 @@ namespace student
       cv::erode(processROI, processROI, kernel);
 
       // Show the actual image used for the template matching
-      cv::imshow("ROI", processROI);
-      cv::moveWindow("ROI", W_0 + img_in.cols + OFFSET_W, H_0 + img_in.rows + OFFSET_H);
+      // cv::imshow("ROI", processROI);
+      // cv::moveWindow("ROI", W_0 + img_in.cols + OFFSET_W, H_0 + img_in.rows + OFFSET_H);
 
       // Find the template digit with the best matching
       double maxScore = 0;
@@ -415,14 +418,13 @@ namespace student
       victim_Map.insert(std::pair<int, Polygon>(maxIdx, scaled_contour)); // insert the found blob in the MAP in order o assign the contour to the value
 
       std::cout << "Best fitting template: " << maxIdx << std::endl;
-
-      cv::waitKey(0);
     }
 
     //copy the sorted map into the vector
     victim_list.assign(victim_Map.begin(), victim_Map.end());
 
-    cv::waitKey(0);
+    std::cout << "emtpy? " << victim_list.size() << " " << obstacle_list.size() << std::endl;
+    return victim_list.size() > 0 && obstacle_list.size() > 0;
   }
 
   bool findRobot(const cv::Mat &img_in, const double scale, Polygon &triangle, double &x, double &y, double &theta, const std::string &config_folder)
@@ -498,8 +500,10 @@ namespace student
       y = cy;
       theta = std::atan2(dy, dx);
 
-      // std::cout << x << " " << y << " " << theta*180/M_PI << std::endl;
+      std::cout << x << " " << y << " " << theta*180/M_PI << std::endl;
     }
+
+    return found;
   }
 
   bool planPath(const Polygon &borders, const std::vector<Polygon> &obstacle_list, const std::vector<std::pair<int, Polygon>> &victim_list, const Polygon &gate, const float x, const float y, const float theta, Path &path)
