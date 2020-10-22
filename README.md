@@ -19,13 +19,19 @@ The function creates the folder (from the configuration default path) where to s
 bool extrinsicCalib(const cv::Mat &img_in, std::vector<cv::Point3f> object_points, 
                     const cv::Mat &camera_matrix, cv::Mat &rvec, cv::Mat &tvec, const std::string &config_folder)
 ```
+estimate the rotation and translation vectors of the camera starting from the undistorted image of the camera and the points of the arena.
 
+First the function check if it already exists the file with the measurement of the points of the arena precedently setted. If the file doesn't exists, it will appear a image of the camera where will be asked to the user to click in the four corner of the arena in counterclockwise order. After, using the function "solvePnP" are computed the rotation and translation vectors of the camera.
 
 ### imageUndistort
 ```c++
 void imageUndistort(const cv::Mat &img_in, cv::Mat &img_out, const cv::Mat &cam_matrix, 
                     const cv::Mat &dist_coeffs, const std::string &config_folder)
 ```
+It removes the distortion of the lens of the camera from the image in input from the parameters computed during the camera calibration phase.
+
+Since it's sufficient to calculate the calibration matrix to transform the image only one time, The function, when it's called the first time, it uses initUndistortRectifyMap() to compute the two maps of the two axis X and Y of the calibration matrix.
+Finally, everyyime the function is called, it computes the undistorted image with the function "remap()" using the 2 maps precedently calculated.
 
 ### findPlaneTransform
 ```c++
@@ -34,16 +40,38 @@ void findPlaneTransform(const cv::Mat &cam_matrix, const cv::Mat &rvec, const cv
                         const std::vector<cv::Point2f> &dest_image_points_plane, cv::Mat &plane_transf, 
                         const std::string &config_folder)
 ```
+It compute the transformation matrix to unwrap the image from the points taken before.
+
+using "projectPoints()" function, findPlaneTransform() projects the 3D points to a 2D image plane and then with "getPerspectiveTransform()" it computes the 3x3 perspective transformation of the corrisponding points.
 
 ### unwarp
 ```c++
 void unwarp(const cv::Mat &img_in, cv::Mat &img_out, const cv::Mat &transf, const std::string &config_folder)
 ```
-using "warpPerspective()" function it applies the transformation computed by "findPlaneTransform()" to unwrap the image and get a top-view visualization
+it apply the transformation to convert the 3D points in a 2D plane.
 
+using "warpPerspective()" function it applies the transformation computed by "findPlaneTransform()" to unwrap the image and get a top-view visualization
 
 ### processMap
 ```c++
 bool processMap(const cv::Mat &img_in, const double scale, std::vector<Polygon> &obstacle_list, 
                 std::vector<std::pair<int, Polygon>> &victim_list, Polygon &gate, const std::string &config_folder)
 ```
+Process the image to detect victims, obstacles and the gate.
+
+we need a obstacle list
+0. convert input image in hsv colorspace 
+1. use a colorfilter to sort the objects in a mask (Red,Green,Black)
+2. filter the objects if necessary (in real images only)
+3. extract contour of the obstacles and scale them (put them in the assigned lists!)
+4. extract the victims the baricantre and extract the number. Put them ordered in the list
+5. detect the gate by countuing the edges on the green contour mask (shape detection)
+
+### findRobot
+```c++
+bool findRobot(const cv::Mat &img_in, const double scale, Polygon &triangle, double &x, double &y, double &theta, const std::string &config_folder)
+```
+
+1. filter the blue areas out of the hsv image
+2. apply some filtering
+3. analyse the 
