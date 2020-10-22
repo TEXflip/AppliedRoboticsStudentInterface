@@ -262,7 +262,7 @@ typedef std::vector<Point> Polygon;
     //selecting the green_victims AND the gate
         
     cv::inRange(hsv_img, cv::Scalar(52,12,151), cv::Scalar(82,255,255), green_victim_mask); 
-    cv::imwrite("aaaa.jpg",green_victim_mask);
+    cv::imwrite("1aaaaa.jpg",red_obstacle_mask);
     //filter the black border
     //cv::inRange(hsv_img, cv::Scalar(0,0,0), cv::Scalar(10,10,225), black_border_mask); 
     
@@ -373,7 +373,7 @@ typedef std::vector<Point> Polygon;
     double area = cv::contourArea(contours[i]); // check the contour area to remove false positives
     if (area < MIN_AREA_SIZE) continue; 
     
-    approxPolyDP(contours[i], approx_curve, 2, true);
+    approxPolyDP(contours[i], approx_curve, 11, true);
     
    
        
@@ -432,8 +432,8 @@ typedef std::vector<Point> Polygon;
   //////TestKit
    if(templROIs[1].empty()) std::cout << "Loading the templates Failed"<< std::endl;
   //cv::imshow("Template_image",templROIs[1]);
-  ////// 
-
+  //////  
+  
   // cv::imshow("green_mask_inv", green_mask_inv);
    //ma come??
   img_in.copyTo(filtered, green_mask_inv); //creates a copy of image without green surounding 
@@ -527,6 +527,13 @@ typedef std::vector<Point> Polygon;
     cv::waitKey(0);
   }
 
+        cv::Mat templROIturned;
+        cv::Mat result;
+        cv::Point2f pc(templROIs[1].cols/2., templROIs[1].rows/2.);
+        cv::Mat rot = cv::getRotationMatrix2D(pc, 45, 1.0);
+        cv::warpAffine(templROIs[1], templROIturned, rot, cv::Size(200, 200));
+
+
   victim_list.assign(victim_Map.begin(), victim_Map.end() );
 
   ///TESTKIT
@@ -593,17 +600,30 @@ void processImage(cv::Mat& img)
   cv::moveWindow("RED_filter", W_0, H_0+img.rows+OFFSET_H);
 */
 
-  
+      cv::Mat red_mask_high, red_mask_low, red_obstacle_mask, green_victim_mask, black_border_mask;
+
+
     // Find red regions: h values around 0 (positive and negative angle: [0,15] U [160,179])        171,180;	96,255;		113,218;
-  cv::Mat red_mask_low, red_mask_high, red_mask;
-  cv::inRange(hsv_img, cv::Scalar(171, 96, 113), cv::Scalar(180, 255, 218), red_mask);
-  // cv::inRange(hsv_img, cv::Scalar(160, 10, 10), cv::Scalar(179, 255, 255), red_mask_high);
-  //cv::addWeighted(red_mask_low, 1.0, red_mask_high, 1.0, 0.0, red_mask); // combine together the two binary masks
-  cv::imshow("RED_filter", red_mask);
-  cv::moveWindow("RED_filter", W_0, H_0+img.rows+OFFSET_H);
+  // cv::imwrite("/home/ubuntu/Desktop/Redmask.jpg", red_mask_high);
+    //for real images use hue values left and right from 0 in order to get the best result
+    //selecting the red_obstacles
+    //selecting the red_obstacles
+   
+   
+    cv::inRange(hsv_img, cv::Scalar(0, 30, 188), cv::Scalar(10, 255, 255), red_mask_high);
+    // cv::imwrite("/home/ubuntu/Desktop/Redmask.jpg", red_mask_high);
+    //for real images use hue values left and right from 0 in order to get the best result
 
+    cv::inRange(hsv_img, cv::Scalar(142, 29, 199), cv::Scalar(180, 255, 255), red_mask_low);
 
-  // Find blue regions
+    cv::addWeighted(red_mask_low, 1.0, red_mask_high, 1.0, 0.0, red_obstacle_mask);
+
+    
+    //selecting the green_victims AND the gate
+        
+    cv::inRange(hsv_img, cv::Scalar(52,12,151), cv::Scalar(82,255,255), green_victim_mask);
+    // cv::imshow("input",green_victim_mask);
+    
   cv::Mat blue_mask;
   cv::inRange(hsv_img, cv::Scalar(106, 75, 38), cv::Scalar(125,202,122), blue_mask); //106,125;	75,202;		38,122;
   cv::imshow("BLUE_filter", blue_mask);
@@ -650,7 +670,7 @@ void processImage(cv::Mat& img)
 
   // Process red mask
   contours_img = img.clone();
-  cv::findContours(red_mask, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
+  cv::findContours(red_obstacle_mask, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
   drawContours(contours_img, contours, -1, cv::Scalar(40,190,40), 1, cv::LINE_AA);
   std::cout << "N. contours: " << contours.size() << std::endl;
   for (int i=0; i<contours.size(); ++i)
