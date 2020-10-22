@@ -193,8 +193,8 @@ namespace student
 
     plane_transf = cv::getPerspectiveTransform(img_points, dest_image_points_plane);
   }
-    /*! \fn unwarp
-    
+    /*!
+
       apply the transformation computed by "findPlaneTransform()" to unwrap the image and get a top-view visualization
 
     */
