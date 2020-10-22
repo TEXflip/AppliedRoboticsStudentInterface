@@ -6,6 +6,8 @@
 #include <experimental/filesystem>
 #include <cstdlib>
 
+#include <experimental/filesystem>
+
 #include <vector>
 #include <atomic>
 #include <unistd.h>
@@ -193,7 +195,7 @@ namespace student
 
     plane_transf = cv::getPerspectiveTransform(img_points, dest_image_points_plane);
   }
-    /*!
+  /*!
 
       apply the transformation computed by "findPlaneTransform()" to unwrap the image and get a top-view visualization
 
@@ -210,6 +212,9 @@ namespace student
     static const int H_0 = 0;
     static const int OFFSET_W = 10;
     static const int OFFSET_H = 100;
+
+    // cv::imwrite("test_image.jpg",img_in);
+    // std::cout << std::experimental::filesystem::current_path().relative_path() << "\n";
 
     /*! we need a obstacle list
       0. convert imput image in hsv colorspace 
@@ -246,9 +251,11 @@ namespace student
 
     //selecting the green_victims AND the gate
     cv::inRange(hsv_img, cv::Scalar(30, 66, 41), cv::Scalar(100, 213, 100), green_victim_mask);
-
+    // cv::imshow("input",green_victim_mask);
+    
     //selecting the black border
-    cv::inRange(hsv_img, cv::Scalar(0, 0, 0), cv::Scalar(10, 10, 225), black_border_mask);
+    cv::inRange(hsv_img, cv::Scalar(0, 0, 0), cv::Scalar(10, 10, 225), red_obstacle_mask);
+    // cv::imshow("red mask",red_obstacle_mask);
 
     //process RED_OBSTACLES
 
@@ -359,6 +366,7 @@ namespace student
     std::map<int, Polygon> victim_Map; //create a ma to sort the detected number with the position of the
 
     //loop for every numberBlob detected
+    std::cout << "boundingbox size: " <<boundRect.size() << std::endl;
 
     for (int i = 0; i < boundRect.size(); ++i)
     {
@@ -427,7 +435,9 @@ namespace student
       3. analyse the 
     */
 
-    cv::Mat blue_mask;
+    cv::Mat blue_mask, hsv_img;
+
+    cv::cvtColor(img_in, hsv_img, cv::COLOR_BGR2HSV);
 
     cv::inRange(hsv_img, cv::Scalar(90, 50, 50), cv::Scalar(140, 255, 255), blue_mask);
     // Process blue mask
@@ -482,10 +492,20 @@ namespace student
           vertex = item;
         }
       }
+      double dx = cx - vertex.x;
+      double dy = cy - vertex.y;
 
-      bool planPath(const Polygon &borders, const std::vector<Polygon> &obstacle_list, const std::vector<std::pair<int, Polygon>> &victim_list, const Polygon &gate, const float x, const float y, const float theta, Path &path)
-      {
-        throw std::logic_error("STUDENT FUNCTION - PLAN PATH - NOT IMPLEMENTED");
-      }
+      x = cx;
+      y = cy;
+      theta = std::atan2(dy, dx);
 
-    } // namespace student
+      // std::cout << x << " " << y << " " << theta*180/M_PI << std::endl;
+    }
+  }
+
+  bool planPath(const Polygon &borders, const std::vector<Polygon> &obstacle_list, const std::vector<std::pair<int, Polygon>> &victim_list, const Polygon &gate, const float x, const float y, const float theta, Path &path)
+  {
+    throw std::logic_error("STUDENT FUNCTION - PLAN PATH - NOT IMPLEMENTED");
+  }
+
+} // namespace student
