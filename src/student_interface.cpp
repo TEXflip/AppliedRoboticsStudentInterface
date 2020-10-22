@@ -186,13 +186,17 @@ namespace student
                           const std::vector<cv::Point2f> &dest_image_points_plane,
                           cv::Mat &plane_transf, const std::string &config_folder)
   {
-    throw std::logic_error("STUDENT FUNCTION - FIND PLANE TRANSFORM - NOT IMPLEMENTED");
+    cv::Mat img_points;
+
+    cv::projectPoints(object_points_plane, rvec, tvec, cam_matrix, cv::Mat(), img_points);
+
+    plane_transf = cv::getPerspectiveTransform(img_points, dest_image_points_plane);
   }
 
   void unwarp(const cv::Mat &img_in, cv::Mat &img_out, const cv::Mat &transf,
               const std::string &config_folder)
   {
-    throw std::logic_error("STUDENT FUNCTION - UNWRAP - NOT IMPLEMENTED");
+    cv::warpPerspective(img_in, img_out, transf, img_in.size());
   }
 
   bool processMap(const cv::Mat &img_in, const double scale, std::vector<Polygon> &obstacle_list, std::vector<std::pair<int, Polygon>> &victim_list, Polygon &gate, const std::string &config_folder)
