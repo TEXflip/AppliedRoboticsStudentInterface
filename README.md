@@ -40,7 +40,7 @@ void findPlaneTransform(const cv::Mat &cam_matrix, const cv::Mat &rvec, const cv
                         const std::vector<cv::Point2f> &dest_image_points_plane, cv::Mat &plane_transf, 
                         const std::string &config_folder)
 ```
-It compute the transformation matrix to unwrap the image from the points taken before.
+It computes the transformation matrix to unwrap the image from the points taken before.
 
 using "projectPoints()" function, findPlaneTransform() projects the 3D points to a 2D image plane and then with "getPerspectiveTransform()" it computes the 3x3 perspective transformation of the corrisponding points.
 
@@ -59,19 +59,36 @@ bool processMap(const cv::Mat &img_in, const double scale, std::vector<Polygon> 
 ```
 Process the image to detect victims, obstacles and the gate.
 
-we need a obstacle list
+code flow: obstacle list
 0. convert input image in hsv colorspace 
-1. use a colorfilter to sort the objects in a mask (Red,Green,Black)
-2. filter the objects if necessary (in real images only)
-3. extract contour of the obstacles and scale them (put them in the assigned lists!)
-4. extract the victims the baricantre and extract the number. Put them ordered in the list
-5. detect the gate by countuing the edges on the green contour mask (shape detection)
+1. use a colorfilter to sort the objects in a mask (Red,Green)
+2. filter the obtained masks
+3. extract contour of the obstacles with findContours(), approsimate them with approxPolyDP() and finally scale them 
+4. The fund contours in the assigned lists
+5. filter the green_victim_mask
+6. extract the gate by controlling its contour size(=4)
+7. extract the victims
+    -detect round contours
+    -elliminate the green surounding
+    -load the template numbers
+    -run the numberdetection(for every boundingBox)
+        *resize it to template size
+        *compare the detected numbers with the templates 
+        *select the tamplate according too the heighest matching point
+        *save the pair of matched template number and scaled  victim in a map  in order to sort them
+        *copy the ordered map into a vector
+
+
 
 ### findRobot
 ```c++
 bool findRobot(const cv::Mat &img_in, const double scale, Polygon &triangle, double &x, double &y, double &theta, const std::string &config_folder)
 ```
 
+0. convert input image in hsv colorspace 
 1. filter the blue areas out of the hsv image
 2. apply some filtering
-3. analyse the 
+4. approsimate the contours
+5. look for the triangle contour by sorting out all areas which are to small and the cntours with too much edges
+6. scale the found triangle contour 
+7. analyse the robot position(barricentre and rotation relative to x axis)
