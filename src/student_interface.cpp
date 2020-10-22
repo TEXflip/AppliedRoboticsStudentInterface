@@ -235,7 +235,7 @@ namespace student
 
     /*!
       values for masks (H_low,S_low,V_low) (H_hight,S_hight,V_hight)
-      RED     (0,10,0) (10,255,255)
+      RED     (0,10,150) (10,255,255) && (142,029,199) (180,255,255)
       Green   (10,0,0) (110,255,255)
       Black   (0,0,0)   (0-180..doesnt mater,1-180,225) !! the V value is important to be at 224
       The values change if applied to real images
@@ -244,11 +244,10 @@ namespace student
     //selecting the red_obstacles
     cv::inRange(hsv_img, cv::Scalar(0, 30, 113), cv::Scalar(10, 255, 218), red_mask_low);
     //for real images use hue values left and right from 0 in order to get the best result
-    //cv::inRange(hsv_img, cv::Scalar(170, 30, 113), cv::Scalar(180, 255, 218), red_mask_low);
-    //cv::addWeighted(red_mask_low, 1.0, red_mask_high, 1.0, 0.0, red_obstacle_mask);
+    cv::inRange(hsv_img, cv::Scalar(142, 29, 199), cv::Scalar(180, 255, 255), red_mask_low);
+    cv::addWeighted(red_mask_low, 1.0, red_mask_high, 1.0, 0.0, red_obstacle_mask);
 
-    red_obstacle_mask = red_mask_low; //delete this line if the low and high are added
-
+    cv::imshow("Redmask",red_obstacle_mask);
     //selecting the green_victims AND the gate
     cv::inRange(hsv_img, cv::Scalar(30, 66, 41), cv::Scalar(100, 213, 100), green_victim_mask);
     // cv::imshow("input",green_victim_mask);
