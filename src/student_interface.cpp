@@ -160,7 +160,7 @@ namespace student
     return ok;
   }
 
-#pragma endregion 
+#pragma endregion
 
   void imageUndistort(const cv::Mat &img_in, cv::Mat &img_out,
                       const cv::Mat &cam_matrix, const cv::Mat &dist_coeffs, const std::string &config_folder)
@@ -171,14 +171,15 @@ namespace student
     static bool maps_initialized = false;
     static cv::Mat full_map1, full_map2;
 
-    if(!maps_initialized){
+    if (!maps_initialized)
+    {
       cv::Mat R;
       cv::initUndistortRectifyMap(cam_matrix, dist_coeffs, R, cam_matrix, img_in.size(), CV_16SC2, full_map1, full_map2);
 
       maps_initialized = true;
     }
- 
-    cv::remap(img_in, img_out, full_map1, full_map2, cv::INTER_LINEAR);    
+
+    cv::remap(img_in, img_out, full_map1, full_map2, cv::INTER_LINEAR);
   }
 
   void findPlaneTransform(const cv::Mat &cam_matrix, const cv::Mat &rvec,
@@ -192,10 +193,11 @@ namespace student
 
     plane_transf = cv::getPerspectiveTransform(img_points, dest_image_points_plane);
   }
+    /*! \fn unwarp
+    
+      apply the transformation computed by "findPlaneTransform()" to unwrap the image and get a top-view visualization
 
-
-
-
+    */
   void unwarp(const cv::Mat &img_in, cv::Mat &img_out, const cv::Mat &transf,
               const std::string &config_folder)
   {
@@ -204,12 +206,12 @@ namespace student
 
   bool processMap(const cv::Mat &img_in, const double scale, std::vector<Polygon> &obstacle_list, std::vector<std::pair<int, Polygon>> &victim_list, Polygon &gate, const std::string &config_folder)
   {
-    static const int W_0      = 300;
-    static const int H_0      = 0;
+    static const int W_0 = 300;
+    static const int H_0 = 0;
     static const int OFFSET_W = 10;
     static const int OFFSET_H = 100;
 
-    /* we need a obstacle list
+    /*! we need a obstacle list
       0. convert imput image in hsv colorspace 
       1. use a colorfilter to sort the objects in a mask (Red,Green,Black)
       2. filter the objects if necessary (in real images only)
@@ -226,7 +228,7 @@ namespace student
     // Matrix for the colormasks
     cv::Mat red_mask_high, red_mask_low, red_obstacle_mask, green_victim_mask, black_border_mask, purple_gate_mask;
 
-    /*
+    /*!
       values for masks (H_low,S_low,V_low) (H_hight,S_hight,V_hight)
       RED     (0,10,0) (10,255,255)
       Green   (10,0,0) (110,255,255)
@@ -248,12 +250,12 @@ namespace student
     //selecting the black border
     cv::inRange(hsv_img, cv::Scalar(0, 0, 0), cv::Scalar(10, 10, 225), black_border_mask);
 
- //process RED_OBSTACLES
+    //process RED_OBSTACLES
 
-    std::vector<std::vector<cv::Point> > contours, contours_approx; //define point vectros for the curves and contoures
+    std::vector<std::vector<cv::Point>> contours, contours_approx; //define point vectros for the curves and contoures
     std::vector<cv::Point> approx_curve;
     //Apply enventally some filtering
-    cv::Mat kernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size((1*2) + 1, (1*2)+1));
+    cv::Mat kernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size((1 * 2) + 1, (1 * 2) + 1));
     cv::dilate(red_obstacle_mask, red_obstacle_mask, kernel);
     cv::erode(red_obstacle_mask, red_obstacle_mask, kernel);
     //find contours
@@ -262,27 +264,26 @@ namespace student
 
     //process the found contours (aprox and scale)
 
-    for (int i = 0; i < contours.size(); ++i) 
+    for (int i = 0; i < contours.size(); ++i)
     {
-        //std::cout << (i+1) << ") Contour size: " << contours[i].size() << std::endl;
+      //std::cout << (i+1) << ") Contour size: " << contours[i].size() << std::endl;
 
-        approxPolyDP(contours[i], approx_curve, 3, true); // approxPolyDP( InputArray curve,OutputArray approxCurve,double epsilon, bool closed )
-                                                          //function that closes eventual opend contoures ???
+      approxPolyDP(contours[i], approx_curve, 3, true); // approxPolyDP( InputArray curve,OutputArray approxCurve,double epsilon, bool closed )
+                                                        //function that closes eventual opend contoures ???
 
-        //scaling loop
-        Polygon scaled_contour; //typedev vector
+      //scaling loop
+      Polygon scaled_contour; //typedev vector
 
-        for (const auto& pt : approx_curve) {
-            scaled_contour.emplace_back(pt.x / scale, pt.y / scale);
-        }
+      for (const auto &pt : approx_curve)
+      {
+        scaled_contour.emplace_back(pt.x / scale, pt.y / scale);
+      }
 
-        obstacle_list.push_back(scaled_contour); //add the aprox and scaled object to the list
-
+      obstacle_list.push_back(scaled_contour); //add the aprox and scaled object to the list
     }
 
-
     //process GREEN_VICTIMS AND GATE///////////////////////////////////////
-    /*
+    /*!
       1.filter the blobs
       2.for every contour 
         -delet the to small contours
@@ -291,48 +292,46 @@ namespace student
         
     */
     // eventual filtering on green_victim_mask
-    kernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size((1*2) + 1, (1*2)+1));
+    kernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size((1 * 2) + 1, (1 * 2) + 1));
     cv::dilate(green_victim_mask, green_victim_mask, kernel);
     cv::erode(green_victim_mask, green_victim_mask, kernel);
     //find contours
     cv::findContours(green_victim_mask, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
 
-    
     //elaborating the found contours
     const double MIN_AREA_SIZE = 100;
-    cv::Mat contours_img_boundingbox = cv::Mat (img_in.size(), CV_8UC3, cv::Scalar::all(0));
-    cv::Mat gateimage = cv::Mat (img_in.size(), CV_8UC3, cv::Scalar::all(0));
+    cv::Mat contours_img_boundingbox = cv::Mat(img_in.size(), CV_8UC3, cv::Scalar::all(0));
+    cv::Mat gateimage = cv::Mat(img_in.size(), CV_8UC3, cv::Scalar::all(0));
     std::vector<cv::Rect> boundRect(contours.size());
-    Polygon scaled_contour_green; 
-      std::vector<cv::Point> contours_approx_array[12];
+    Polygon scaled_contour_green;
+    std::vector<cv::Point> contours_approx_array[12];
 
-     for (int i=0; i<contours.size(); ++i)
+    for (int i = 0; i < contours.size(); ++i)
     {
-    double area = cv::contourArea(contours[i]); // check the contour area to remove false positives
-    if (area < MIN_AREA_SIZE) continue; 
-    
-    approxPolyDP(contours[i], approx_curve, 2, true); //aproxximate the contoure in less vertices
-           
-    if(approx_curve.size()==4) //if i have a gate(a quadratic figure in green)
-    {
+      double area = cv::contourArea(contours[i]); // check the contour area to remove false positives
+      if (area < MIN_AREA_SIZE)
+        continue;
+
+      approxPolyDP(contours[i], approx_curve, 2, true); //aproxximate the contoure in less vertices
+
+      if (approx_curve.size() == 4) //if i have a gate(a quadratic figure in green)
+      {
         Polygon gate;
-        for (const auto& pt: approx_curve) 
-         {
-           scaled_contour_green.emplace_back(pt.x/scale, pt.y/scale);
-         }
-        gate = scaled_contour_green;
-    }
-    else if(approx_curve.size()>4) // && approx_curve.size()<6  as in example????????????? //if i have a number circle
+        for (const auto &pt : approx_curve)
         {
-      contours_approx_array [i] = {approx_curve};  //assosciate the found aprox contour to the same nuumber as the boundingbox (sync the arrays)
-      boundRect[i] = boundingRect(cv::Mat(approx_curve)); // finds bounding box for each green blob
+          scaled_contour_green.emplace_back(pt.x / scale, pt.y / scale);
         }
- 
+        gate = scaled_contour_green;
+      }
+      else if (approx_curve.size() > 4) // && approx_curve.size()<6  as in example????????????? //if i have a number circle
+      {
+        contours_approx_array[i] = {approx_curve};          //assosciate the found aprox contour to the same nuumber as the boundingbox (sync the arrays)
+        boundRect[i] = boundingRect(cv::Mat(approx_curve)); // finds bounding box for each green blob
+      }
     }
 
-   
-    ////////////////TEMLATEMATCHING//////////// 
-    /*
+    ////////////////TEMLATEMATCHING////////////
+    /*!
         5. create and invert the obtained bitmap 
         6. load templates from file
         7. create copy of the immage without green surounding(filtered is a mat with all black and therfore the numbers remain hen copzing the bitmap
@@ -343,129 +342,126 @@ namespace student
             - Find the template digit with the best matching
             - after finding the right number scale the associated contour and save it to a map
         9.save the found map (containing(int, polygon)) to the victim_list (in the order of numbers)
-    */  
-    cv::Mat green_mask_inv, filtered(img_in.rows, img_in.cols, CV_8UC3, cv::Scalar(255,255,255));
+    */
+    cv::Mat green_mask_inv, filtered(img_in.rows, img_in.cols, CV_8UC3, cv::Scalar(255, 255, 255));
     cv::bitwise_not(green_victim_mask, green_mask_inv); // generate binary mask with inverted pixels w.r.t. green mask -> black numbers are part of this mask
-  
+
     // Load Templatenumbers into a vector
     std::vector<cv::Mat> templROIs;
-    for (int i=0; i<=9; ++i) 
+    for (int i = 0; i <= 9; ++i)
     {
-    templROIs.emplace_back(cv::imread("/home/ubuntu/Desktop/workspace/project/src/01_template_matching/template/" + std::to_string(i) + ".png"));
+      templROIs.emplace_back(cv::imread("/home/ubuntu/Desktop/workspace/project/src/01_template_matching/template/" + std::to_string(i) + ".png"));
     }
 
-    img_in.copyTo(filtered, green_mask_inv); //creates a copy of image without green surounding 
+    img_in.copyTo(filtered, green_mask_inv); //creates a copy of image without green surounding
 
-  
     double score;
-    std::map < int , Polygon> victim_Map; //create a ma to sort the detected number with the position of the 
+    std::map<int, Polygon> victim_Map; //create a ma to sort the detected number with the position of the
 
-  //loop for every numberBlob detected
+    //loop for every numberBlob detected
 
-  for (int i=0; i<boundRect.size(); ++i)
-  {
-    cv::Mat processROI(filtered, boundRect[i]); // extract the ROI containing the digit()
-
-    if (processROI.empty()) continue;
-
-    cv::resize(processROI, processROI, cv::Size(200, 200)); // resize the ROI to match with the template size!!!!!
-    cv::threshold( processROI, processROI, 100, 255, 0 ); // threshold and binarize the image, to suppress some noise
-    
-    // Apply some additional smoothing and filtering
-    cv::erode(processROI, processROI, kernel);
-    cv::GaussianBlur(processROI, processROI, cv::Size(5, 5), 2, 2);
-    cv::erode(processROI, processROI, kernel);
-    
-    // Show the actual image used for the template matching
-    cv::imshow("ROI", processROI);  
-    cv::moveWindow("ROI", W_0+img_in.cols+OFFSET_W, H_0+img_in.rows+OFFSET_H);
-
-    
-    
-    // Find the template digit with the best matching
-    double maxScore = 0;
-    int maxIdx = -1;
-    std::cout << templROIs.size();
-
-    for (int j=0; j<templROIs.size(); ++j) 
+    for (int i = 0; i < boundRect.size(); ++i)
     {
-      cv::Mat result;
-      cv::matchTemplate(processROI, templROIs[j], result, cv::TM_CCOEFF);
-     
-      cv::minMaxLoc(result, nullptr, &score); 
-      if (score > maxScore) 
+      cv::Mat processROI(filtered, boundRect[i]); // extract the ROI containing the digit()
+
+      if (processROI.empty())
+        continue;
+
+      cv::resize(processROI, processROI, cv::Size(200, 200)); // resize the ROI to match with the template size!!!!!
+      cv::threshold(processROI, processROI, 100, 255, 0);     // threshold and binarize the image, to suppress some noise
+
+      // Apply some additional smoothing and filtering
+      cv::erode(processROI, processROI, kernel);
+      cv::GaussianBlur(processROI, processROI, cv::Size(5, 5), 2, 2);
+      cv::erode(processROI, processROI, kernel);
+
+      // Show the actual image used for the template matching
+      cv::imshow("ROI", processROI);
+      cv::moveWindow("ROI", W_0 + img_in.cols + OFFSET_W, H_0 + img_in.rows + OFFSET_H);
+
+      // Find the template digit with the best matching
+      double maxScore = 0;
+      int maxIdx = -1;
+      std::cout << templROIs.size();
+
+      for (int j = 0; j < templROIs.size(); ++j)
       {
-        maxScore = score;
-        maxIdx = j;
+        cv::Mat result;
+        cv::matchTemplate(processROI, templROIs[j], result, cv::TM_CCOEFF);
+
+        cv::minMaxLoc(result, nullptr, &score);
+        if (score > maxScore)
+        {
+          maxScore = score;
+          maxIdx = j;
+        }
       }
-    
+
+      Polygon scaled_contour; //typedev vector
+
+      //scale the found contour
+      for (const auto &pt : contours_approx_array[i])
+      {
+        scaled_contour.emplace_back(pt.x / scale, pt.y / scale);
+      }
+
+      victim_Map.insert(std::pair<int, Polygon>(maxIdx, scaled_contour)); // insert the found blob in the MAP in order o assign the contour to the value
+
+      std::cout << "Best fitting template: " << maxIdx << std::endl;
+
+      cv::waitKey(0);
     }
 
-    Polygon scaled_contour;         //typedev vector
-
-    //scale the found contour 
-    for (const auto& pt: contours_approx_array[i]) 
-      {
-        scaled_contour.emplace_back(pt.x/scale, pt.y/scale);
-      }
-
-    
-    victim_Map.insert( std::pair<int,Polygon>(maxIdx,scaled_contour)); // insert the found blob in the MAP in order o assign the contour to the value
-    
-    std::cout << "Best fitting template: " << maxIdx << std::endl;
-    
-    cv::waitKey(0);
-  }
-
-//copy the sorted map into the vector
-  victim_list.assign(victim_Map.begin(), victim_Map.end() );
-
+    //copy the sorted map into the vector
+    victim_list.assign(victim_Map.begin(), victim_Map.end());
 
     cv::waitKey(0);
   }
 
   bool findRobot(const cv::Mat &img_in, const double scale, Polygon &triangle, double &x, double &y, double &theta, const std::string &config_folder)
   {
-   
-/*
-    1.filter the blue areas out of the hsv image
-    2.apply some filtering
-    3. analyse the 
-*/
 
-cv::Mat blue_mask;    
-     
-  cv::inRange(hsv_img, cv::Scalar(90, 50, 50), cv::Scalar(140, 255, 255), blue_mask);
-  // Process blue mask
-  std::vector<std::vector<cv::Point>> contours, contours_approx;
-  std::vector<cv::Point> approx_curve;
-  cv::findContours(blue_mask, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
-  bool found = false;
- for (int i=0; i<contours.size() && found == false; ++i)
+    /*!
+      1. filter the blue areas out of the hsv image
+      2. apply some filtering
+      3. analyse the 
+    */
+
+    cv::Mat blue_mask;
+
+    cv::inRange(hsv_img, cv::Scalar(90, 50, 50), cv::Scalar(140, 255, 255), blue_mask);
+    // Process blue mask
+    std::vector<std::vector<cv::Point>> contours, contours_approx;
+    std::vector<cv::Point> approx_curve;
+    cv::findContours(blue_mask, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
+    bool found = false;
+    for (int i = 0; i < contours.size() && found == false; ++i)
     {
-      
+
       cv::approxPolyDP(contours[i], approx_curve, 10, true);
       contours_approx = {approx_curve};
 
-
       double area = cv::contourArea(approx_curve);
       // use onlz triangles
-      if (approx_curve.size() != 3) continue;
-      
-      if (area < 300 || area>3000) continue;
-      
+      if (approx_curve.size() != 3)
+        continue;
+
+      if (area < 300 || area > 3000)
+        continue;
+
       found = true;
     }
-  //find the barrycentre and rotation
-    if (found) 
+    //find the barrycentre and rotation
+    if (found)
     {
       //scale the contoure
-      for (const auto& pt: approx_curve) {
-        triangle.emplace_back(pt.x/scale, pt.y/scale);
+      for (const auto &pt : approx_curve)
+      {
+        triangle.emplace_back(pt.x / scale, pt.y / scale);
       }
       //calculate the barrycentre
       double cx = 0, cy = 0;
-      for (auto item: triangle) 
+      for (auto item : triangle)
       {
         cx += item.x;
         cy += item.y;
@@ -475,21 +471,21 @@ cv::Mat blue_mask;
 
       double dst = 0;
       Point vertex;
-      for (auto& item: triangle)
+      for (auto &item : triangle)
       {
-        double dx = item.x-cx;      
-        double dy = item.y-cy;
-        double curr_d = dx*dx + dy*dy;
+        double dx = item.x - cx;
+        double dy = item.y - cy;
+        double curr_d = dx * dx + dy * dy;
         if (curr_d > dst)
-        { 
+        {
           dst = curr_d;
           vertex = item;
         }
-  }
+      }
 
-  bool planPath(const Polygon &borders, const std::vector<Polygon> &obstacle_list, const std::vector<std::pair<int, Polygon>> &victim_list, const Polygon &gate, const float x, const float y, const float theta, Path &path)
-  {
-    throw std::logic_error("STUDENT FUNCTION - PLAN PATH - NOT IMPLEMENTED");
-  }
+      bool planPath(const Polygon &borders, const std::vector<Polygon> &obstacle_list, const std::vector<std::pair<int, Polygon>> &victim_list, const Polygon &gate, const float x, const float y, const float theta, Path &path)
+      {
+        throw std::logic_error("STUDENT FUNCTION - PLAN PATH - NOT IMPLEMENTED");
+      }
 
-} // namespace student
+    } // namespace student
