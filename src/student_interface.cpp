@@ -194,7 +194,7 @@ namespace student
   }
 
 
-//Unwraps
+
 
   void unwarp(const cv::Mat &img_in, cv::Mat &img_out, const cv::Mat &transf,
               const std::string &config_folder)
@@ -427,6 +427,64 @@ namespace student
   bool findRobot(const cv::Mat &img_in, const double scale, Polygon &triangle, double &x, double &y, double &theta, const std::string &config_folder)
   {
    
+/*
+    1.filter the blue areas out of the hsv image
+    2.apply some filtering
+    3. analyse the 
+*/
+
+cv::Mat blue_mask;    
+     
+  cv::inRange(hsv_img, cv::Scalar(90, 50, 50), cv::Scalar(140, 255, 255), blue_mask);
+  // Process blue mask
+  std::vector<std::vector<cv::Point>> contours, contours_approx;
+  std::vector<cv::Point> approx_curve;
+  cv::findContours(blue_mask, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
+  bool found = false;
+ for (int i=0; i<contours.size() && found == false; ++i)
+    {
+      
+      cv::approxPolyDP(contours[i], approx_curve, 10, true);
+      contours_approx = {approx_curve};
+
+
+      double area = cv::contourArea(approx_curve);
+      // use onlz triangles
+      if (approx_curve.size() != 3) continue;
+      
+      if (area < 300 || area>3000) continue;
+      
+      found = true;
+    }
+  //find the barrycentre and rotation
+    if (found) 
+    {
+      //scale the contoure
+      for (const auto& pt: approx_curve) {
+        triangle.emplace_back(pt.x/scale, pt.y/scale);
+      }
+      //calculate the barrycentre
+      double cx = 0, cy = 0;
+      for (auto item: triangle) 
+      {
+        cx += item.x;
+        cy += item.y;
+      }
+      cx /= triangle.size();
+      cy /= triangle.size();
+
+      double dst = 0;
+      Point vertex;
+      for (auto& item: triangle)
+      {
+        double dx = item.x-cx;      
+        double dy = item.y-cy;
+        double curr_d = dx*dx + dy*dy;
+        if (curr_d > dst)
+        { 
+          dst = curr_d;
+          vertex = item;
+        }
   }
 
   bool planPath(const Polygon &borders, const std::vector<Polygon> &obstacle_list, const std::vector<std::pair<int, Polygon>> &victim_list, const Polygon &gate, const float x, const float y, const float theta, Path &path)

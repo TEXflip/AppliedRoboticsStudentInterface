@@ -23,14 +23,6 @@ target_link_libraries(student
   ${OpenCV_LIBRARIES}  
 )
 
-## COMPILE CAMERA_CALIBRATION EXECUTABLE
-add_executable(camera_calibration
-  src/camera_calibration.cpp
-)
-target_link_libraries(camera_calibration
-  ${OpenCV_LIBRARIES}
-)
-
 ## COMPILE DEMO EXECUTABLE
 add_executable(demo_dilatation_erosion
   src/demo_shape_detection/demo_dilatation_erosion.cpp
@@ -53,6 +45,9 @@ add_executable(demo_full_example
 add_executable(demo_simple_shape_detection
   src/demo_shape_detection/demo_simple_shape_detection.cpp
 )
+add_executable(creat_real_map
+  src/demo_shape_detection/creat_real_map.cpp
+)
 
 target_link_libraries(demo_dilatation_erosion
   ${OpenCV_LIBRARIES}
@@ -74,4 +69,14 @@ target_link_libraries(demo_full_example
 )
 target_link_libraries(demo_simple_shape_detection
   ${OpenCV_LIBRARIES}
+
 )
+
+target_link_libraries(creat_real_map
+  ${OpenCV_LIBRARIES}
+
+)
+
+
+
+
