@@ -236,7 +236,7 @@ namespace student
     /*!
       values for masks (H_low,S_low,V_low) (H_hight,S_hight,V_hight)
       RED     (0,10,150) (10,255,255) && (142,029,199) (180,255,255)
-      Green   (10,0,0) (110,255,255)
+      Green   (52,12,151) (82,255,255)
       Black   (0,0,0)   (0-180..doesnt mater,1-180,225) !! the V value is important to be at 224
       The values change if applied to real images
   */
@@ -249,11 +249,11 @@ namespace student
 
     cv::imshow("Redmask",red_obstacle_mask);
     //selecting the green_victims AND the gate
-    cv::inRange(hsv_img, cv::Scalar(30, 66, 41), cv::Scalar(100, 213, 100), green_victim_mask);
+    cv::inRange(hsv_img, cv::Scalar(52,12,151), cv::Scalar(82,255,255), green_victim_mask);
     // cv::imshow("input",green_victim_mask);
     
-    //selecting the black border
-    cv::inRange(hsv_img, cv::Scalar(0, 0, 0), cv::Scalar(10, 10, 225), red_obstacle_mask);
+    //selecting the black border if needed. Atention(numbers get also included)
+    //cv::inRange(hsv_img, cv::Scalar(0, 0, 0), cv::Scalar(10, 10, 225), red_obstacle_mask);
     // cv::imshow("red mask",red_obstacle_mask);
 
     //process RED_OBSTACLES
@@ -431,14 +431,14 @@ namespace student
     /*!
       1. filter the blue areas out of the hsv image
       2. apply some filtering
-      3. analyse the 
+      3. analyse the robot position(barricentre and rotation relative to x axis)
     */
 
     cv::Mat blue_mask, hsv_img;
 
     cv::cvtColor(img_in, hsv_img, cv::COLOR_BGR2HSV);
 
-    cv::inRange(hsv_img, cv::Scalar(90, 50, 50), cv::Scalar(140, 255, 255), blue_mask);
+    cv::inRange(hsv_img, cv::Scalar(77, 24, 52), cv::Scalar(146, 255, 255), blue_mask);
     // Process blue mask
     std::vector<std::vector<cv::Point>> contours, contours_approx;
     std::vector<cv::Point> approx_curve;
