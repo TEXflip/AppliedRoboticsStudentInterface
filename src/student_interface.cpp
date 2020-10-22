@@ -242,17 +242,17 @@ namespace student
   */
     
     //selecting the red_obstacles
-    cv::inRange(hsv_img, cv::Scalar(0, 30, 113), cv::Scalar(10, 255, 218), red_mask_high);
-    // cv::imwrite("/home/ubuntu/Desktop/Redmask.jpg", red_mask_high);
+    cv::inRange(hsv_img, cv::Scalar(0, 30, 188), cv::Scalar(10, 255, 255), red_mask_high);
+    
     //for real images use hue values left and right from 0 in order to get the best result
 
     cv::inRange(hsv_img, cv::Scalar(142, 29, 199), cv::Scalar(180, 255, 255), red_mask_low);
 
     cv::addWeighted(red_mask_low, 1.0, red_mask_high, 1.0, 0.0, red_obstacle_mask);
-
+    // cv::imwrite("/home/ubuntu/Desktop/Redmask.jpg", red_obstacle_mask);
     
     //selecting the green_victims AND the gate
-        
+    
     cv::inRange(hsv_img, cv::Scalar(52,12,151), cv::Scalar(82,255,255), green_victim_mask);
     // cv::imshow("input",green_victim_mask);
     
