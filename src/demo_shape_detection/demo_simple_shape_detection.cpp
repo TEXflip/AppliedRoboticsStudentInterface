@@ -162,6 +162,7 @@ cv::Mat blue_mask;
 
 void processMap(const cv:: Mat& img_in)
 {
+  std::cout << "Loading the templates Failed"<< std::endl;
    /* we need a obstacle list
         0. convert imput image in hsv colorspace ::  cv::cvtColor(img, hsv_img, cv::COLOR_BGR2HSV);
         1. use a colorfilter to sort the objects in a mask (g,R,B,Purple); ::quite a bit of code
@@ -249,22 +250,27 @@ typedef std::vector<Point> Polygon;
 
     */
     //filtering the red_obstacles
-    cv::inRange(hsv_img, cv::Scalar(0, 10, 0), cv::Scalar(10, 255, 255), red_mask_low);
-        //for real images use hue values left and right from 0 in order to get the best result
-    //cv::inRange(hsv_img, cv::Scalar(170, 30, 113), cv::Scalar(180, 255, 218), red_mask_low);
-    //cv::addWeighted(red_mask_low, 1.0, red_mask_high, 1.0, 0.0, red_obstacle_mask);
-    red_obstacle_mask = red_mask_low; //delete this line if the low and high are added
-   
-    //filtering the green_obstacles
-    cv::inRange(hsv_img, cv::Scalar(10,0,0), cv::Scalar(110,255, 255), green_victim_mask); 
+    cv::inRange(hsv_img, cv::Scalar(0, 30, 113), cv::Scalar(10, 255, 218), red_mask_high);
+    // cv::imwrite("/home/ubuntu/Desktop/Redmask.jpg", red_mask_high);
+    //for real images use hue values left and right from 0 in order to get the best result
 
+    cv::inRange(hsv_img, cv::Scalar(142, 29, 199), cv::Scalar(180, 255, 255), red_mask_low);
+
+    cv::addWeighted(red_mask_low, 1.0, red_mask_high, 1.0, 0.0, red_obstacle_mask);
+
+    
+    //selecting the green_victims AND the gate
+        
+    cv::inRange(hsv_img, cv::Scalar(52,12,151), cv::Scalar(82,255,255), green_victim_mask); 
+    cv::imwrite("aaaa.jpg",green_victim_mask);
     //filter the black border
-    cv::inRange(hsv_img, cv::Scalar(0,0,0), cv::Scalar(10,10,225), black_border_mask); 
+    //cv::inRange(hsv_img, cv::Scalar(0,0,0), cv::Scalar(10,10,225), black_border_mask); 
     
 
     /*TESTING ONLY)*/
 
       cv::imshow("red_obstacle_mask", red_obstacle_mask);
+      
       cv::moveWindow("red_obstacle_mask", W_0+2*(img_in.cols+OFFSET_W), H_0);
       cv::imshow("green_victim_mask", green_victim_mask);
       cv::moveWindow("green_victim_mask", W_0-2*(img_in.cols+OFFSET_W), H_0);
@@ -328,7 +334,7 @@ typedef std::vector<Point> Polygon;
 
     //cv::imshow("contours_img_raw_red", contours_img_raw_red);
 
-
+  std::cout<<"ostcoli rossi: " << obstacle_list.size() << std::endl;
 
 //GREEN VICTiMS §§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§ù
 
@@ -711,8 +717,8 @@ int main( int, char** argv )
   }
     
   //processImage(img);
-  //processMap(img);
-  findRobot(img);
+  processMap(img);
+ // findRobot(img);
   return 0;
 }
 
