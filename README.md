@@ -85,6 +85,7 @@ code flow: obstacle list
 ```c++
 bool findRobot(const cv::Mat &img_in, const double scale, Polygon &triangle, double &x, double &y, double &theta, const std::string &config_folder)
 ```
+find the position and rotation of the robot
 
 0. convert input image in hsv colorspace 
 1. filter the blue areas out of the hsv image
