@@ -214,7 +214,6 @@ namespace student
     static const int OFFSET_H = 100;
 
     // cv::imwrite("test_image.jpg",img_in);
-    
 
     /*! we need a obstacle list
       0. convert imput image in hsv colorspace 
@@ -240,25 +239,21 @@ namespace student
       Black   (0,0,0)   (0-180..doesnt mater,1-180,225) !! the V value is important to be at 224
       The values change if applied to real images
   */
-    
+
     //selecting the red_obstacles
     cv::inRange(hsv_img, cv::Scalar(0, 30, 188), cv::Scalar(10, 255, 255), red_mask_high);
-    
+
     //for real images use hue values left and right from 0 in order to get the best result
 
     cv::inRange(hsv_img, cv::Scalar(142, 29, 199), cv::Scalar(180, 255, 255), red_mask_low);
 
     cv::addWeighted(red_mask_low, 1.0, red_mask_high, 1.0, 0.0, red_obstacle_mask);
-    // cv::imwrite("/home/ubuntu/Desktop/Redmask.jpg", red_obstacle_mask);
-    
+
     //selecting the green_victims AND the gate
-    
-    cv::inRange(hsv_img, cv::Scalar(52,12,151), cv::Scalar(82,255,255), green_victim_mask);
-    // cv::imshow("input",green_victim_mask);
-    
+    cv::inRange(hsv_img, cv::Scalar(52, 12, 151), cv::Scalar(82, 255, 255), green_victim_mask);
+
     //selecting the black border if needed. Atention(numbers get also included)
     //cv::inRange(hsv_img, cv::Scalar(0, 0, 0), cv::Scalar(10, 10, 225), red_obstacle_mask);
-    // cv::imshow("red mask",red_obstacle_mask);
 
     //process RED_OBSTACLES
 
@@ -283,7 +278,7 @@ namespace student
 
       //scaling loop
       Polygon scaled_contour; //typedev vector
-        
+
       for (const auto &pt : approx_curve)
       {
         scaled_contour.emplace_back(pt.x / scale, pt.y / scale);
@@ -305,13 +300,13 @@ namespace student
     kernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size((1 * 2) + 1, (1 * 2) + 1));
     cv::dilate(green_victim_mask, green_victim_mask, kernel);
     cv::erode(green_victim_mask, green_victim_mask, kernel);
+
     //find contours
     cv::findContours(green_victim_mask, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
 
     //elaborating the found contours
     const double MIN_AREA_SIZE = 100;
     cv::Mat contours_img_boundingbox = cv::Mat(img_in.size(), CV_8UC3, cv::Scalar::all(0));
-    cv::Mat gateimage = cv::Mat(img_in.size(), CV_8UC3, cv::Scalar::all(0));
     std::vector<cv::Rect> boundRect(contours.size());
     Polygon scaled_contour_green;
     std::vector<cv::Point> contours_approx_array[12];
@@ -322,7 +317,7 @@ namespace student
       if (area < MIN_AREA_SIZE)
         continue;
 
-      approxPolyDP(contours[i], approx_curve, 2, true); //aproxximate the contoure in less vertices
+      approxPolyDP(contours[i], approx_curve, 11, true); //aproxximate the contoure in less vertices
 
       if (approx_curve.size() == 4) //if i have a gate(a quadratic figure in green)
       {
@@ -334,11 +329,11 @@ namespace student
       }
       else if (approx_curve.size() > 4) // && approx_curve.size()<6  as in example????????????? //if i have a number circle
       {
-        contours_approx_array[i] = {approx_curve};          //assosciate the found aprox contour to the same nuumber as the boundingbox (sync the arrays)
+        contours_approx_array[i] = {approx_curve};          //assosciate the found aprox contour to the same number as the boundingbox (sync the arrays)
         boundRect[i] = boundingRect(cv::Mat(approx_curve)); // finds bounding box for each green blob
       }
     }
-    
+
     ////////////////TEMLATEMATCHING////////////
     /*!
         5. create and invert the obtained bitmap 
@@ -354,21 +349,23 @@ namespace student
     */
     cv::Mat green_mask_inv, filtered(img_in.rows, img_in.cols, CV_8UC3, cv::Scalar(255, 255, 255));
     cv::bitwise_not(green_victim_mask, green_mask_inv); // generate binary mask with inverted pixels w.r.t. green mask -> black numbers are part of this mask
-
+    
     // Load Templatenumbers into a vector
     std::vector<cv::Mat> templROIs;
     for (int i = 0; i <= 9; ++i)
     {
-      templROIs.emplace_back(cv::imread("/home/ubuntu/Desktop/workspace/project/src/01_template_matching/template/" + std::to_string(i) + ".png"));
+      cv::Mat templImg = cv::imread("/home/ubuntu/Desktop/workspace/project/src/01_template_matching/template/" + std::to_string(i) + ".png");
+      cv::flip(templImg, templImg, 1);
+      templROIs.emplace_back(templImg);
     }
-
+    
     img_in.copyTo(filtered, green_mask_inv); //creates a copy of image without green surounding
 
     double score;
     std::map<int, Polygon> victim_Map; //create a ma to sort the detected number with the position of the
 
     //loop for every numberBlob detected
-    std::cout << "boundingbox size: " <<boundRect.size() << std::endl;
+    std::cout << "boundingbox size: " << boundRect.size() << std::endl;
 
     for (int i = 0; i < boundRect.size(); ++i)
     {
@@ -379,7 +376,7 @@ namespace student
 
       cv::resize(processROI, processROI, cv::Size(200, 200)); // resize the ROI to match with the template size!!!!!
       cv::threshold(processROI, processROI, 100, 255, 0);     // threshold and binarize the image, to suppress some noise
-
+      
       // Apply some additional smoothing and filtering
       cv::erode(processROI, processROI, kernel);
       cv::GaussianBlur(processROI, processROI, cv::Size(5, 5), 2, 2);
@@ -390,20 +387,29 @@ namespace student
       // cv::moveWindow("ROI", W_0 + img_in.cols + OFFSET_W, H_0 + img_in.rows + OFFSET_H);
 
       // Find the template digit with the best matching
+      cv::Mat templROIturned;
+      cv::Mat result;
       double maxScore = 0;
       int maxIdx = -1;
-      std::cout << templROIs.size();
+      // std::cout << templROIs.size();
 
       for (int j = 0; j < templROIs.size(); ++j)
       {
-        cv::Mat result;
-        cv::matchTemplate(processROI, templROIs[j], result, cv::TM_CCOEFF);
-
-        cv::minMaxLoc(result, nullptr, &score);
-        if (score > maxScore)
+        for (int r = 0; r < 360; r += 90)
         {
-          maxScore = score;
-          maxIdx = j;
+
+          cv::Point2f pc((templROIs[j].cols-1) / 2., (templROIs[j].rows-1) / 2.);
+          cv::Mat rot = cv::getRotationMatrix2D(pc, r, 1.0);
+          cv::warpAffine(templROIs[j], templROIturned, rot, templROIs[j].size());
+
+          cv::matchTemplate(processROI, templROIturned, result, cv::TM_CCOEFF);
+
+          cv::minMaxLoc(result, nullptr, &score);
+          if (score > maxScore)
+          {
+            maxScore = score;
+            maxIdx = j;
+          }
         }
       }
 
@@ -423,7 +429,7 @@ namespace student
     //copy the sorted map into the vector
     victim_list.assign(victim_Map.begin(), victim_Map.end());
 
-    std::cout << "emtpy? " << victim_list.size() << " " << obstacle_list.size() << std::endl;
+    std::cout << "victims: " << victim_list.size() << "\tobstacles: " << obstacle_list.size() << std::endl;
     return victim_list.size() > 0 && obstacle_list.size() > 0;
   }
 
@@ -500,7 +506,7 @@ namespace student
       y = cy;
       theta = std::atan2(dy, dx);
 
-      std::cout << x << " " << y << " " << theta*180/M_PI << std::endl;
+      std::cout<< "x: " << x << "\ty: " << y << "\ttheta: " << theta * 180 / M_PI << "°" << std::endl;
     }
 
     return found;
