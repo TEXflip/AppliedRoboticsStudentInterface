@@ -92,3 +92,6 @@ bool findRobot(const cv::Mat &img_in, const double scale, Polygon &triangle, dou
 5. look for the triangle contour by sorting out all areas which are to small and the contours with too much edges
 6. scale the found triangle contour 
 7. analyse the robot position(barricentre and rotation relative to x axis)
+
+
+upto date
