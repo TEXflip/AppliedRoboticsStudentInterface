@@ -334,7 +334,7 @@ namespace student
       }
     }
 
-    ////////////////TEMLATEMATCHING////////////
+    ////////////////TEMPLATEMATCHING////////////
     /*!
         5. create and invert the obtained bitmap 
         6. load templates from file
