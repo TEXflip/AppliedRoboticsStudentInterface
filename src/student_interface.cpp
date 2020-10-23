@@ -11,7 +11,7 @@
 #include <vector>
 #include <atomic>
 #include <unistd.h>
-// COMMENT DA DAVID
+
 namespace student
 {
   const std::string RAW_IMAGE("/image/raw");
@@ -195,11 +195,7 @@ namespace student
 
     plane_transf = cv::getPerspectiveTransform(img_points, dest_image_points_plane);
   }
-  /*!
 
-      apply the transformation computed by "findPlaneTransform()" to unwrap the image and get a top-view visualization
-
-    */
   void unwarp(const cv::Mat &img_in, cv::Mat &img_out, const cv::Mat &transf,
               const std::string &config_folder)
   {
@@ -212,18 +208,6 @@ namespace student
     static const int H_0 = 0;
     static const int OFFSET_W = 10;
     static const int OFFSET_H = 100;
-
-    // cv::imwrite("test_image.jpg",img_in);
-
-    /*! we need a obstacle list
-      0. convert imput image in hsv colorspace 
-      1. use a colorfilter to sort the objects in a mask (Red,Green,Black)
-      2. filter the objects if necessary (in real images only)
-      3.  extract contour of the obstacles and scale them (put them in the assigned lists!)
-      4.  extract the victims the baricantre and extract the number. Put them ordered in the list
-      5. detect the gate by countuing the edges on the green contour mask (shape detection)
-      
-  */
 
     //colorspace convertion
     cv::Mat hsv_img;
@@ -238,7 +222,7 @@ namespace student
       Green   (52,12,151) (82,255,255)
       Black   (0,0,0)   (0-180..doesnt mater,1-180,225) !! the V value is important to be at 224
       The values change if applied to real images
-  */
+    */
 
     //selecting the red_obstacles
     cv::inRange(hsv_img, cv::Scalar(0, 30, 188), cv::Scalar(10, 255, 255), red_mask_high);
@@ -259,19 +243,18 @@ namespace student
 
     std::vector<std::vector<cv::Point>> contours, contours_approx; //define point vectros for the curves and contoures
     std::vector<cv::Point> approx_curve;
+
     //Apply enventally some filtering
     cv::Mat kernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size((1 * 2) + 1, (1 * 2) + 1));
     cv::dilate(red_obstacle_mask, red_obstacle_mask, kernel);
     cv::erode(red_obstacle_mask, red_obstacle_mask, kernel);
-    //find contours
 
+    //find contours
     cv::findContours(red_obstacle_mask, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
 
     //process the found contours (aprox and scale)
-
     for (int i = 0; i < contours.size(); ++i)
     {
-      //std::cout << (i+1) << ") Contour size: " << contours[i].size() << std::endl;
 
       approxPolyDP(contours[i], approx_curve, 3, true); // approxPolyDP( InputArray curve,OutputArray approxCurve,double epsilon, bool closed )
                                                         //function that closes eventual opend contoures ???
@@ -288,14 +271,6 @@ namespace student
     }
 
     //process GREEN_VICTIMS AND GATE///////////////////////////////////////
-    /*!
-      1.filter the blobs
-      2.for every contour 
-        -delet the to small contours
-        -approximate the remaining  contours
-        -analyse the obtained aproximations(approx_curve.size()==4 -> gate, approx_curve.size()> 4 number)
-        
-    */
     // eventual filtering on green_victim_mask
     kernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size((1 * 2) + 1, (1 * 2) + 1));
     cv::dilate(green_victim_mask, green_victim_mask, kernel);
@@ -334,19 +309,7 @@ namespace student
       }
     }
 
-    ////////////////TEMPLATEMATCHING////////////
-    /*!
-        5. create and invert the obtained bitmap 
-        6. load templates from file
-        7. create copy of the immage without green surounding(filtered is a mat with all black and therfore the numbers remain hen copzing the bitmap
-        8. for everz boundingbox in boundRect 
-            - resize region of interst to match the template size
-            - threshold and binarize the image, to suppress some noise
-            - Apply some additional smoothing and filtering
-            - Find the template digit with the best matching
-            - after finding the right number scale the associated contour and save it to a map
-        9.save the found map (containing(int, polygon)) to the victim_list (in the order of numbers)
-    */
+    ////////////////TEMPLATEMATCHING//////////////////
     cv::Mat green_mask_inv, filtered(img_in.rows, img_in.cols, CV_8UC3, cv::Scalar(255, 255, 255));
     cv::bitwise_not(green_victim_mask, green_mask_inv); // generate binary mask with inverted pixels w.r.t. green mask -> black numbers are part of this mask
     
@@ -381,10 +344,6 @@ namespace student
       cv::erode(processROI, processROI, kernel);
       cv::GaussianBlur(processROI, processROI, cv::Size(5, 5), 2, 2);
       cv::erode(processROI, processROI, kernel);
-
-      // Show the actual image used for the template matching
-      // cv::imshow("ROI", processROI);
-      // cv::moveWindow("ROI", W_0 + img_in.cols + OFFSET_W, H_0 + img_in.rows + OFFSET_H);
 
       // Find the template digit with the best matching
       cv::Mat templROIturned;
@@ -447,6 +406,7 @@ namespace student
     cv::cvtColor(img_in, hsv_img, cv::COLOR_BGR2HSV);
 
     cv::inRange(hsv_img, cv::Scalar(77, 24, 52), cv::Scalar(146, 255, 255), blue_mask);
+
     // Process blue mask
     std::vector<std::vector<cv::Point>> contours, contours_approx;
     std::vector<cv::Point> approx_curve;
@@ -459,7 +419,7 @@ namespace student
       contours_approx = {approx_curve};
 
       double area = cv::contourArea(approx_curve);
-      // use onlz triangles
+      // use only triangles
       if (approx_curve.size() != 3)
         continue;
 
@@ -517,4 +477,4 @@ namespace student
     throw std::logic_error("STUDENT FUNCTION - PLAN PATH - NOT IMPLEMENTED");
   }
 
-} // namespace student
+}
