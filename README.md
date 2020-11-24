@@ -61,22 +61,23 @@ Process the image to detect victims, obstacles and the gate.
 
 code flow: obstacle list
 0. convert input image in hsv colorspace 
-1. use a colorfilter to sort the objects in a mask (Red,Green)
-2. filter the obtained masks
-3. extract contour of the obstacles with findContours(), approsimate them with approxPolyDP() and finally scale them 
-4. The fund contours in the assigned lists
-5. filter the green_victim_mask
-6. extract the gate by controlling its contour size(=4)
-7. extract the victims
-    -detect round contours
-    -elliminate the green surounding
-    -load the template numbers
-    -run the numberdetection(for every boundingBox)
-        *resize it to template size
-        *compare the detected numbers with the templates 
-        *select the tamplate according too the heighest matching point
-        *save the pair of matched template number and scaled  victim in a map  in order to sort them
-        *copy the ordered map into a vector
+1. use a colorfilter to sort the objects in different masks (red for obstacles and green for victims and the gate)
+2. apply in the red mask the dilate and erode morphological transformations
+3. extract contour of the obstacles with findContours(), approximate them with approxPolyDP() and finally scale them
+4. Assign the found obstacles in the output list
+5. apply in the green mask the dilate and erode morphological transformations
+6. extract contour of the victims and the gate with findContours(), approximate them with approxPolyDP(), scale them and finally extract the gate by controlling its contour size(=4)
+7. victims elaboration process:
+    - detect round contours (with size > 4)
+    - eliminate the green surrounding using as a mask the not operation of the green mask 
+    - load the template numbers and flip them to match the camera perspective transformation applied in unwarp() 
+    - run the number detection for every boundingBox:
+        * extract the region of interest from the image with the boundingBox
+        * resize it to template size
+        * compare the detected numbers with the templates trying 4 different rotation (90 degrees) and compute the mathing score
+        * select the tamplate according too the heighest matching score
+        * save the pair of matched template number and scaled victim in a map in order to sort them
+        * copy the ordered map into the output vector
 
 
 
@@ -84,14 +85,12 @@ code flow: obstacle list
 ```c++
 bool findRobot(const cv::Mat &img_in, const double scale, Polygon &triangle, double &x, double &y, double &theta, const std::string &config_folder)
 ```
+find the position and rotation of the robot
 
 0. convert input image in hsv colorspace 
 1. filter the blue areas out of the hsv image
-2. apply some filtering
-4. approsimate the contours
-5. look for the triangle contour by sorting out all areas which are to small and the contours with too much edges
+2. find the contour of the robot triangle using findContours()
+4. approximate the contours
+5. look for the triangle contour by taking off all the areas which are too small ot too big and the contours with too edges
 6. scale the found triangle contour 
-7. analyse the robot position(barricentre and rotation relative to x axis)
-
-
-upto date
+7. compute the position and rotation vectors of the robot (center of gravity and rotation relative to the x axis)
