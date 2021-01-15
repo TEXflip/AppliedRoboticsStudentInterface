@@ -225,16 +225,16 @@ namespace student
     */
 
     //selecting the red_obstacles
-    cv::inRange(hsv_img, cv::Scalar(0, 30, 188), cv::Scalar(10, 255, 255), red_mask_high);
+    cv::inRange(hsv_img, cv::Scalar(0,9,69), cv::Scalar(20,255,255), red_mask_high);
 
     //for real images use hue values left and right from 0 in order to get the best result
 
-    cv::inRange(hsv_img, cv::Scalar(142, 29, 199), cv::Scalar(180, 255, 255), red_mask_low);
+    cv::inRange(hsv_img, cv::Scalar(158,93,33), cv::Scalar(180,255,253), red_mask_low);
 
     cv::addWeighted(red_mask_low, 1.0, red_mask_high, 1.0, 0.0, red_obstacle_mask);
 
     //selecting the green_victims AND the gate
-    cv::inRange(hsv_img, cv::Scalar(52, 12, 151), cv::Scalar(82, 255, 255), green_victim_mask);
+    cv::inRange(hsv_img, cv::Scalar(40,20,50), cv::Scalar(79,255,255), green_victim_mask);
 
     //selecting the black border if needed. Atention(numbers get also included)
     //cv::inRange(hsv_img, cv::Scalar(0, 0, 0), cv::Scalar(10, 10, 225), red_obstacle_mask);
@@ -394,7 +394,6 @@ namespace student
 
   bool findRobot(const cv::Mat &img_in, const double scale, Polygon &triangle, double &x, double &y, double &theta, const std::string &config_folder)
   {
-
     /*!
       1. filter the blue areas out of the hsv image
       2. apply some filtering
@@ -405,25 +404,34 @@ namespace student
 
     cv::cvtColor(img_in, hsv_img, cv::COLOR_BGR2HSV);
 
-    cv::inRange(hsv_img, cv::Scalar(77, 24, 52), cv::Scalar(146, 255, 255), blue_mask);
+    cv::inRange(hsv_img, cv::Scalar(85,103,19), cv::Scalar(123,255,255), blue_mask);
+
+    // Blur Fiilter????
 
     // Process blue mask
     std::vector<std::vector<cv::Point>> contours, contours_approx;
     std::vector<cv::Point> approx_curve;
+    // cv::imshow("blue mask" ,blue_mask);
+    // cv::waitKey(10);
     cv::findContours(blue_mask, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
     bool found = false;
     for (int i = 0; i < contours.size() && found == false; ++i)
     {
 
-      cv::approxPolyDP(contours[i], approx_curve, 10, true);
+      cv::approxPolyDP(contours[i], approx_curve, 15, true);
       contours_approx = {approx_curve};
 
       double area = cv::contourArea(approx_curve);
-      // use only triangles
+      for (int j = 0; j < approx_curve.size(); j++)
+      {
+        std::cout<< "\tx: " << approx_curve[j].x<< "y: " << approx_curve[j].y <<std::endl;
+      }
+      // std::cout<< "area: " << area << std::endl;
+
       if (approx_curve.size() != 3)
         continue;
 
-      if (area < 300 || area > 3000)
+      if (area < 1000 || area > 3000)
         continue;
 
       found = true;
