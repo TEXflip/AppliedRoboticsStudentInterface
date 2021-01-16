@@ -1,12 +1,11 @@
 #include "student_image_elab_interface.hpp"
 #include "student_planning_interface.hpp"
+#include "collision_detection.hpp"
 
 #include <stdexcept>
 #include <sstream>
 #include <experimental/filesystem>
 #include <cstdlib>
-
-#include <experimental/filesystem>
 
 #include <vector>
 #include <atomic>
@@ -483,6 +482,7 @@ namespace student
   bool planPath(const Polygon &borders, const std::vector<Polygon> &obstacle_list, const std::vector<std::pair<int, Polygon>> &victim_list, const Polygon &gate, const float x, const float y, const float theta, Path &path)
   {
     throw std::logic_error("STUDENT FUNCTION - PLAN PATH - NOT IMPLEMENTED");
+    
   }
 
 }

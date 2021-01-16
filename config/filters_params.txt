@@ -1,5 +1,12 @@
 Arena
 	Blue Filter: (85,103,19) (123,255,255)
+	Green Filter: (40,20,50) (79,255,255)
+	Red Filter: (0,9,69) (20,255,255)
+		    (158,93,33) (180,255,253)
+	Black Filter: () ()
 
 Simulatore:
 	Blue Filter: (88, 20/*117*/, 20) (117, 255, 255)
+	Green Filter: (52, 12, 151) (82, 255, 255)
+
+	Black Filter: () ()
