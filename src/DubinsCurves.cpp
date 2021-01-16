@@ -258,7 +258,35 @@ ScaledCurveSegments DubinsCurvesHandler::LRL(double sc_th0, double sc_thf, doubl
     return out;
 }
 
-std::vector<DubinsCurve> DubinsCurvesHandler::findShortestPath(double x0, double y0, double th0, double x1, double y1, double th1)
+DubinsCurve DubinsCurvesHandler::findShortestPath(double x0, double y0, double th0, double xf, double yf, double thf)
 {
-    
+    ScaledParams s = scaleToStandard(x0, y0, th0, xf, yf, thf);
+
+    ScaledCurveSegments (*)(double sc_th0, double sc_thf, double sc_k_max, double sc_k_max_inv)[6] primitives = {LSL, RSR, LSR, RSL, RLR, LRL}
+
+    pidx = -1;
+    double L = INFINITY, Lcur, cur_s1, cur_s2, cur_s3;
+    for (int i = 0; i < 6; i++)
+    {
+        ScaledCurveSegments params = primitives[i](s.sc_th0, s.sc_thf, s.sc_k_max, s.sc_k_max_inv);
+        Lcur = params.s1 + params.s2 + params.s3;
+        if (params.ok && Lcur < L){
+            L = Lcur;
+            cur_s1 = params.s1;
+            cur_s2 = params.s2;
+            cur_s3 = params.s3;
+            pidx = i;
+        }
+    }
+
+    if (pidx > 0){
+        ScaledCurveSegments p;
+        p.s1 = cur_s1;
+        p.s2 = cur_s2;
+        p.s3 = cur_s3;
+        ScaledCurveSegments segment = scaleFromStandard(p, s.lambda);
+
+        return computeDubinsCurve(x0, y0, th0, segment.s1, segment.s2, segment.s3, curves_arguments[pidx][0]*s.sc_k_max, curves_arguments[pidx][1]*s.sc_k_max, curves_arguments[pidx][2]*s.sc_k_max);
+    }
+    return NULL;
 }

@@ -30,7 +30,7 @@ struct DubinsLine
 
 struct DubinsArc
 {
-    double k, L, xf, yf, thf;
+    double k, L, xf, yf, thf; // L = length, k = curvature
 };
 
 struct DubinsCurve
