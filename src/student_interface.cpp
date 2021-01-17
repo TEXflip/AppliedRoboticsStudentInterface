@@ -303,7 +303,7 @@ namespace student
         
         gate = scaled_contour_green;
       }
-      else if (approx_curve.size() > 4) // && approx_curve.size()<6  as in example????????????? //if i have a number circle
+      else if (approx_curve.size() > 4) //  //if i have a number circle and not the gate
       {
         contours_approx_array[i] = {approx_curve};          //assosciate the found aprox contour to the same number as the boundingbox (sync the arrays)
         boundRect[i] = boundingRect(cv::Mat(approx_curve)); // finds bounding box for each green blob
