@@ -1,9 +1,5 @@
 #include "DubinsCurves.hpp"
 
-#include <algorithm>
-#include <cmath>
-#include <iostream>
-
 DubinsCurvesHandler::DubinsCurvesHandler(double k_max)
 {
     this->k_max = k_max;
@@ -117,6 +113,7 @@ ScaledParams DubinsCurvesHandler::scaleToStandard(double x0, double y0, double t
 	params.sc_k_max = this->k_max * params.lambda;
 	params.sc_th0 = mod2pi(th0 - phi);
 	params.sc_thf = mod2pi(thf - phi);
+    params.sc_k_max_inv = 1. / params.sc_k_max;
 
     return params;
 }

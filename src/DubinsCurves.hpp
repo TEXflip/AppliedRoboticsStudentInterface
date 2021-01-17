@@ -1,5 +1,8 @@
 #include <cstdint>
 #include <vector>
+#include <algorithm>
+#include <cmath>
+#include <iostream>
 
 enum curve_type
 {
