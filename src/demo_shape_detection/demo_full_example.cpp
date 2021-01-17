@@ -7,6 +7,10 @@
 #include <opencv2/opencv.hpp>
 #include <opencv2/ximgproc.hpp>
 #include <iostream>
+#include "utils.hpp"
+#include <vector>
+
+
 
 static const int W_0      = 300;
 static const int H_0      = 0;
@@ -15,10 +19,123 @@ static const int OFFSET_H = 100;
 
 const double MIN_AREA_SIZE = 30;
 
+float *boundingBoxcaracteristics (Polygon& x)
+{
+    //create bounding  Box around Polygon x
+    float* bound_x = new float [4];
+    int max=0;
+    int min=0;
+
+
+    //select min / max  from Polygon 
+    
+    //max
+    for ( int i=0; i<x.size(); i++)
+    {
+        if(x[i].x > max )
+        {
+            max=x[i].x;
+        }
+     }
+    
+    //min
+    min=max;
+    for ( int i=0; i<x.size(); i++)
+    {
+        if(x[i].x < min )
+        {
+            min=x[i].x;
+        }
+     }
+    bound_x[0] = min; //min_x
+   
+    //determine width
+    bound_x[2] = max-min;
+
+    //select min / max  y from Polygon
+    //max
+    max=0;
+    for ( int i=0; i<x.size(); i++)
+    {
+        if(x[i].y > max )
+        {
+            max=x[i].y;
+        }
+     }
+    
+    //min
+    min=max;
+    for ( int i=0; i<x.size(); i++)
+    {
+        if(x[i].y < min )
+        {
+            min=x[i].y;
+        }
+     }
+    
+    bound_x[1] = min;
+    
+    //determine height
+    bound_x[3]=max-min;
+  
+
+
+
+    return bound_x;     
+}
+  
+bool collide( Polygon a,  Polygon b){
+    
+    /*
+    broad fase implementaion
+    1.Load the two desired Polygons in here
+    2.Create a bounding box around them and extract their caracteristics (boundingBoxcaracteristics() )
+        a.boundingBoxcaracteristics()
+            1.select the highest and lowest x value of the Point vector of the Polygon
+            2.calculate the width of the bounding box
+            3.select the highest and lowest y value of the Point vector of the Polygon
+            4.calculate the height of the bounding box
+    3.Run both bounding boxcahracteristics throug the controll if() 
+    
+    */
+    bool collided = false;
+    
+    
+   float* bound_a =  boundingBoxcaracteristics(a);
+   float* bound_b = boundingBoxcaracteristics(b);
+
+
+    std::cout << "minx a: " << bound_a[0] << std::endl;
+    std::cout << "miny a:" << bound_a [1]<< std::endl;
+    std::cout << " width a: " << bound_a[2] << std::endl;
+    std::cout << " height a: " << bound_a[3] << std::endl;
+    
+    std::cout << "minx b: " << bound_b[0] << std::endl;
+    std::cout << "miny b:" << bound_b [1]<< std::endl;
+    std::cout << " width b: " << bound_b[2] << std::endl;
+    std::cout << " height b: " << bound_b[3] << std::endl;
+
+ 
+    // Colition detection of the two bounding boxes        
+    if(bound_a[0] < bound_b[0] + bound_b[2] &&
+   bound_a[0] + bound_a[2] > bound_b[0] &&
+   bound_a[1] < bound_b[1] + bound_b[3] &&
+   bound_a[1] + bound_a[3] > bound_b[1])
+   {
+       collided = true; 
+   }
+    
+
+    //////////////////////// implement narrow phase////////////////////////////////////7
+
+  
+   
+   return collided;
+}
 void processImage()
 {
   // Load image from file
-  std::string filename = "imgs/img01.jpg";
+  std::string filename = "imgs/img00.jpg";
   cv::Mat img = cv::imread(filename.c_str());
 
   if(img.empty()) {
@@ -59,6 +176,8 @@ void processImage()
   cv::moveWindow("RED_filter", W_0, H_0+img.rows+OFFSET_H);
 
   // Process red mask
+  std::vector<Polygon> obstacle_list;
+  int scale=1;
   contours_img = img.clone();
   cv::findContours(red_mask, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
   drawContours(contours_img, contours, -1, cv::Scalar(40,190,40), 1, cv::LINE_AA);
@@ -71,21 +190,45 @@ void processImage()
     drawContours(contours_img, contours_approx, -1, cv::Scalar(0,170,220), 3, cv::LINE_AA);
     std::cout << "   Approximated contour size: " << approx_curve.size() << std::endl;
   }
+ 
+ for (int i = 0; i < contours.size(); ++i)
+    {
+
+      approxPolyDP(contours[i], approx_curve, 3, true); // approxPolyDP( InputArray curve,OutputArray approxCurve,double epsilon, bool closed )
+                                                        //function that closes eventual opend contoures ???
+
+      //scaling loop
+      Polygon scaled_contour; //typedev vector
+
+      for (const auto &pt : approx_curve)
+      {
+        scaled_contour.emplace_back(pt.x / scale, pt.y / scale);
+      }
+
+      obstacle_list.push_back(scaled_contour); //add the aprox and scaled object to the list
+    }
+ 
+Polygon a = obstacle_list[0];
+
+cv::waitKey(0);
+
+
+ 
   cv::imshow("Original", contours_img);
-  cv::waitKey(0);
+
 
   // Find blue regions
   cv::Mat blue_mask;
   cv::inRange(hsv_img, cv::Scalar(90, 50, 40), cv::Scalar(135, 255, 255), blue_mask);
 
-  // Filter (applying erosion and dilation) the image
-  kernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size((2*2) + 1, (2*2)+1));
-  cv::erode(blue_mask, blue_mask, kernel);
-  cv::dilate(blue_mask, blue_mask, kernel);
+ 
+
+
+
 
   cv::imshow("BLUE_filter", blue_mask);
   cv::moveWindow("BLUE_filter", W_0+img.cols+OFFSET_W, H_0+img.rows+OFFSET_H);
-
+  cv::waitKey(0);
   // Process blue mask
   contours_img = img.clone();
   cv::findContours(blue_mask, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
@@ -101,10 +244,39 @@ void processImage()
     drawContours(contours_img, contours_approx, -1, cv::Scalar(0,170,220), 3, cv::LINE_AA);
     std::cout << "   Approximated contour size: " << approx_curve.size() << std::endl;
   }
+      for (int i = 0; i < contours.size(); ++i)
+    {
+
+      approxPolyDP(contours[i], approx_curve, 3, true); // approxPolyDP( InputArray curve,OutputArray approxCurve,double epsilon, bool closed )
+                                                        //function that closes eventual opend contoures ???
+
+      //scaling loop
+      Polygon scaled_contour; //typedev vector
+
+      for (const auto &pt : approx_curve)
+      {
+        scaled_contour.emplace_back(pt.x / scale, pt.y / scale);
+      }
+
+      obstacle_list.push_back(scaled_contour); //add the aprox and scaled object to the list
+    }
+ std:: cout << "obstacle_list " << obstacle_list.size()<<std::endl;
+
+ for(int i= 0; i<obstacle_list.size();i++){
+   std:: cout << "obstacle_listing " << obstacle_list[i].size()<<std::endl;
+
+ }
+
+Polygon b = obstacle_list[3];
+
+  ///////////////////////////////////////////////////////////////////////////////////////////////////////////
+std::cout <<"Collition detection "<<collide(a,b)<< std::endl;
+ ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 
   cv::imshow("Original", contours_img);
   cv::waitKey(0);
-
+/*
 
   // Find black regions
   cv::Mat black_mask;
@@ -134,7 +306,25 @@ void processImage()
     std::cout << "   Approximated contour size: " << approx_curve.size() << std::endl;
   }
   cv::imshow("Original", contours_img);
-  cv::waitKey(0);
+  
+   int scale =1;
+   std::vector<Polygon> obstacle_list;
+  Polygon scaled_contour;
+
+
+  for (const auto &pt : approx_curve)
+      {
+        scaled_contour.emplace_back(pt.x / scale, pt.y / scale);
+      }
+
+      obstacle_list.push_back(scaled_contour);
+    std :: cout <<"obstacle_list " <<obstacle_list.size()<<" scaled_contour.size "<< scaled_contour.size()<< std::endl;
+      
+      std::cout << scaled_contour[1].x << std::endl;
+
+
+  
+  cv::waitKey(0);*/
 
 }
 
