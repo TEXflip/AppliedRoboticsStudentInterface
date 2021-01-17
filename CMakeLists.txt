@@ -17,10 +17,11 @@ include_directories(
 ## CREATE EXECUTABLE LIBRARY
 add_library(student SHARED
    src/student_interface.cpp
+   src/DubinsCurves.cpp
 )
 
 target_link_libraries(student
-  ${OpenCV_LIBRARIES}  
+  ${OpenCV_LIBRARIES}
 )
 
 ## COMPILE DEMO EXECUTABLE

@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <iostream>
 
 DubinsCurvesHandler::DubinsCurvesHandler(double k_max)
 {
@@ -136,16 +137,16 @@ ScaledCurveSegments DubinsCurvesHandler::LSL(double sc_th0, double sc_thf, doubl
     double C = cos(sc_thf) - cos(sc_th0);
     double S = 2.0 * sc_k_max + sin(sc_th0) - sin(sc_thf);
     double temp1 = atan2(C, S);
-	out.sc_s1 = sc_k_max_inv * mod2pi(temp1 - sc_th0);
+	out.s1 = sc_k_max_inv * mod2pi(temp1 - sc_th0);
     double temp2 = 2. + 4. * (sc_k_max*sc_k_max) - 2. * cos(sc_th0 - sc_thf) + 4. * sc_k_max * (sin(sc_th0) - sin(sc_thf));
     if (temp2 < 0){
-        out.sc_s1 = 0;
-        out.sc_s2 = 0;
-        out.sc_s3 = 0;
+        out.s1 = 0;
+        out.s2 = 0;
+        out.s3 = 0;
         return out;
     }
-	out.sc_s2 = sc_k_max_inv * sqrt(temp2);
-    out.sc_s3 = sc_k_max_inv * mod2pi(sc_thf - temp1);
+	out.s2 = sc_k_max_inv * sqrt(temp2);
+    out.s3 = sc_k_max_inv * mod2pi(sc_thf - temp1);
     out.ok = true;
     //check(sc_s1, sc_k_max, sc_s2, 0, sc_s3, sc_k_max, sc_th0, sc_thf);
     return out;
@@ -157,16 +158,16 @@ ScaledCurveSegments DubinsCurvesHandler::RSR(double sc_th0, double sc_thf, doubl
     double C = cos(sc_th0) - cos(sc_thf);
     double S = 2.0 * sc_k_max - sin(sc_th0) + sin(sc_thf);
     double temp1 = atan2(C, S);
-	out.sc_s1 = sc_k_max_inv * mod2pi(sc_th0-temp1);
+	out.s1 = sc_k_max_inv * mod2pi(sc_th0-temp1);
     double temp2 = 2. + 4. * (sc_k_max*sc_k_max) - 2. * cos(sc_th0 - sc_thf) - 4. * sc_k_max * (sin(sc_th0) - sin(sc_thf));
     if (temp2 < 0){
-        out.sc_s1 = 0;
-        out.sc_s2 = 0;
-        out.sc_s3 = 0;
+        out.s1 = 0;
+        out.s2 = 0;
+        out.s3 = 0;
         return out;
     }
-	out.sc_s2 = sc_k_max_inv * sqrt(temp2);
-    out.sc_s3 = sc_k_max_inv * mod2pi(temp1-sc_thf);
+	out.s2 = sc_k_max_inv * sqrt(temp2);
+    out.s3 = sc_k_max_inv * mod2pi(temp1-sc_thf);
     out.ok = true;
     //check(sc_s1, -sc_k_max, sc_s2, 0, sc_s3, -sc_k_max, sc_th0, sc_thf);
     return out;
@@ -180,15 +181,15 @@ ScaledCurveSegments DubinsCurvesHandler::LSR(double sc_th0, double sc_thf, doubl
     double temp1 = atan2(-C, S);
     double temp3 = 4. * (sc_k_max*sc_k_max) - 2. + 2. * cos(sc_th0 - sc_thf) + 4. * sc_k_max * (sin(sc_th0) + sin(sc_thf));
     if (temp3 < 0){
-        out.sc_s1 = 0;
-        out.sc_s2 = 0;
-        out.sc_s3 = 0;
+        out.s1 = 0;
+        out.s2 = 0;
+        out.s3 = 0;
         return out;
     }
-	out.sc_s2 = sc_k_max_inv * sqrt(temp3);
-    double temp2 = -atan2(-2, out.sc_s2 * sc_k_max);
-    out.sc_s1 = sc_k_max_inv * mod2pi(temp1+temp2-sc_th0);
-    out.sc_s3 = sc_k_max_inv * mod2pi(temp1+temp2-sc_thf);
+	out.s2 = sc_k_max_inv * sqrt(temp3);
+    double temp2 = -atan2(-2, out.s2 * sc_k_max);
+    out.s1 = sc_k_max_inv * mod2pi(temp1+temp2-sc_th0);
+    out.s3 = sc_k_max_inv * mod2pi(temp1+temp2-sc_thf);
     out.ok = true;
     //check(sc_s1, sc_k_max, sc_s2, 0, sc_s3, -sc_k_max, sc_th0, sc_thf);
     return out;
@@ -202,15 +203,15 @@ ScaledCurveSegments DubinsCurvesHandler::RSL(double sc_th0, double sc_thf, doubl
     double temp1 = atan2(C, S);
     double temp3 = 4. * (sc_k_max*sc_k_max) - 2. + 2. * cos(sc_th0 - sc_thf) - 4. * sc_k_max * (sin(sc_th0) + sin(sc_thf));
     if (temp3 < 0){
-        out.sc_s1 = 0;
-        out.sc_s2 = 0;
-        out.sc_s3 = 0;
+        out.s1 = 0;
+        out.s2 = 0;
+        out.s3 = 0;
         return out;
     }
-	out.sc_s2 = sc_k_max_inv * sqrt(temp3);
-    double temp2 = atan2(2, out.sc_s2 * sc_k_max);
-    out.sc_s1 = sc_k_max_inv * mod2pi(sc_th0-temp1+temp2);
-    out.sc_s3 = sc_k_max_inv * mod2pi(sc_thf-temp1+temp2);
+	out.s2 = sc_k_max_inv * sqrt(temp3);
+    double temp2 = atan2(2, out.s2 * sc_k_max);
+    out.s1 = sc_k_max_inv * mod2pi(sc_th0-temp1+temp2);
+    out.s3 = sc_k_max_inv * mod2pi(sc_thf-temp1+temp2);
     out.ok = true;
     //check(sc_s1, -sc_k_max, sc_s2, 0, sc_s3, sc_k_max, sc_th0, sc_thf);
     return out;
@@ -224,14 +225,14 @@ ScaledCurveSegments DubinsCurvesHandler::RLR(double sc_th0, double sc_thf, doubl
     double temp1 = atan2(C, S);
     double temp2 = 0.125 * ( 6. - 4. * (sc_k_max*sc_k_max)  + 2. * cos(sc_th0 - sc_thf) + 4. * sc_k_max * (sin(sc_th0) - sin(sc_thf)));
     if (abs(temp2) > 1){
-        out.sc_s1 = 0;
-        out.sc_s2 = 0;
-        out.sc_s3 = 0;
+        out.s1 = 0;
+        out.s2 = 0;
+        out.s3 = 0;
         return out;
     }
-	out.sc_s2 = sc_k_max_inv * mod2pi(2 * M_PI - acos(temp2));
-    out.sc_s1 = sc_k_max_inv * mod2pi(sc_th0-temp1+0.5*sc_s2*sc_k_max);
-    out.sc_s3 = sc_k_max_inv * mod2pi(sc_th0-sc_thf+sc_k_max*(sc_s2-sc_s1));
+	out.s2 = sc_k_max_inv * mod2pi(2 * M_PI - acos(temp2));
+    out.s1 = sc_k_max_inv * mod2pi(sc_th0-temp1+0.5*out.s2*sc_k_max);
+    out.s3 = sc_k_max_inv * mod2pi(sc_th0-sc_thf+sc_k_max*(out.s2-out.s1));
     out.ok = true;
     //check(sc_s1, -sc_k_max, sc_s2, sc_k_max, sc_s3, -sc_k_max, sc_th0, sc_thf);
     return out;
@@ -245,14 +246,14 @@ ScaledCurveSegments DubinsCurvesHandler::LRL(double sc_th0, double sc_thf, doubl
     double temp1 = atan2(C, S);
     double temp2 = 0.125 * ( 6. - 4. * (sc_k_max*sc_k_max)  + 2. * cos(sc_th0 - sc_thf) - 4. * sc_k_max * (sin(sc_th0) - sin(sc_thf)));
     if (abs(temp2) > 1){
-        out.sc_s1 = 0;
-        out.sc_s2 = 0;
-        out.sc_s3 = 0;
+        out.s1 = 0;
+        out.s2 = 0;
+        out.s3 = 0;
         return out;
     }
-	out.sc_s2 = sc_k_max_inv * mod2pi(2 * M_PI - acos(temp2));
-    out.sc_s1 = sc_k_max_inv * mod2pi(temp1-sc_th0+0.5*sc_s2*sc_k_max);
-    out.sc_s3 = sc_k_max_inv * mod2pi(sc_thf-sc_th0+sc_k_max*(sc_s2-sc_s1));
+	out.s2 = sc_k_max_inv * mod2pi(2 * M_PI - acos(temp2));
+    out.s1 = sc_k_max_inv * mod2pi(temp1-sc_th0+0.5*out.s2*sc_k_max);
+    out.s3 = sc_k_max_inv * mod2pi(sc_thf-sc_th0+sc_k_max*(out.s2-out.s1));
     out.ok = true;
     //check(sc_s1, sc_k_max, sc_s2, -sc_k_max, sc_s3, sc_k_max, sc_th0, sc_thf);
     return out;
@@ -261,14 +262,17 @@ ScaledCurveSegments DubinsCurvesHandler::LRL(double sc_th0, double sc_thf, doubl
 DubinsCurve DubinsCurvesHandler::findShortestPath(double x0, double y0, double th0, double xf, double yf, double thf)
 {
     ScaledParams s = scaleToStandard(x0, y0, th0, xf, yf, thf);
+    typedef ScaledCurveSegments (DubinsCurvesHandler::*fn)(double, double, double, double);
 
-    ScaledCurveSegments (*)(double sc_th0, double sc_thf, double sc_k_max, double sc_k_max_inv)[6] primitives = {LSL, RSR, LSR, RSL, RLR, LRL}
+    fn primitives[6] = {&DubinsCurvesHandler::LSL, &DubinsCurvesHandler::RSR, &DubinsCurvesHandler::LSR, &DubinsCurvesHandler::RSL, &DubinsCurvesHandler::RLR, &DubinsCurvesHandler::LRL};
 
-    pidx = -1;
+    std::cout << "k_max: " << s.sc_k_max << "\tk_max_inv: " << s.sc_k_max_inv << "\tth0: " << s.sc_th0 << "\tthf: " << s.sc_thf << std::endl;
+
+    int pidx = -1;
     double L = INFINITY, Lcur, cur_s1, cur_s2, cur_s3;
     for (int i = 0; i < 6; i++)
     {
-        ScaledCurveSegments params = primitives[i](s.sc_th0, s.sc_thf, s.sc_k_max, s.sc_k_max_inv);
+        ScaledCurveSegments params = (this->*primitives[i])(s.sc_th0, s.sc_thf, s.sc_k_max, s.sc_k_max_inv);
         Lcur = params.s1 + params.s2 + params.s3;
         if (params.ok && Lcur < L){
             L = Lcur;
@@ -288,5 +292,5 @@ DubinsCurve DubinsCurvesHandler::findShortestPath(double x0, double y0, double t
 
         return computeDubinsCurve(x0, y0, th0, segment.s1, segment.s2, segment.s3, curves_arguments[pidx][0]*s.sc_k_max, curves_arguments[pidx][1]*s.sc_k_max, curves_arguments[pidx][2]*s.sc_k_max);
     }
-    return NULL;
+    return {};
 }

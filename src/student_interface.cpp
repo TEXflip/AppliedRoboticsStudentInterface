@@ -1,6 +1,9 @@
 #include "student_image_elab_interface.hpp"
 #include "student_planning_interface.hpp"
-#include "collision_detection.hpp"
+// #include "collision_detection.hpp"
+#include "DubinsCurves.hpp"
+
+#include "utils.cpp"
 
 #include <stdexcept>
 #include <sstream>
@@ -296,9 +299,8 @@ namespace student
       if (approx_curve.size() == 4) //if i have a gate(a quadratic figure in green)
       {
         for (const auto &pt : approx_curve)
-        {
           scaled_contour_green.emplace_back(pt.x / scale, pt.y / scale);
-        }
+        
         gate = scaled_contour_green;
       }
       else if (approx_curve.size() > 4) // && approx_curve.size()<6  as in example????????????? //if i have a number circle
@@ -375,9 +377,8 @@ namespace student
 
       //scale the found contour
       for (const auto &pt : contours_approx_array[i])
-      {
         scaled_contour.emplace_back(pt.x / scale, pt.y / scale);
-      }
+      
 
       victim_Map.insert(std::pair<int, Polygon>(maxIdx, scaled_contour)); // insert the found blob in the MAP in order o assign the contour to the value
 
@@ -440,9 +441,8 @@ namespace student
     {
       //scale the contoure
       for (const auto &pt : approx_curve)
-      {
         triangle.emplace_back(pt.x / scale, pt.y / scale);
-      }
+      
       //calculate the barrycentre
       double cx = 0, cy = 0;
       for (auto item : triangle)
@@ -479,10 +479,19 @@ namespace student
     return found;
   }
 
-  bool planPath(const Polygon &borders, const std::vector<Polygon> &obstacle_list, const std::vector<std::pair<int, Polygon>> &victim_list, const Polygon &gate, const float x, const float y, const float theta, Path &path)
+  bool planPath(const Polygon &borders, const std::vector<Polygon> &obstacle_list, 
+                const std::vector<std::pair<int, Polygon>> &victim_list, 
+                const Polygon &gate, const float x, const float y, const float theta, Path &path, const std::string& config_folder)
   {
-    throw std::logic_error("STUDENT FUNCTION - PLAN PATH - NOT IMPLEMENTED");
+    DubinsCurvesHandler dcHandler(10.);
+    Point gateCenter = barycentre(gate);
+    DubinsCurve c = dcHandler.findShortestPath(x,y,theta, gateCenter.x, gateCenter.y, 0);
+    for (int i = 0; i < 3; i++)
+    {
+      path.points.emplace_back(Pose(c.arcs[i].L,c.arcs[i].xf,c.arcs[i].yf,c.arcs[i].thf,c.arcs[i].k));
+    }
     
+    return true;
   }
 
 }

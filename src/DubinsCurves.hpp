@@ -77,5 +77,5 @@ public:
     DubinsCurvesHandler() = default;
     explicit DubinsCurvesHandler(double k_max);
     explicit DubinsCurvesHandler(double k_max, double discretizer_size);
-    std::vector<DubinsCurve> findShortestPath(double x0, double y0, double th0, double x1, double y1, double th1);
+    DubinsCurve findShortestPath(double x0, double y0, double th0, double x1, double y1, double th1);
 };
