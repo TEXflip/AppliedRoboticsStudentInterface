@@ -39,7 +39,6 @@ struct DubinsArc
 struct DubinsCurve
 {
     DubinsArc arcs[3];
-    // std::vector<DubinsLine> discretized_curve;
     double L;
     curve_type type;
 };
@@ -48,7 +47,6 @@ class DubinsCurvesHandler
 {
 private:
     double k_max = 10;
-    double discretizer_size = 0.005;
 
     int8_t curves_arguments[6][3] = {
         {1, 0, 1},
@@ -61,7 +59,6 @@ private:
     DubinsLine computeDubinsLine(double L, double x0, double y0, double th0, double k);
     DubinsArc computeDubinsArc(double x0, double y0, double th0, double k, double L);
     DubinsCurve computeDubinsCurve(double x0, double y0, double th0, double s1, double s2, double s3, double k1, double k2, double k3);
-    // std::vector<DubinsLine> discretizeDubinsCurve(double x0,double y0, double theta0, );
     bool check(double s1, double s2, double s3, double k0, double k1, double k2, double th0, double thf);
 
     double sinc(double t);
