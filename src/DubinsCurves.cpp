@@ -5,19 +5,13 @@ DubinsCurvesHandler::DubinsCurvesHandler(double k_max)
     this->k_max = k_max;
 }
 
-DubinsCurvesHandler::DubinsCurvesHandler(double k_max, double discretizer_size)
-{
-    this->k_max = k_max;
-    this->discretizer_size = discretizer_size;
-}
-
 DubinsLine DubinsCurvesHandler::computeDubinsLine(double s, double x0, double y0, double th0, double k)
 {
     DubinsLine dubins_line{};
 
     dubins_line.s = s;
-    dubins_line.x = x0 + s * sinc(k * s / 2.0) * cos(th0 + k * s / 2.0);
-    dubins_line.y = y0 + s * sinc(k * s / 2.0) * cos(th0 + k * s / 2.0);
+    dubins_line.x = x0 + s * sinc(k * s * 0.5) * cos(th0 + k * s * 0.5);
+    dubins_line.y = y0 + s * sinc(k * s * 0.5) * sin(th0 + k * s * 0.5);
     dubins_line.th = mod2pi(th0 + k * s);
     dubins_line.k = k;
 
@@ -28,6 +22,10 @@ DubinsArc DubinsCurvesHandler::computeDubinsArc(double x0, double y0, double th0
 {
     DubinsArc dubins_arc{};
 
+    dubins_arc.x0 = x0;
+    dubins_arc.y0 = y0;
+    dubins_arc.th0 = th0;
+
     dubins_arc.k = k;
     dubins_arc.L = L;
 
@@ -36,6 +34,15 @@ DubinsArc DubinsCurvesHandler::computeDubinsArc(double x0, double y0, double th0
     dubins_arc.yf = corr_dubins_line.y;
     dubins_arc.thf = corr_dubins_line.th;
 
+    std::cout   << "x0: " << dubins_arc.x0
+                << " y0: " << dubins_arc.y0
+                << " th0: " << dubins_arc.th0
+                << " k: " << dubins_arc.k
+                << " L: " << dubins_arc.L
+                << " xf: " << dubins_arc.xf
+                << " yf: " << dubins_arc.yf
+                << " thf: " << dubins_arc.thf << std::endl;
+
     return dubins_arc;
 }
 
@@ -43,9 +50,16 @@ DubinsCurve DubinsCurvesHandler::computeDubinsCurve(double x0, double y0, double
 {
     DubinsCurve d_curve{};
 
+    // std::cout   << "INPUTS : " << x0
+    //             << " y0: " << y0
+    //             << " th0: " << th0
+    //             << " k1: " << k1
+    //             << " k2: " << k2
+    //             << " k3: " << k3 << std::endl;
+
     d_curve.arcs[0] = computeDubinsArc(x0, y0, th0, k1, s1);
-    d_curve.arcs[1] = computeDubinsArc(d_curve.arcs[0].xf, d_curve.arcs[0].yf, d_curve.arcs[0].thf, k1, s2);
-    d_curve.arcs[2] = computeDubinsArc(d_curve.arcs[1].xf, d_curve.arcs[1].yf, d_curve.arcs[1].thf, k2, s3);
+    d_curve.arcs[1] = computeDubinsArc(d_curve.arcs[0].xf, d_curve.arcs[0].yf, d_curve.arcs[0].thf, k2, s2);
+    d_curve.arcs[2] = computeDubinsArc(d_curve.arcs[1].xf, d_curve.arcs[1].yf, d_curve.arcs[1].thf, k3, s3);
 
     d_curve.L = d_curve.arcs[0].L + d_curve.arcs[1].L + d_curve.arcs[2].L;
 
@@ -56,7 +70,7 @@ bool DubinsCurvesHandler::check(double s1, double s2, double s3, double k0, doub
 {
     double x0 = -1;
     double y0 = 0;
-    double xf = 0;
+    double xf = 1;
     double yf = 0;
 
     double eq1 = x0 + s1 * sinc(0.5 * k0 * s1) * cos(th0 + 0.5 * k0 * s1) 
@@ -85,9 +99,9 @@ double DubinsCurvesHandler::mod2pi(double ang)
 {
     double out = ang;
     while (out < 0)
-        out += 2 * M_PI;
+        out = out + 2 * M_PI;
     while (out >= 2 * M_PI)
-        out -= 2 * M_PI;
+        out = out - 2 * M_PI;
     return out;
 }
 
@@ -259,17 +273,19 @@ ScaledCurveSegments DubinsCurvesHandler::LRL(double sc_th0, double sc_thf, doubl
 DubinsCurve DubinsCurvesHandler::findShortestPath(double x0, double y0, double th0, double xf, double yf, double thf)
 {
     ScaledParams s = scaleToStandard(x0, y0, th0, xf, yf, thf);
+    // std::cout << "SCALED PARAMS\t" << s.sc_k_max << "\t" << s.sc_k_max_inv << "\t" << s.sc_th0 << "\t" << s.sc_thf << std::endl;
     typedef ScaledCurveSegments (DubinsCurvesHandler::*fn)(double, double, double, double);
 
     fn primitives[6] = {&DubinsCurvesHandler::LSL, &DubinsCurvesHandler::RSR, &DubinsCurvesHandler::LSR, &DubinsCurvesHandler::RSL, &DubinsCurvesHandler::RLR, &DubinsCurvesHandler::LRL};
 
-    std::cout << "k_max: " << s.sc_k_max << "\tk_max_inv: " << s.sc_k_max_inv << "\tth0: " << s.sc_th0 << "\tthf: " << s.sc_thf << std::endl;
+    // std::cout << "k_max: " << s.sc_k_max << "\tk_max_inv: " << s.sc_k_max_inv << "\tth0: " << s.sc_th0 << "\tthf: " << s.sc_thf << std::endl;
 
     int pidx = -1;
     double L = INFINITY, Lcur, cur_s1, cur_s2, cur_s3;
     for (int i = 0; i < 6; i++)
     {
         ScaledCurveSegments params = (this->*primitives[i])(s.sc_th0, s.sc_thf, s.sc_k_max, s.sc_k_max_inv);
+        std::cout << "\ts1: " << params.s1 << "\ts2: " << params.s2 << "\ts3: " << params.s3 << (params.ok?"\tok":"") << std::endl;
         Lcur = params.s1 + params.s2 + params.s3;
         if (params.ok && Lcur < L){
             L = Lcur;
@@ -279,15 +295,41 @@ DubinsCurve DubinsCurvesHandler::findShortestPath(double x0, double y0, double t
             pidx = i;
         }
     }
+    std::cout << "CURVE TYPE: " << pidx << std::endl;
 
-    if (pidx > 0){
+    if (pidx >= 0){
         ScaledCurveSegments p;
         p.s1 = cur_s1;
         p.s2 = cur_s2;
         p.s3 = cur_s3;
         ScaledCurveSegments segment = scaleFromStandard(p, s.lambda);
-
-        return computeDubinsCurve(x0, y0, th0, segment.s1, segment.s2, segment.s3, curves_arguments[pidx][0]*s.sc_k_max, curves_arguments[pidx][1]*s.sc_k_max, curves_arguments[pidx][2]*s.sc_k_max);
+        // std::cout << "RESCALED CURVES\ts1: " << segment.s1 << "\ts2: " << segment.s2 << "\ts3: " << segment.s3 << (segment.ok?"\tok":"") << "\tlambda: " << s.lambda << std::endl;
+        if (!check(p.s1, p.s2, p.s3, curves_arguments[pidx][0]*s.sc_k_max, curves_arguments[pidx][1]*s.sc_k_max, curves_arguments[pidx][2]*s.sc_k_max, s.sc_th0, s.sc_thf))
+            std::cout << "CHECK NOT PASSED" << std::endl;
+        // std::cout << "KMAX" << s.sc_k_max;
+        return computeDubinsCurve(x0, y0, th0, segment.s1, segment.s2, segment.s3, curves_arguments[pidx][0]*this->k_max, curves_arguments[pidx][1]*this->k_max, curves_arguments[pidx][2]*this->k_max);
     }
     return {};
+}
+
+std::vector<DubinsLine> DubinsCurvesHandler::discretizeDubinsCurve(DubinsCurve curve, float minLength){
+    std::vector<DubinsLine> out{};
+    float L;
+
+    for (int iArc = 0; iArc < 3; iArc++)
+    {
+        DubinsArc arc = curve.arcs[iArc];
+        int nPoints = arc.L/minLength;
+
+        for (int i = 0; i < nPoints; i++)
+        {
+            L = arc.L/nPoints * i;
+            DubinsLine line = computeDubinsLine(L, arc.x0, arc.y0, arc.th0, arc.k);
+            out.emplace_back(line);
+        }
+    }
+    DubinsLine last = {minLength, curve.arcs[2].xf, curve.arcs[2].yf, curve.arcs[2].thf, curve.arcs[2].k};
+    out.emplace_back(last);
+
+    return out;
 }

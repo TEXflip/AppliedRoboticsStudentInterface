@@ -3,7 +3,7 @@
 // #include "collision_detection.hpp"
 #include "DubinsCurves.hpp"
 
-#include "utils.cpp"
+#include "myUtils.hpp"
 
 #include <stdexcept>
 #include <sstream>
@@ -422,10 +422,10 @@ namespace student
       contours_approx = {approx_curve};
 
       double area = cv::contourArea(approx_curve);
-      for (int j = 0; j < approx_curve.size(); j++)
-      {
-        std::cout<< "\tx: " << approx_curve[j].x<< "y: " << approx_curve[j].y <<std::endl;
-      }
+      // for (int j = 0; j < approx_curve.size(); j++)
+      // {
+      //   std::cout<< "\tx: " << approx_curve[j].x<< "y: " << approx_curve[j].y <<std::endl;
+      // }
       // std::cout<< "area: " << area << std::endl;
 
       if (approx_curve.size() != 3)
@@ -473,7 +473,7 @@ namespace student
       y = cy;
       theta = std::atan2(dy, dx);
 
-      std::cout<< "x: " << x << "\ty: " << y << "\ttheta: " << theta * 180 / M_PI << "°" << std::endl;
+      // std::cout<< "x: " << x << "\ty: " << y << "\ttheta: " << theta * 180 / M_PI << "°" << std::endl;
     }
 
     return found;
@@ -483,14 +483,17 @@ namespace student
                 const std::vector<std::pair<int, Polygon>> &victim_list, 
                 const Polygon &gate, const float x, const float y, const float theta, Path &path, const std::string& config_folder)
   {
-    DubinsCurvesHandler dcHandler(10.);
+    DubinsCurvesHandler dcHandler(5);
     Point gateCenter = barycentre(gate);
-    DubinsCurve c = dcHandler.findShortestPath(x,y,theta, gateCenter.x, gateCenter.y, 0);
-    for (int i = 0; i < 3; i++)
-    {
-      path.points.emplace_back(Pose(c.arcs[i].L,c.arcs[i].xf,c.arcs[i].yf,c.arcs[i].thf,c.arcs[i].k));
-    }
-    
+    DubinsCurve c = dcHandler.findShortestPath(x, y, theta, gateCenter.x, gateCenter.y, 0);
+    std::cout << "x: " << x << "\ty: " << y << "\tth: " << theta << "\tgateX: " << gateCenter.x << "\tgateY: " << gateCenter.y << std::endl;
+
+    std::vector<DubinsLine> lines = dcHandler.discretizeDubinsCurve(c, 0.02);
+    float L = 0;
+
+    for (int i = 0; i < lines.size(); i++)
+      path.points.emplace_back(lines[i].s, lines[i].x, lines[i].y, lines[i].th, lines[i].k);
+      
     return true;
   }
 

@@ -33,13 +33,13 @@ struct DubinsLine
 
 struct DubinsArc
 {
-    double k, L, xf, yf, thf; // L = length, k = curvature
+    double k, L, x0, y0, th0, xf, yf, thf; // L = length, k = curvature
 };
 
 struct DubinsCurve
 {
     DubinsArc arcs[3];
-    std::vector<DubinsLine> discretized_curve;
+    // std::vector<DubinsLine> discretized_curve;
     double L;
     curve_type type;
 };
@@ -61,7 +61,7 @@ private:
     DubinsLine computeDubinsLine(double L, double x0, double y0, double th0, double k);
     DubinsArc computeDubinsArc(double x0, double y0, double th0, double k, double L);
     DubinsCurve computeDubinsCurve(double x0, double y0, double th0, double s1, double s2, double s3, double k1, double k2, double k3);
-    // std::vector<DubinsLine> discretizeDubinsCurve(double x0,double y0, double theta0, )
+    // std::vector<DubinsLine> discretizeDubinsCurve(double x0,double y0, double theta0, );
     bool check(double s1, double s2, double s3, double k0, double k1, double k2, double th0, double thf);
 
     double sinc(double t);
@@ -79,6 +79,6 @@ private:
 public:
     DubinsCurvesHandler() = default;
     explicit DubinsCurvesHandler(double k_max);
-    explicit DubinsCurvesHandler(double k_max, double discretizer_size);
     DubinsCurve findShortestPath(double x0, double y0, double th0, double x1, double y1, double th1);
+    std::vector<DubinsLine> discretizeDubinsCurve(DubinsCurve curve, float minLength);
 };
