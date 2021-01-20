@@ -110,8 +110,59 @@ bool collide( Polygon a,  Polygon b){
     
 
     //////////////////////// implement narrow phase////////////////////////////////////7
+    if(collided==true)
+    {
+        Polygon *poly1 = &a;
+		Polygon *poly2 = &b;
 
+		float overlap = INFINITY;
+		
+		for (int shape = 0; shape < 2; shape++)
+		{
+			if (shape == 1)
+			{
+				poly1 = &a;
+				poly2 = &b;
+			}
+
+			for (int a = 0; a < poly1->size(); a++)
+			{
+				int b = (a + 1) % poly1->size();
+                Point axisProj = { -((*poly1)[b].y - (*poly1)[a].y), (*poly1)[b].x - (*poly1)[a].x };				
+				// Optional normalisation of projection axis enhances stability slightly
+				//float d = sqrtf(axisProj.x * axisProj.x + axisProj.y * axisProj.y);
+				//axisProj = { axisProj.x / d, axisProj.y / d };
+
+				// Work out min and max 1D points for poly1
+				float min_poly1 = INFINITY, max_poly1 = -INFINITY;
+				for (int p = 0; p < poly1->size(); p++)
+				{
+					float q = ((*poly1)[p].x * axisProj.x + (*poly1)[p].y * axisProj.y);
+					min_poly1 = std::min(min_poly1, q);
+					max_poly1 = std::max(max_poly1, q);
+				}
+
+				// Work out min and max 1D points for b
+				float min_poly2 = INFINITY, max_poly2 = -INFINITY;
+				for (int p = 0; p < poly2->size(); p++)
+				{
+					float q = ((*poly2)[p].x * axisProj.x + (*poly2)[p].y * axisProj.y);
+					min_poly2 = std::min(min_poly2, q);
+					max_poly2 = std::max(max_poly2, q);
+				}
+
+				// Calculate actual overlap along projected axis, and store the minimum
+				overlap = std::min(std::min(max_poly1, max_poly2) - std::max(min_poly1, min_poly2), overlap);
+
+				if (!(max_poly2 >= min_poly1 && max_poly1 >= min_poly2))
+				return false;
+            }	
+        }	
+    }
   
    
    return collided;
 }
+
+
+
