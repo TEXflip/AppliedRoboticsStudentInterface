@@ -78,7 +78,10 @@ bool collide( Polygon a,  Polygon b){
             2.calculate the width of the bounding box
             3.select the highest and lowest y value of the Point vector of the Polygon
             4.calculate the height of the bounding box
-    3.Run both bounding boxcahracteristics throug the controll if() 
+    3.Run both bounding boxcahracteristics throug the controll 
+    4. The controll checks if the projection of both polygons overlap on BOTH axis
+        a.if both overlap there is a collision
+        b.if one axis has no overlap of the projection there is no collision
     
     */
     bool collided = false;
@@ -110,6 +113,24 @@ bool collide( Polygon a,  Polygon b){
     
 
     //////////////////////// implement narrow phase////////////////////////////////////7
+    /* 
+        does work for convex polygons
+        if it is concave does not create problems but the result is as if the concave one is a convex one
+
+        1.  define pointers to both Polygons in order to swap them
+            this helps to shorten the code because
+            we check one shape agains the other and then swap
+        2.  create a segment of the first Polygon
+        3.  create a normal to this segment
+        3.  project all points of the first Polygon on this normal
+        4.  project all points of the second Polygon on this normal
+        5.  Check if there is an overlap
+            a. Yes  -> continue
+            b. No   -> stop imediately. No overlap
+        6.  repeat for every obstacle and for every segment
+
+    */
+    
     if(collided==true)
     {
         Polygon *poly1 = &a;
@@ -127,13 +148,13 @@ bool collide( Polygon a,  Polygon b){
 
 			for (int a = 0; a < poly1->size(); a++)
 			{
-				int b = (a + 1) % poly1->size();
-                Point axisProj = { -((*poly1)[b].y - (*poly1)[a].y), (*poly1)[b].x - (*poly1)[a].x };				
-				// Optional normalisation of projection axis enhances stability slightly
-				//float d = sqrtf(axisProj.x * axisProj.x + axisProj.y * axisProj.y);
-				//axisProj = { axisProj.x / d, axisProj.y / d };
+				int b = (a + 1) % poly1->size(); //create segments out of the points inside a Polygon vector
+               
+               //creating a normal to the segment by puting the deltax in the y place and vica versa (Transpose)
+                Point axisProj = { -((*poly1)[b].y - (*poly1)[a].y), (*poly1)[b].x - (*poly1)[a].x };			
+				
 
-				// Work out min and max 1D points for poly1
+				// Work out min and max  of all points of the poly1, projected on the normal of the segment axisProj 
 				float min_poly1 = INFINITY, max_poly1 = -INFINITY;
 				for (int p = 0; p < poly1->size(); p++)
 				{
@@ -142,7 +163,7 @@ bool collide( Polygon a,  Polygon b){
 					max_poly1 = std::max(max_poly1, q);
 				}
 
-				// Work out min and max 1D points for b
+				// Work out min and max  of all points of the poly2, projected on the normal of the segment axisProj 
 				float min_poly2 = INFINITY, max_poly2 = -INFINITY;
 				for (int p = 0; p < poly2->size(); p++)
 				{
@@ -153,7 +174,7 @@ bool collide( Polygon a,  Polygon b){
 
 				// Calculate actual overlap along projected axis, and store the minimum
 				overlap = std::min(std::min(max_poly1, max_poly2) - std::max(min_poly1, min_poly2), overlap);
-
+                //if one of the projected axis has no overlapp there is no collition
 				if (!(max_poly2 >= min_poly1 && max_poly1 >= min_poly2))
 				return false;
             }	
