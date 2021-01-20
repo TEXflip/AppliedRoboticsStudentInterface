@@ -65,7 +65,7 @@ private:
     double mod2pi(double angle);
     double rangeSymm(double angle);
     ScaledParams scaleToStandard(double x0, double y0, double th0, double xf, double yf, double thf);
-    ScaledCurveSegments scaleFromStandard(ScaledCurveSegments sc_curve_segments, double lambda);
+    ScaledCurveSegments scaleFromStandard(ScaledCurveSegments& sc_curve_segments, double lambda);
     ScaledCurveSegments LSL(double sc_th0, double sc_thf, double sc_k_max, double sc_k_max_inv);
     ScaledCurveSegments RSR(double sc_th0, double sc_thf, double sc_k_max, double sc_k_max_inv);
     ScaledCurveSegments LSR(double sc_th0, double sc_thf, double sc_k_max, double sc_k_max_inv);
@@ -77,5 +77,5 @@ public:
     DubinsCurvesHandler() = default;
     explicit DubinsCurvesHandler(double k_max);
     DubinsCurve findShortestPath(double x0, double y0, double th0, double x1, double y1, double th1);
-    std::vector<DubinsLine> discretizeDubinsCurve(DubinsCurve curve, float minLength);
+    std::vector<DubinsLine> discretizeDubinsCurve(DubinsCurve& curve, float minLength);
 };

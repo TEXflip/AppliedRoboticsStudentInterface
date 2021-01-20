@@ -132,7 +132,7 @@ ScaledParams DubinsCurvesHandler::scaleToStandard(double x0, double y0, double t
     return params;
 }
 
-ScaledCurveSegments DubinsCurvesHandler::scaleFromStandard(ScaledCurveSegments sc_curve_segments, double lambda)
+ScaledCurveSegments DubinsCurvesHandler::scaleFromStandard(ScaledCurveSegments& sc_curve_segments, double lambda)
 {
     ScaledCurveSegments out{};
     out.s1 = sc_curve_segments.s1 * lambda;
@@ -312,7 +312,7 @@ DubinsCurve DubinsCurvesHandler::findShortestPath(double x0, double y0, double t
     return {};
 }
 
-std::vector<DubinsLine> DubinsCurvesHandler::discretizeDubinsCurve(DubinsCurve curve, float minLength){
+std::vector<DubinsLine> DubinsCurvesHandler::discretizeDubinsCurve(DubinsCurve& curve, float minLength){
     std::vector<DubinsLine> out{};
     float totL = 0;
     int nPoints;
