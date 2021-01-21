@@ -51,9 +51,9 @@ add_executable(demo_simple_shape_detection
 add_executable(creat_real_map
   src/demo_shape_detection/creat_real_map.cpp
 )
-add_executable(demo_voronoi
-  src/demo_shape_detection/voronoi_web_demo.cpp
-)
+#add_executable(demo_voronoi
+#  src/demo_shape_detection/voronoi_web_demo.cpp
+#)
 
 target_link_libraries(demo_dilatation_erosion
   ${OpenCV_LIBRARIES}

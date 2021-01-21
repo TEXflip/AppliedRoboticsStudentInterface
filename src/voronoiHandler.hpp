@@ -176,14 +176,13 @@ using namespace boost::polygon;
 class VoronoiHandler
 {
 public:
-    typedef float coordinate_type;
+    typedef double coordinate_type;
     typedef point_data<coordinate_type> point_type;
     typedef segment_data<coordinate_type> segment_type;
     typedef voronoi_diagram<double>::cell_type cell;
     static void buildVoronoi(std::vector<segment_type> &segments, std::vector<Segment> &out, double discretizationSize);
 
 private:
-    static std::vector<segment_type> segment_data_;
-    static point_type retrieve_point(const cell &cell);
-    static segment_type retrieve_segment(const cell &cell);
+    static point_type retrieve_point(const cell &cell, std::vector<segment_type> &segments);
+    static segment_type retrieve_segment(const cell &cell, std::vector<segment_type> &segments);
 };

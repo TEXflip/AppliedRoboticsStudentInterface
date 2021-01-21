@@ -15,6 +15,7 @@
 #include <vector>
 #include <atomic>
 #include <unistd.h>
+#include <fstream>
 
 namespace student
 {
@@ -214,6 +215,9 @@ namespace student
     static const int OFFSET_H = 100;
 
     cv::imwrite("graph.jpg", img_in);
+    std::ofstream outfile;
+    outfile.open(config_folder+"/scale.txt", std::ios_base::out);
+    outfile << scale;
 
     //colorspace convertion
     cv::Mat hsv_img;
@@ -527,16 +531,29 @@ namespace student
         VoronoiHandler::point_type p2(borders[next].x, borders[next].y);
         segments.emplace_back(VoronoiHandler::segment_type(p1, p2));
       }
+
+    std::cout<< "Total input segments: " << segments.size() << std::endl; 
     
     std::vector<Segment> out;
-    VoronoiHandler::buildVoronoi(segments, out, 0.02);
+    VoronoiHandler::buildVoronoi(segments, out, 0.2);
+
+    std::cout<< "Number of Lines: " << out.size() << std::endl;
     
     cv::Mat image;
     image = cv::imread("graph.jpg", cv::IMREAD_COLOR);
+    std::ifstream infile;
+    infile.open(config_folder+"/scale.txt");
+    char s[20];
+    char *p;
+    infile >> s;
+    double scale = std::strtod(s, &p);
+
+    std::cout << "Scale: " << scale << std::endl << config_folder+"scale.txt" << std::endl;
 
     for (int i = 0; i < out.size(); i++)
     {
-      cv::line(image, cv::Point(out[i].p0.x, out[i].p0.y), cv::Point(out[i].p1.x, out[i].p1.y), cv::Scalar( 0, 0, 0 ),1, cv::LINE_AA);
+      cv::line(image, cv::Point(scale*out[i].p0.x, scale*out[i].p0.y), cv::Point(scale*out[i].p1.x, scale*out[i].p1.y), cv::Scalar( 0, 0, 255),3, cv::LINE_AA);
+      std::cout<< "\tx0: " << out[i].p0.x << "\ty0: " << out[i].p0.y << "\tx1: " << out[i].p1.x << "\ty1: " << out[i].p1.y << std::endl;
     }
 
     cv::imshow("graph", image);
