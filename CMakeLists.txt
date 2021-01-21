@@ -19,6 +19,7 @@ add_library(student SHARED
    src/student_interface.cpp
    src/DubinsCurves.cpp
    src/collision_detection.cpp
+   src/voronoiHandler.cpp
 )
 
 target_link_libraries(student

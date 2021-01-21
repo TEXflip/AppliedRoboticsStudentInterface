@@ -10,6 +10,8 @@
 #include <experimental/filesystem>
 #include <cstdlib>
 
+#include <opencv2/imgproc.hpp>
+
 #include <vector>
 #include <atomic>
 #include <unistd.h>
@@ -520,7 +522,7 @@ namespace student
 
     for (int i = 0, next; i < borders.size(); i++)
       {
-        next = (i + 1) % borders.size(); 
+        next = (i + 1) % borders.size();
         VoronoiHandler::point_type p1(borders[i].x, borders[i].y);
         VoronoiHandler::point_type p2(borders[next].x, borders[next].y);
         segments.emplace_back(VoronoiHandler::segment_type(p1, p2));
@@ -528,9 +530,15 @@ namespace student
     
     std::vector<Segment> out;
     VoronoiHandler::buildVoronoi(segments, out, 0.02);
-
+    
     cv::Mat image;
     image = cv::imread("graph.jpg", cv::IMREAD_COLOR);
+
+    for (int i = 0; i < out.size(); i++)
+    {
+      cv::line(image, cv::Point(out[i].p0.x, out[i].p0.y), cv::Point(out[i].p1.x, out[i].p1.y), cv::Scalar( 0, 0, 0 ),1, cv::LINE_AA);
+    }
+
     cv::imshow("graph", image);
     cv::waitKey(0);
     

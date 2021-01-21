@@ -1,16 +1,25 @@
 #include <stack>
 #include <vector>
 
-#include <boost/polygon/isotropy.hpp>
-#include <boost/polygon/point_concept.hpp>
-#include <boost/polygon/segment_concept.hpp>
-#include <boost/polygon/rectangle_concept.hpp>
+#include "boost/polygon/isotropy.hpp"
+#include "boost/polygon/point_concept.hpp"
+#include "boost/polygon/segment_concept.hpp"
+#include "boost/polygon/rectangle_concept.hpp"
+
+#include "student_image_elab_interface.hpp"
+
+struct Segment
+{
+    Point p0;
+    Point p1;
+    Segment(float x1, float y1, float x2, float y2) : p0(x1, y1), p1(x2, y2) {}
+    Segment(Point p_0, Point p_1) : p0(p_0), p1(p_1) {}
+};
 
 namespace boost
 {
     namespace polygon
     {
-
         template <typename CT>
         class VoronoiHelper
         {
@@ -156,20 +165,13 @@ namespace boost
     } // namespace polygon
 } // namespace boost
 
-#include <boost/polygon/polygon.hpp>
-#include <boost/polygon/voronoi.hpp>
-#include "student_image_elab_interface.hpp"
+#include "boost/polygon/polygon.hpp"
+#include "boost/polygon/voronoi.hpp"
 
 using namespace boost::polygon;
 // using boost::polygon::voronoi_diagram;
 
-struct Segment
-{
-    Point p0;
-    Point p1;
-    Segment(float x1, float y1, float x2, float y2) : p0(x1, y1), p1(x2, y2) {}
-    Segment(Point p_0, Point p_1) : p0(p_0), p1(p_1) {}
-};
+
 
 class VoronoiHandler
 {
@@ -178,56 +180,10 @@ public:
     typedef point_data<coordinate_type> point_type;
     typedef segment_data<coordinate_type> segment_type;
     typedef voronoi_diagram<double>::cell_type cell;
-    static void buildVoronoi(std::vector<segment_type> &segments, std::vector<Segment> &out, double discretizationSize)
-    {
-        segment_data_ = segments;
-        voronoi_diagram<double> vd;
-        construct_voronoi(segments.begin(), segments.end(), &vd);
-
-        for (voronoi_diagram<double>::const_edge_iterator it = vd.edges().begin(); it != vd.edges().end(); ++it)
-        {
-            if (!it->is_primary() || !it->is_finite()) // ingora edges secondari e infiniti
-                continue;
-
-            std::vector<point_type> samples;
-            point_type vertex0(it->vertex0()->x(), it->vertex0()->y());
-            samples.push_back(vertex0);
-            point_type vertex1(it->vertex1()->x(), it->vertex1()->y());
-            samples.push_back(vertex1);
-
-            coordinate_type max_dist = 0.02;
-            point_type point = it->cell()->contains_point() ? retrieve_point(*it->cell()) : retrieve_point(*it->twin()->cell());
-            segment_type segment = it->cell()->contains_point() ? retrieve_segment(*it->twin()->cell()) : retrieve_segment(*it->cell());
-            VoronoiHelper<coordinate_type>::discretize(point, segment, max_dist, &samples);
-
-            for (int i = 0; i < samples.size() - 1; i++)
-                out.emplace_back(Segment((float)samples[i].x(), (float)samples[i].y(), (float)samples[i + 1].x(), (float)samples[i + 1].y()));
-        }
-    }
+    static void buildVoronoi(std::vector<segment_type> &segments, std::vector<Segment> &out, double discretizationSize);
 
 private:
     static std::vector<segment_type> segment_data_;
-
-    static point_type retrieve_point(const cell &cell)
-    {
-        cell::source_index_type index = cell.source_index();
-        cell::source_category_type category = cell.source_category();
-        // if (category == SOURCE_CATEGORY_SINGLE_POINT) {
-        //   return point_data_[index];
-        // }
-        // index -= point_data_.size();
-        if (category == SOURCE_CATEGORY_SEGMENT_START_POINT)
-        {
-            return low(segment_data_[index]);
-        }
-        else
-        {
-            return high(segment_data_[index]);
-        }
-    }
-    static segment_type retrieve_segment(const cell &cell)
-    {
-        cell::source_index_type index = cell.source_index() /* - point_data_.size()*/;
-        return segment_data_[index];
-    }
+    static point_type retrieve_point(const cell &cell);
+    static segment_type retrieve_segment(const cell &cell);
 };
