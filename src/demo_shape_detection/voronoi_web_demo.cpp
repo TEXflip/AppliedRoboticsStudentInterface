@@ -11,10 +11,7 @@
 #include <cstdio>
 #include <vector>
 
-
-
-
-#include <boost/polygon/voronoi.hpp>
+#include "boost/polygon/voronoi.hpp"
 using boost::polygon::voronoi_builder;
 using boost::polygon::voronoi_diagram;
 using boost::polygon::x;

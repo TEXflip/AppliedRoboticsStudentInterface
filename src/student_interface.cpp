@@ -1,7 +1,9 @@
 #include "student_image_elab_interface.hpp"
 #include "student_planning_interface.hpp"
 // #include "collision_detection.hpp"
+
 #include "DubinsCurves.hpp"
+#include "voronoiHandler.hpp"
 
 #include "myUtils.hpp"
 
@@ -210,6 +212,8 @@ namespace student
     static const int H_0 = 0;
     static const int OFFSET_W = 10;
     static const int OFFSET_H = 100;
+
+    cv::imwrite("graph.jpg", img_in);
 
     //colorspace convertion
     cv::Mat hsv_img;
@@ -483,17 +487,42 @@ namespace student
                 const std::vector<std::pair<int, Polygon>> &victim_list, 
                 const Polygon &gate, const float x, const float y, const float theta, Path &path, const std::string& config_folder)
   {
-    DubinsCurvesHandler dcHandler(5);
-    Point gateCenter = barycentre(gate);
-    DubinsCurve c = dcHandler.findShortestPath(x, y, theta, gateCenter.x, gateCenter.y, 0);
-    std::cout << "x: " << x << "\ty: " << y << "\tth: " << theta << "\tgateX: " << gateCenter.x << "\tgateY: " << gateCenter.y << std::endl;
+    // DubinsCurvesHandler dcHandler(5);
+    // Point gateCenter = barycentre(gate);
+    // DubinsCurve c = dcHandler.findShortestPath(x, y, theta, gateCenter.x, gateCenter.y, 0);
+    // std::cout << "x: " << x << "\ty: " << y << "\tth: " << theta << "\tgateX: " << gateCenter.x << "\tgateY: " << gateCenter.y << std::endl;
 
-    std::vector<DubinsLine> lines = dcHandler.discretizeDubinsCurve(c, 0.02);
-    float L = 0;
+    // std::vector<DubinsLine> lines = dcHandler.discretizeDubinsCurve(c, 0.02);
+    // float L = 0;
 
-    for (int i = 0; i < lines.size(); i++)
-      path.points.emplace_back(lines[i].s, lines[i].x, lines[i].y, lines[i].th, lines[i].k);
-      
+    // for (int i = 0; i < lines.size(); i++)
+    //   path.points.emplace_back(lines[i].s, lines[i].x, lines[i].y, lines[i].th, lines[i].k);
+
+    std::vector<Segment> segments;
+    for (int ob = 0; ob < obstacle_list.size(); ob++)
+    {
+      Polygon v = obstacle_list[ob];
+      for (int i = 0, next; i < v.size(); i++)
+      {
+        next = (i + 1) % v.size(); 
+        segments.emplace_back(Segment(v[i], v[next]));
+      }
+    }
+
+    for (int i = 0, next; i < borders.size(); i++)
+      {
+        next = (i + 1) % borders.size(); 
+        segments.emplace_back(Segment(borders[i], borders[next]));
+      }
+    
+    std::vector<Segment> out;
+    boost::polygon::VoronoiHandler<double>::buildVoronoi(segments, out, 0.02);
+
+    cv::Mat image;
+    image = cv::imread("graph.jpg", cv::IMREAD_COLOR);
+    cv::imshow("graph", image);
+    cv::waitKey(0);
+    
     return true;
   }
 
