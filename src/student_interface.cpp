@@ -5,8 +5,6 @@
 #include "DubinsCurves.hpp"
 #include "voronoiHandler.hpp"
 
-#include "myUtils.hpp"
-
 #include <stdexcept>
 #include <sstream>
 #include <experimental/filesystem>
@@ -488,7 +486,15 @@ namespace student
                 const Polygon &gate, const float x, const float y, const float theta, Path &path, const std::string& config_folder)
   {
     // DubinsCurvesHandler dcHandler(5);
-    // Point gateCenter = barycentre(gate);
+    // Point gateCenter;
+    // double x = 0, y = 0;
+    // for (auto item : gate)
+    // {
+    //     x += item.x;
+    //     y += item.y;
+    // }
+    // out.x = x / gate.size();
+    // out.y = y / gate.size();
     // DubinsCurve c = dcHandler.findShortestPath(x, y, theta, gateCenter.x, gateCenter.y, 0);
     // std::cout << "x: " << x << "\ty: " << y << "\tth: " << theta << "\tgateX: " << gateCenter.x << "\tgateY: " << gateCenter.y << std::endl;
 
@@ -498,25 +504,30 @@ namespace student
     // for (int i = 0; i < lines.size(); i++)
     //   path.points.emplace_back(lines[i].s, lines[i].x, lines[i].y, lines[i].th, lines[i].k);
 
-    std::vector<Segment> segments;
+    std::vector<VoronoiHandler::segment_type> segments;
     for (int ob = 0; ob < obstacle_list.size(); ob++)
     {
       Polygon v = obstacle_list[ob];
       for (int i = 0, next; i < v.size(); i++)
       {
         next = (i + 1) % v.size(); 
-        segments.emplace_back(Segment(v[i], v[next]));
+        // segments.emplace_back(Segment(v[i], v[next]));
+        VoronoiHandler::point_type p1(v[i].x, v[i].y);
+        VoronoiHandler::point_type p2(v[next].x, v[next].y);
+        segments.emplace_back(VoronoiHandler::segment_type(p1, p2));
       }
     }
 
     for (int i = 0, next; i < borders.size(); i++)
       {
         next = (i + 1) % borders.size(); 
-        segments.emplace_back(Segment(borders[i], borders[next]));
+        VoronoiHandler::point_type p1(borders[i].x, borders[i].y);
+        VoronoiHandler::point_type p2(borders[next].x, borders[next].y);
+        segments.emplace_back(VoronoiHandler::segment_type(p1, p2));
       }
     
     std::vector<Segment> out;
-    boost::polygon::VoronoiHandler<double>::buildVoronoi(segments, out, 0.02);
+    VoronoiHandler::buildVoronoi(segments, out, 0.02);
 
     cv::Mat image;
     image = cv::imread("graph.jpg", cv::IMREAD_COLOR);

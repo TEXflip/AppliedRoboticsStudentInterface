@@ -1,20 +1,75 @@
-#include <stack>
-#include <vector>
+#include "boost/polygon/voronoi.hpp"
+#include "boost/polygon/polygon.hpp"
+#include "boost/polygon/isotropy.hpp"
+// #include "boost/polygon/point_concept.hpp"
+// #include "boost/polygon/segment_concept.hpp"
+#include "boost/polygon/rectangle_concept.hpp"
 
-#include <boost/polygon/isotropy.hpp>
-#include <boost/polygon/point_concept.hpp>
-#include <boost/polygon/segment_concept.hpp>
-#include <boost/polygon/rectangle_concept.hpp>
+#include <vector>
+#include <stack>
+
+// struct Point
+// {
+//     float x, y;
+
+//     Point(float x, float y) : x(x), y(y)
+//     {
+//     }
+
+//     Point() : Point(0, 0)
+//     {
+//     }
+// };
+
+struct Segment
+{
+    Point p0;
+    Point p1;
+    Segment(double x1, double y1, double x2, double y2) : p0(x1, y1), p1(x2, y2) {}
+    Segment(Point p_0, Point p_1) : p0(p_0), p1(p_1) {}
+};
+
+using boost::polygon::voronoi_diagram;
+typedef voronoi_diagram<double>::cell_type cell;
 
 namespace boost
 {
     namespace polygon
     {
 
-        template <typename CT>
-        class VoronoiHelper
+        template <>
+        struct geometry_concept<Point>
         {
-        public:
+            typedef point_concept type;
+        };
+
+        template <>
+        struct point_traits<Point>
+        {
+            typedef int coordinate_type;
+
+            static inline coordinate_type get(
+                const Point &point, orientation_2d orient)
+            {
+                return (orient == HORIZONTAL) ? point.x : point.y;
+            }
+        };
+
+        template <>
+        struct geometry_concept<Segment>
+        {
+            typedef segment_concept type;
+        };
+
+        template <typename CT>
+        class VoronoiHandler
+        {
+        private:
+            static std::vector<Segment> segment_data_;
+            static CT parabola_y(CT x, CT a, CT b)
+            {
+                return ((x - a) * (x - a) + b * b) / (b + b);
+            }
             template <class InCT1, class InCT2,
                       template <class> class Point,
                       template <class> class Segment>
@@ -107,20 +162,6 @@ namespace boost
                 discretization->back() = last_point;
             }
 
-        private:
-            // Compute y(x) = ((x - a) * (x - a) + b * b) / (2 * b).
-            static CT parabola_y(CT x, CT a, CT b)
-            {
-                return ((x - a) * (x - a) + b * b) / (b + b);
-            }
-
-            // Get normalized length of the distance between:
-            //   1) point projection onto the segment
-            //   2) start point of the segment
-            // Return this length divided by the segment length. This is made to avoid
-            // sqrt computation during transformation from the initial space to the
-            // transformed one and vice versa. The assumption is made that projection of
-            // the point lies between the start-point and endpoint of the segment.
             template <class InCT,
                       template <class> class Point,
                       template <class> class Segment>
@@ -152,82 +193,57 @@ namespace boost
             {
                 return static_cast<CT>(value);
             }
+
+            static Point retrieve_point(const cell &cell)
+            {
+                cell::source_index_type index = cell.source_index();
+                cell::source_category_type category = cell.source_category();
+                // if (category == SOURCE_CATEGORY_SINGLE_POINT) {
+                //   return point_data_[index];
+                // }
+                // index -= point_data_.size();
+                if (category == SOURCE_CATEGORY_SEGMENT_START_POINT)
+                {
+                    return low(segment_data_[index]);
+                }
+                else
+                {
+                    return high(segment_data_[index]);
+                }
+            }
+            static Segment retrieve_segment(const cell &cell)
+            {
+                cell::source_index_type index = cell.source_index() /* - point_data_.size()*/;
+                return segment_data_[index];
+            }
+
+        public:
+            static void buildVoronoi(std::vector<Segment> &segments, std::vector<Segment> &out, double discretizationSize)
+            {
+                segment_data_ = segments;
+                voronoi_diagram<double> vd;
+                construct_voronoi(segments.begin(), segments.end(), &vd);
+
+                for (voronoi_diagram<double>::const_edge_iterator it = vd.edges().begin(); it != vd.edges().end(); ++it)
+                {
+                    if (!it->is_primary() || !it->is_finite()) // ingora edges secondari e infiniti
+                        continue;
+
+                    std::vector<Point> samples;
+                    Point vertex0(it->vertex0()->x(), it->vertex0()->y());
+                    samples.push_back(vertex0);
+                    Point vertex1(it->vertex1()->x(), it->vertex1()->y());
+                    samples.push_back(vertex1);
+
+                    double max_dist = 0.02;
+                    Point point = it->cell()->contains_point() ? retrieve_point(*it->cell()) : retrieve_point(*it->twin()->cell());
+                    Segment segment = it->cell()->contains_point() ? retrieve_segment(*it->twin()->cell()) : retrieve_segment(*it->cell());
+                    discretize(point, segment, max_dist, samples);
+
+                    for (int i = 0; i < samples.size() - 1; i++)
+                        out.emplace_back(Segment(samples[i], samples[i + 1]));
+                }
+            }
         };
     } // namespace polygon
 } // namespace boost
-
-#include <boost/polygon/polygon.hpp>
-#include <boost/polygon/voronoi.hpp>
-#include "student_image_elab_interface.hpp"
-
-using namespace boost::polygon;
-// using boost::polygon::voronoi_diagram;
-
-struct Segment
-{
-    Point p0;
-    Point p1;
-    Segment(float x1, float y1, float x2, float y2) : p0(x1, y1), p1(x2, y2) {}
-    Segment(Point p_0, Point p_1) : p0(p_0), p1(p_1) {}
-};
-
-class VoronoiHandler
-{
-public:
-    typedef float coordinate_type;
-    typedef point_data<coordinate_type> point_type;
-    typedef segment_data<coordinate_type> segment_type;
-    typedef voronoi_diagram<double>::cell_type cell;
-    static void buildVoronoi(std::vector<segment_type> &segments, std::vector<Segment> &out, double discretizationSize)
-    {
-        segment_data_ = segments;
-        voronoi_diagram<double> vd;
-        construct_voronoi(segments.begin(), segments.end(), &vd);
-
-        for (voronoi_diagram<double>::const_edge_iterator it = vd.edges().begin(); it != vd.edges().end(); ++it)
-        {
-            if (!it->is_primary() || !it->is_finite()) // ingora edges secondari e infiniti
-                continue;
-
-            std::vector<point_type> samples;
-            point_type vertex0(it->vertex0()->x(), it->vertex0()->y());
-            samples.push_back(vertex0);
-            point_type vertex1(it->vertex1()->x(), it->vertex1()->y());
-            samples.push_back(vertex1);
-
-            coordinate_type max_dist = 0.02;
-            point_type point = it->cell()->contains_point() ? retrieve_point(*it->cell()) : retrieve_point(*it->twin()->cell());
-            segment_type segment = it->cell()->contains_point() ? retrieve_segment(*it->twin()->cell()) : retrieve_segment(*it->cell());
-            VoronoiHelper<coordinate_type>::discretize(point, segment, max_dist, &samples);
-
-            for (int i = 0; i < samples.size() - 1; i++)
-                out.emplace_back(Segment((float)samples[i].x(), (float)samples[i].y(), (float)samples[i + 1].x(), (float)samples[i + 1].y()));
-        }
-    }
-
-private:
-    static std::vector<segment_type> segment_data_;
-
-    static point_type retrieve_point(const cell &cell)
-    {
-        cell::source_index_type index = cell.source_index();
-        cell::source_category_type category = cell.source_category();
-        // if (category == SOURCE_CATEGORY_SINGLE_POINT) {
-        //   return point_data_[index];
-        // }
-        // index -= point_data_.size();
-        if (category == SOURCE_CATEGORY_SEGMENT_START_POINT)
-        {
-            return low(segment_data_[index]);
-        }
-        else
-        {
-            return high(segment_data_[index]);
-        }
-    }
-    static segment_type retrieve_segment(const cell &cell)
-    {
-        cell::source_index_type index = cell.source_index() /* - point_data_.size()*/;
-        return segment_data_[index];
-    }
-};
