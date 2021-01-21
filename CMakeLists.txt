@@ -54,6 +54,9 @@ add_executable(creat_real_map
 add_executable(demo_voronoi
   src/demo_shape_detection/voronoi_web_demo.cpp
 )
+add_executable(AstarPathPlanning
+  src/Astar_pathplanning.cpp
+)
 
 target_link_libraries(demo_dilatation_erosion
   ${OpenCV_LIBRARIES}
