@@ -4,7 +4,9 @@
 
 #include "DubinsCurves.hpp"
 // #include "voronoiHelper.hpp"
+#include "graph.hpp"
 #include "voronoiHandler.hpp"
+// #include "graph.hpp"
 
 
 #include <stdexcept>
@@ -543,8 +545,9 @@ namespace student
 
     
     
-    std::vector<Segment> out;
-    VoronoiHandler::buildVoronoi(borders, obstacle_list, out, 0.02, 1000000);
+    std::vector<Point> out;
+    Graph graph;
+    VoronoiHandler::buildVoronoi(borders, obstacle_list, out, graph, 100, 1e6);
 
     std::cout<< "Number of Lines: " << out.size() << std::endl;
     
@@ -553,16 +556,26 @@ namespace student
     std::ifstream infile;
     infile.open(config_folder+"/scale.txt");
     char s[20];
-    char *p;
+    char *p_;
     infile >> s;
-    double scale = std::strtod(s, &p);
+    double scale = std::strtod(s, &p_);
 
-    // std::cout << "Scale: " << scale << std::endl;
+    std::cout << "Scale: " << scale << std::endl;
 
-    for (int i = 0; i < out.size(); i++)
+    std::vector<Graph::node> *nodes = graph.nodes();
+    std::vector<Graph::cell> *cells = graph.cells();
+
+    for (int i = 0; i < (*cells).size(); i++)
     {
-      cv::line(image, cv::Point(scale*out[i].p0.x, scale*out[i].p0.y), cv::Point(scale*out[i].p1.x, scale*out[i].p1.y), cv::Scalar( 0, 0, 255),1, cv::LINE_AA);
-      std::cout<< "\tx0: " << out[i].p0.x << "\ty0: " << out[i].p0.y << "\tx1: " << out[i].p1.x << "\ty1: " << out[i].p1.y << std::endl;
+      std::cout << i << " -> " << (*cells)[i].nodes.size() << std::endl;
+    }
+    
+    for (int i = 0; i < graph.cells()[0].size(); i++)
+    {
+      //cv::line(image, cv::Point(scale*out[i].p0.x, scale*out[i].p0.y), cv::Point(scale*out[i].p1.x, scale*out[i].p1.y), cv::Scalar( 0, 0, 255),1, cv::LINE_AA);
+      cv::Point p(((*nodes)[(*cells)[0].nodes[i]].x*scale), ((*nodes)[(*cells)[0].nodes[i]].y*scale));
+      cv::circle(image, p, scale*0.004, cv::Scalar(255, 0, 255), cv::FILLED, cv::LINE_AA);
+      // std::cout<< "\tx0: " << out[i].p0.x << "\ty0: " << out[i].p0.y << "\tx1: " << out[i].p1.x << "\ty1: " << out[i].p1.y << std::endl;
     }
 
     cv::imshow("graph", image);
