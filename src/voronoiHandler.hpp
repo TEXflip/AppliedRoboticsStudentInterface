@@ -6,16 +6,6 @@
 #include "boost/polygon/segment_concept.hpp"
 #include "boost/polygon/rectangle_concept.hpp"
 
-#include "student_image_elab_interface.hpp"
-
-struct Segment
-{
-    Point p0;
-    Point p1;
-    Segment(float x1, float y1, float x2, float y2) : p0(x1, y1), p1(x2, y2) {}
-    Segment(Point p_0, Point p_1) : p0(p_0), p1(p_1) {}
-};
-
 namespace boost
 {
     namespace polygon
@@ -169,9 +159,18 @@ namespace boost
 #include "boost/polygon/voronoi.hpp"
 
 using namespace boost::polygon;
+using namespace std;
 // using boost::polygon::voronoi_diagram;
 
+#include "utils.hpp"
 
+struct Segment
+{
+    Point p0;
+    Point p1;
+    Segment(float x1, float y1, float x2, float y2) : p0(x1, y1), p1(x2, y2) {}
+    Segment(Point p_0, Point p_1) : p0(p_0), p1(p_1) {}
+};
 
 class VoronoiHandler
 {
@@ -180,9 +179,10 @@ public:
     typedef point_data<coordinate_type> point_type;
     typedef segment_data<coordinate_type> segment_type;
     typedef voronoi_diagram<double>::cell_type cell;
-    static void buildVoronoi(std::vector<segment_type> &segments, std::vector<Segment> &out, double discretizationSize);
-
+    // static void buildVoronoi(vector<point_type> &points, vector<segment_type> &segments, vector<Segment> &out, double discretizationSize);
+    static void buildVoronoi(const Polygon &borders,const std::vector<Polygon> &obstacle_list, vector<Segment> &out, double discretizationSize, float precision);
+    
 private:
-    static point_type retrieve_point(const cell &cell, std::vector<segment_type> &segments);
-    static segment_type retrieve_segment(const cell &cell, std::vector<segment_type> &segments);
+    static point_type retrieve_point(const cell &cell, vector<segment_type> &segments);
+    static segment_type retrieve_segment(const cell &cell, vector<segment_type> &segments);
 };

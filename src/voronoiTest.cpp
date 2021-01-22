@@ -1,8 +1,32 @@
 #include "voronoiHandler.hpp"
 #include <iostream>
 
-void VoronoiHandler::buildVoronoi(std::vector<VoronoiHandler::segment_type> &segments, std::vector<Segment> &out, double discretizationSize)
+void VoronoiHandler::buildVoronoi(const Polygon &borders,const std::vector<Polygon> &obstacle_list, std::vector<Segment> &out, double discretizationSize, float precision)
 {
+    std::vector<VoronoiHandler::segment_type> segments;
+    for (int ob = 0; ob < obstacle_list.size(); ob++)
+    {
+        Polygon v = obstacle_list[ob];
+        for (int i = 0, next; i < v.size(); i++)
+        {
+            next = (i + 1) % v.size();
+            VoronoiHandler::point_type p1((int)(v[i].x * precision), (int)(v[i].y * precision));
+            VoronoiHandler::point_type p2((int)(v[next].x * precision), (int)(v[next].y * precision));
+            segments.emplace_back(VoronoiHandler::segment_type(p1, p2));
+            // std::cout<< "\tx " << v[i].x << "\ty " << v[i].y << std::endl;
+        }
+    }
+    for (int i = 0, next; i < borders.size(); i++)
+    {
+        next = (i + 1) % borders.size();
+        VoronoiHandler::point_type p1((int)(borders[i].x * precision), (int)(borders[i].y * precision));
+        VoronoiHandler::point_type p2((int)(borders[next].x * precision), (int)(borders[next].y * precision));
+        segments.emplace_back(VoronoiHandler::segment_type(p1, p2));
+        // std::cout<< "\tx " << borders[i].x << "\ty " << borders[i].y << std::endl;
+    }
+
+    std::cout<< "Total input segments: " << segments.size() << std::endl;
+
     voronoi_diagram<double> vd;
     construct_voronoi(segments.begin(), segments.end(), &vd);
 
@@ -10,7 +34,7 @@ void VoronoiHandler::buildVoronoi(std::vector<VoronoiHandler::segment_type> &seg
 
     for (voronoi_diagram<double>::const_edge_iterator it = vd.edges().begin(); it != vd.edges().end(); ++it)
     {
-        if (!it->is_primary() || !it->is_finite()) // ingora edges secondari e infiniti
+        if (it->is_secondary() || it->is_infinite()) // ingora edges secondari e infiniti
             continue;
 
         std::vector<point_type> samples;
@@ -19,8 +43,9 @@ void VoronoiHandler::buildVoronoi(std::vector<VoronoiHandler::segment_type> &seg
         point_type vertex1(it->vertex1()->x(), it->vertex1()->y());
         samples.push_back(vertex1);
 
-        if (it->is_curved()){
-            coordinate_type max_dist = static_cast<coordinate_type>(discretizationSize);
+        if (it->is_curved())
+        {
+            coordinate_type max_dist = static_cast<coordinate_type>(discretizationSize*precision);
             point_type point = it->cell()->contains_point() ? retrieve_point(*it->cell(), segments) : retrieve_point(*it->twin()->cell(), segments);
             segment_type segment = it->cell()->contains_point() ? retrieve_segment(*it->twin()->cell(), segments) : retrieve_segment(*it->cell(), segments);
             VoronoiHelper<coordinate_type>::discretize(point, segment, max_dist, &samples);
@@ -29,7 +54,7 @@ void VoronoiHandler::buildVoronoi(std::vector<VoronoiHandler::segment_type> &seg
         }
 
         for (int i = 0; i < samples.size() - 1; i++)
-            out.emplace_back(Segment((float)samples[i].x(), (float)samples[i].y(), (float)samples[i + 1].x(), (float)samples[i + 1].y()));
+            out.emplace_back(Segment(samples[i].x() / precision, samples[i].y() / precision, samples[i + 1].x() / precision, samples[i + 1].y() / precision));
     }
 }
 

@@ -3,7 +3,9 @@
 // #include "collision_detection.hpp"
 
 #include "DubinsCurves.hpp"
+// #include "voronoiHelper.hpp"
 #include "voronoiHandler.hpp"
+
 
 #include <stdexcept>
 #include <sstream>
@@ -510,32 +512,39 @@ namespace student
     // for (int i = 0; i < lines.size(); i++)
     //   path.points.emplace_back(lines[i].s, lines[i].x, lines[i].y, lines[i].th, lines[i].k);
 
-    std::vector<VoronoiHandler::segment_type> segments;
-    for (int ob = 0; ob < obstacle_list.size(); ob++)
-    {
-      Polygon v = obstacle_list[ob];
-      for (int i = 0, next; i < v.size(); i++)
-      {
-        next = (i + 1) % v.size(); 
+    // std::vector<Segment> segments;
+    // std::vector<Point> points;
+    // for (int ob = 0; ob < obstacle_list.size(); ob++)
+    // {
+    //   Polygon v = obstacle_list[ob];
+    //   for (int i = 0, next; i < v.size(); i++)
+    //   {
+        // next = (i + 1) % v.size(); 
         // segments.emplace_back(Segment(v[i], v[next]));
-        VoronoiHandler::point_type p1(v[i].x, v[i].y);
-        VoronoiHandler::point_type p2(v[next].x, v[next].y);
-        segments.emplace_back(VoronoiHandler::segment_type(p1, p2));
-      }
-    }
+        // VoronoiHandler::point_type p1(v[i].x, v[i].y);
+        // VoronoiHandler::point_type p2(v[next].x, v[next].y);
+        // segments.emplace_back(VoronoiHandler::segment_type(p1, p2));
+        // points.emplace_back(v[i].x, v[i].y);
+        // std::cout<< "\tx " << v[i].x << "\ty " << v[i].y << std::endl;
+    //   }
+    // }
 
-    for (int i = 0, next; i < borders.size(); i++)
-      {
-        next = (i + 1) % borders.size();
-        VoronoiHandler::point_type p1(borders[i].x, borders[i].y);
-        VoronoiHandler::point_type p2(borders[next].x, borders[next].y);
-        segments.emplace_back(VoronoiHandler::segment_type(p1, p2));
-      }
+    // std::cout<< "borders:" << std::endl;
 
-    std::cout<< "Total input segments: " << segments.size() << std::endl; 
+    // for (int i = 0, next; i < borders.size(); i++)
+      // {
+        // next = (i + 1) % borders.size();
+        // VoronoiHandler::point_type p1(borders[i].x, borders[i].y);
+        // VoronoiHandler::point_type p2(borders[next].x, borders[next].y);
+        // segments.emplace_back(VoronoiHandler::segment_type(p1, p2));
+        // points.emplace_back(borders[i].x, borders[i].y);
+        // std::cout<< "\tx " << borders[i].x << "\ty " << borders[i].y << std::endl;
+      // }
+
+    
     
     std::vector<Segment> out;
-    VoronoiHandler::buildVoronoi(segments, out, 0.2);
+    VoronoiHandler::buildVoronoi(borders, obstacle_list, out, 0.02, 1000000);
 
     std::cout<< "Number of Lines: " << out.size() << std::endl;
     
@@ -548,11 +557,11 @@ namespace student
     infile >> s;
     double scale = std::strtod(s, &p);
 
-    std::cout << "Scale: " << scale << std::endl << config_folder+"scale.txt" << std::endl;
+    // std::cout << "Scale: " << scale << std::endl;
 
     for (int i = 0; i < out.size(); i++)
     {
-      cv::line(image, cv::Point(scale*out[i].p0.x, scale*out[i].p0.y), cv::Point(scale*out[i].p1.x, scale*out[i].p1.y), cv::Scalar( 0, 0, 255),3, cv::LINE_AA);
+      cv::line(image, cv::Point(scale*out[i].p0.x, scale*out[i].p0.y), cv::Point(scale*out[i].p1.x, scale*out[i].p1.y), cv::Scalar( 0, 0, 255),1, cv::LINE_AA);
       std::cout<< "\tx0: " << out[i].p0.x << "\ty0: " << out[i].p0.y << "\tx1: " << out[i].p1.x << "\ty1: " << out[i].p1.y << std::endl;
     }
 
