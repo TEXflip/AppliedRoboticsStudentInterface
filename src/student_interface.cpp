@@ -486,12 +486,8 @@ namespace student
       y = cy;
       theta = std::atan2(dy, dx);
 
-       std::cout<< "x: " << x << "\ty: " << y << "\ttheta: " << theta * 180 / M_PI << "°" << std::endl;
+      std::cout<< "x: " << x << "\ty: " << y << "\ttheta: " << theta * 180 / M_PI << "°" << std::endl;
     }
-      Point r;
-  r.x=212;
-  r.y=423;
-   std::cout <<"is the point in a polygon? " << isInside_Global(r,obstacle_list) << std:: endl; 
     return found;
   }
   
@@ -553,11 +549,11 @@ namespace student
     
     
     std::vector<Point> out;
-    Graph graph;
+    Graph::Graph graph;
     VoronoiHandler::buildVoronoi(borders, obstacle_list, out, graph, 100, 1e6);
 
 
-    std::cout<< "Number of Lines: " << out.size() << std::endl;
+    // std::cout<< "Number of Lines: " << out.size() << std::endl;
     
     cv::Mat image;
     image = cv::imread("graph.jpg", cv::IMREAD_COLOR);
@@ -569,21 +565,11 @@ namespace student
     double scale = std::strtod(s, &p_);
 
     std::cout << "Scale: " << scale << std::endl;
-
-    std::vector<Graph::node> *nodes = graph.nodes();
-    std::vector<Graph::cell> *cells = graph.cells();
-
-    std::cout << "Tot Cells: " << cells->size() << "\t" << cells << std::endl;
-
-    // for (int i = 0; i < (*cells).size(); i++)
-    // {
-    //   std::cout << i << " -> " << (*cells)[i].nodes.size() << std::endl;
-    // }
     
-    for (int i = 0; i < graph.cells()[0].size(); i++)
+    for (int i = 0; i < graph.size(); i++)
     {
       //cv::line(image, cv::Point(scale*out[i].p0.x, scale*out[i].p0.y), cv::Point(scale*out[i].p1.x, scale*out[i].p1.y), cv::Scalar( 0, 0, 255),1, cv::LINE_AA);
-      cv::Point p(((*nodes)[(*cells)[0].nodes[i]].x*scale), ((*nodes)[(*cells)[0].nodes[i]].y*scale));
+      cv::Point p(graph[i].x*scale, graph[i].y*scale);
       cv::circle(image, p, scale*0.004, cv::Scalar(255, 0, 255), cv::FILLED, cv::LINE_AA);
       // std::cout<< "\tx0: " << out[i].p0.x << "\ty0: " << out[i].p0.y << "\tx1: " << out[i].p1.x << "\ty1: " << out[i].p1.y << std::endl;
     }
@@ -592,6 +578,6 @@ namespace student
     cv::waitKey(0);
     
     return true;
-*/
+
   }
 }

@@ -1,7 +1,7 @@
 #include "voronoiHandler.hpp"
 #include <iostream>
 
-void VoronoiHandler::buildVoronoi(const Polygon &borders, const std::vector<Polygon> &obstacle_list, std::vector<Point> &out, Graph &outGraph, double discretizationSize, float precision)
+void VoronoiHandler::buildVoronoi(const Polygon &borders, const std::vector<Polygon> &obstacle_list, std::vector<Point> &out, Graph::Graph &outGraph, double discretizationSize, float precision)
 {
     std::vector<VoronoiHandler::segment_type> segments;
     for (int ob = 0; ob < obstacle_list.size(); ob++)
@@ -55,18 +55,19 @@ void VoronoiHandler::buildVoronoi(const Polygon &borders, const std::vector<Poly
     //         out.emplace_back(Segment(samples[i].x() / precision, samples[i].y() / precision, samples[i + 1].x() / precision, samples[i + 1].y() / precision));
     // }
 
-    vector<Graph::node> nodes;
-    nodes.resize(vd.num_vertices());
-    vector<Graph::cell> cells;
-    cells.resize(vd.num_cells());
+    // vector<Graph::node> nodes;
+    // nodes.resize(vd.num_vertices());
+    // vector<Graph::cell> cells;
+    // cells.resize(vd.num_cells());
+    outGraph.resize(vd.num_vertices());
     int i = 0;
     for (voronoi_diagram<double>::const_vertex_iterator it = vd.vertices().begin();
          it != vd.vertices().end(); ++it)
     {
         out.emplace_back(it->x() / precision, it->y() / precision);
         it->color(i);
-        nodes[i].x = it->x() / precision;
-        nodes[i].y = it->y() / precision;
+        outGraph[i].x = it->x() / precision;
+        outGraph[i].y = it->y() / precision;
         i++;
     }
     i = 0;
@@ -81,17 +82,17 @@ void VoronoiHandler::buildVoronoi(const Polygon &borders, const std::vector<Poly
             if (edge->is_primary() && edge->is_finite())
             {
                 int pos = edge->vertex0()->color();
-                nodes[pos].neighbours.emplace_back(edge->vertex1()->color());
-                nodes[pos].neighboursCells.emplace_back(i);
-                cells[i].nodes.emplace_back(pos);
+                outGraph[pos].neighbours.emplace_back(edge->vertex1()->color());
+                // nodes[pos].neighboursCells.emplace_back(i);
+                // cells[i].nodes.emplace_back(pos);
             }
 
             edge = edge->next();
         } while (edge != cell.incident_edge());
     }
-    std::cout << "Tot Cells1: " << cells.size() << "\t" << &cells << std::endl;
-    outGraph.setCells(&cells);
-    outGraph.setNodes(&nodes);
+    // std::cout << "Tot Cells1: " << cells.size() << "\t" << &cells << std::endl;
+    // outGraph.setCells(&cells);
+    // outGraph.setNodes(&nodes);
 }
 
 VoronoiHandler::point_type VoronoiHandler::retrieve_point(const VoronoiHandler::cell &cell, std::vector<VoronoiHandler::segment_type> &segments)

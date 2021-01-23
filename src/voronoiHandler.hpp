@@ -181,7 +181,7 @@ public:
     typedef segment_data<coordinate_type> segment_type;
     
     // static void buildVoronoi(vector<point_type> &points, vector<segment_type> &segments, vector<Segment> &out, double discretizationSize);
-    static void buildVoronoi(const Polygon &borders,const std::vector<Polygon> &obstacle_list, vector<Point> &out, Graph & outGraph, double discretizationSize, float precision);
+    static void buildVoronoi(const Polygon &borders,const std::vector<Polygon> &obstacle_list, vector<Point> &out, Graph::Graph & outGraph, double discretizationSize, float precision);
     
 private:
     typedef voronoi_diagram<double>::cell_type cell;

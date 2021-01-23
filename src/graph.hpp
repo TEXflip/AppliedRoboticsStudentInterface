@@ -1,13 +1,14 @@
 #pragma once
 #include <vector>
+// #include <iostream>
 
-class Graph
+namespace Graph
 {
-public:
-    struct cell
-    {
-        std::vector<int> nodes;
-    };
+
+    // struct cell
+    // {
+    //     std::vector<int> nodes;
+    // };
 
     struct node
     {
@@ -17,18 +18,11 @@ public:
         float x;              // Nodes position in 2D space
         float y;
         std::vector<int> neighbours; // Connections to neighbours
-        std::vector<int> neighboursCells;
         node *parent; // Node connecting to this node that offers shortest parent
     };
 
-    Graph() = default;
     bool Solve_AStar();
-    void setNodes(std::vector<node> *nodes);
-    void setCells(std::vector<cell> *cells);
-    std::vector<node>* nodes();
-    std::vector<cell>* cells();
 
-private:
-    std::vector<node> *nodes_ = nullptr;
-    std::vector<cell> *cells_ = nullptr;
+    typedef std::vector<node> Graph;
+    // std::vector<cell> *cells_ = nullptr;
 };
