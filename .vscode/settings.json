@@ -60,7 +60,16 @@
         "condition_variable": "cpp",
         "optional": "cpp",
         "future": "cpp",
-        "mutex": "cpp"
+        "mutex": "cpp",
+        "random": "cpp",
+        "csetjmp": "cpp",
+        "forward_list": "cpp",
+        "unordered_set": "cpp",
+        "any": "cpp",
+        "rope": "cpp",
+        "scoped_allocator": "cpp",
+        "shared_mutex": "cpp",
+        "regex": "cpp"
     },
     "cmake.configureOnOpen": false
 }

@@ -8,6 +8,7 @@
 #include "voronoiHandler.hpp"
 // #include "graph.hpp"
 
+#include "collision_detection.hpp"
 
 #include <stdexcept>
 #include <sstream>
@@ -485,11 +486,15 @@ namespace student
       y = cy;
       theta = std::atan2(dy, dx);
 
-      // std::cout<< "x: " << x << "\ty: " << y << "\ttheta: " << theta * 180 / M_PI << "°" << std::endl;
+       std::cout<< "x: " << x << "\ty: " << y << "\ttheta: " << theta * 180 / M_PI << "°" << std::endl;
     }
-
+      Point r;
+  r.x=212;
+  r.y=423;
+   std::cout <<"is the point in a polygon? " << isInside_Global(r,obstacle_list) << std:: endl; 
     return found;
   }
+  
 
   bool planPath(const Polygon &borders, const std::vector<Polygon> &obstacle_list, 
                 const std::vector<std::pair<int, Polygon>> &victim_list, 
@@ -543,11 +548,14 @@ namespace student
         // std::cout<< "\tx " << borders[i].x << "\ty " << borders[i].y << std::endl;
       // }
 
+
+
     
     
     std::vector<Point> out;
     Graph graph;
     VoronoiHandler::buildVoronoi(borders, obstacle_list, out, graph, 100, 1e6);
+
 
     std::cout<< "Number of Lines: " << out.size() << std::endl;
     
@@ -584,6 +592,6 @@ namespace student
     cv::waitKey(0);
     
     return true;
+*/
   }
-
 }
