@@ -565,10 +565,12 @@ namespace student
     std::vector<Graph::node> *nodes = graph.nodes();
     std::vector<Graph::cell> *cells = graph.cells();
 
-    for (int i = 0; i < (*cells).size(); i++)
-    {
-      std::cout << i << " -> " << (*cells)[i].nodes.size() << std::endl;
-    }
+    std::cout << "Tot Cells: " << cells->size() << "\t" << cells << std::endl;
+
+    // for (int i = 0; i < (*cells).size(); i++)
+    // {
+    //   std::cout << i << " -> " << (*cells)[i].nodes.size() << std::endl;
+    // }
     
     for (int i = 0; i < graph.cells()[0].size(); i++)
     {

@@ -89,7 +89,7 @@ void VoronoiHandler::buildVoronoi(const Polygon &borders, const std::vector<Poly
             edge = edge->next();
         } while (edge != cell.incident_edge());
     }
-
+    std::cout << "Tot Cells1: " << cells.size() << "\t" << &cells << std::endl;
     outGraph.setCells(&cells);
     outGraph.setNodes(&nodes);
 }
