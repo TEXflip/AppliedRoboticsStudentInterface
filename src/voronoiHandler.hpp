@@ -163,6 +163,7 @@ using namespace std;
 // using boost::polygon::voronoi_diagram;
 
 #include "utils.hpp"
+#include "graph.hpp"
 
 struct Segment
 {
@@ -178,11 +179,13 @@ public:
     typedef double coordinate_type;
     typedef point_data<coordinate_type> point_type;
     typedef segment_data<coordinate_type> segment_type;
-    typedef voronoi_diagram<double>::cell_type cell;
+    
     // static void buildVoronoi(vector<point_type> &points, vector<segment_type> &segments, vector<Segment> &out, double discretizationSize);
-    static void buildVoronoi(const Polygon &borders,const std::vector<Polygon> &obstacle_list, vector<Segment> &out, double discretizationSize, float precision);
+    static void buildVoronoi(const Polygon &borders,const std::vector<Polygon> &obstacle_list, vector<Point> &out, Graph & outGraph, double discretizationSize, float precision);
     
 private:
+    typedef voronoi_diagram<double>::cell_type cell;
+
     static point_type retrieve_point(const cell &cell, vector<segment_type> &segments);
     static segment_type retrieve_segment(const cell &cell, vector<segment_type> &segments);
 };
