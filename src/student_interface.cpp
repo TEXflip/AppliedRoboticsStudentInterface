@@ -221,7 +221,7 @@ namespace student
 
     cv::imwrite("graph.jpg", img_in);
     std::ofstream outfile;
-    outfile.open(config_folder+"/scale.txt", std::ios_base::out);
+    outfile.open(config_folder + "/scale.txt", std::ios_base::out);
     outfile << scale;
 
     //colorspace convertion
@@ -240,16 +240,16 @@ namespace student
     */
 
     //selecting the red_obstacles
-    cv::inRange(hsv_img, cv::Scalar(0,9,69), cv::Scalar(20,255,255), red_mask_high);
+    cv::inRange(hsv_img, cv::Scalar(0, 9, 69), cv::Scalar(20, 255, 255), red_mask_high);
 
     //for real images use hue values left and right from 0 in order to get the best result
 
-    cv::inRange(hsv_img, cv::Scalar(158,93,33), cv::Scalar(180,255,253), red_mask_low);
+    cv::inRange(hsv_img, cv::Scalar(158, 93, 33), cv::Scalar(180, 255, 253), red_mask_low);
 
     cv::addWeighted(red_mask_low, 1.0, red_mask_high, 1.0, 0.0, red_obstacle_mask);
 
     //selecting the green_victims AND the gate
-    cv::inRange(hsv_img, cv::Scalar(40,20,50), cv::Scalar(79,255,255), green_victim_mask);
+    cv::inRange(hsv_img, cv::Scalar(40, 20, 50), cv::Scalar(79, 255, 255), green_victim_mask);
 
     //selecting the black border if needed. Atention(numbers get also included)
     //cv::inRange(hsv_img, cv::Scalar(0, 0, 0), cv::Scalar(10, 10, 225), red_obstacle_mask);
@@ -313,7 +313,7 @@ namespace student
       {
         for (const auto &pt : approx_curve)
           scaled_contour_green.emplace_back(pt.x / scale, pt.y / scale);
-        
+
         gate = scaled_contour_green;
       }
       else if (approx_curve.size() > 4) //  //if i have a number circle and not the gate
@@ -326,7 +326,7 @@ namespace student
     ////////////////TEMPLATEMATCHING//////////////////
     cv::Mat green_mask_inv, filtered(img_in.rows, img_in.cols, CV_8UC3, cv::Scalar(255, 255, 255));
     cv::bitwise_not(green_victim_mask, green_mask_inv); // generate binary mask with inverted pixels w.r.t. green mask -> black numbers are part of this mask
-    
+
     // Load Templatenumbers into a vector
     std::vector<cv::Mat> templROIs;
     for (int i = 0; i <= 9; ++i)
@@ -335,7 +335,7 @@ namespace student
       cv::flip(templImg, templImg, 1);
       templROIs.emplace_back(templImg);
     }
-    
+
     img_in.copyTo(filtered, green_mask_inv); //creates a copy of image without green surounding
 
     double score;
@@ -353,7 +353,7 @@ namespace student
 
       cv::resize(processROI, processROI, cv::Size(200, 200)); // resize the ROI to match with the template size!!!!!
       cv::threshold(processROI, processROI, 100, 255, 0);     // threshold and binarize the image, to suppress some noise
-      
+
       // Apply some additional smoothing and filtering
       cv::erode(processROI, processROI, kernel);
       cv::GaussianBlur(processROI, processROI, cv::Size(5, 5), 2, 2);
@@ -371,7 +371,7 @@ namespace student
         for (int r = 0; r < 360; r += 90)
         {
 
-          cv::Point2f pc((templROIs[j].cols-1) / 2., (templROIs[j].rows-1) / 2.);
+          cv::Point2f pc((templROIs[j].cols - 1) / 2., (templROIs[j].rows - 1) / 2.);
           cv::Mat rot = cv::getRotationMatrix2D(pc, r, 1.0);
           cv::warpAffine(templROIs[j], templROIturned, rot, templROIs[j].size());
 
@@ -391,7 +391,6 @@ namespace student
       //scale the found contour
       for (const auto &pt : contours_approx_array[i])
         scaled_contour.emplace_back(pt.x / scale, pt.y / scale);
-      
 
       victim_Map.insert(std::pair<int, Polygon>(maxIdx, scaled_contour)); // insert the found blob in the MAP in order o assign the contour to the value
 
@@ -417,7 +416,7 @@ namespace student
 
     cv::cvtColor(img_in, hsv_img, cv::COLOR_BGR2HSV);
 
-    cv::inRange(hsv_img, cv::Scalar(85,103,19), cv::Scalar(123,255,255), blue_mask);
+    cv::inRange(hsv_img, cv::Scalar(85, 103, 19), cv::Scalar(123, 255, 255), blue_mask);
 
     // Blur Fiilter????
 
@@ -455,7 +454,7 @@ namespace student
       //scale the contoure
       for (const auto &pt : approx_curve)
         triangle.emplace_back(pt.x / scale, pt.y / scale);
-      
+
       //calculate the barrycentre
       double cx = 0, cy = 0;
       for (auto item : triangle)
@@ -486,15 +485,14 @@ namespace student
       y = cy;
       theta = std::atan2(dy, dx);
 
-      std::cout<< "x: " << x << "\ty: " << y << "\ttheta: " << theta * 180 / M_PI << "°" << std::endl;
+      // std::cout << "x: " << x << "\ty: " << y << "\ttheta: " << theta * 180 / M_PI << "°" << std::endl;
     }
     return found;
   }
-  
 
-  bool planPath(const Polygon &borders, const std::vector<Polygon> &obstacle_list, 
-                const std::vector<std::pair<int, Polygon>> &victim_list, 
-                const Polygon &gate, const float x, const float y, const float theta, Path &path, const std::string& config_folder)
+  bool planPath(const Polygon &borders, const std::vector<Polygon> &obstacle_list,
+                const std::vector<std::pair<int, Polygon>> &victim_list,
+                const Polygon &gate, const float x, const float y, const float theta, Path &path, const std::string &config_folder)
   {
     // DubinsCurvesHandler dcHandler(5);
     // Point gateCenter;
@@ -515,69 +513,39 @@ namespace student
     // for (int i = 0; i < lines.size(); i++)
     //   path.points.emplace_back(lines[i].s, lines[i].x, lines[i].y, lines[i].th, lines[i].k);
 
-    // std::vector<Segment> segments;
-    // std::vector<Point> points;
-    // for (int ob = 0; ob < obstacle_list.size(); ob++)
-    // {
-    //   Polygon v = obstacle_list[ob];
-    //   for (int i = 0, next; i < v.size(); i++)
-    //   {
-        // next = (i + 1) % v.size(); 
-        // segments.emplace_back(Segment(v[i], v[next]));
-        // VoronoiHandler::point_type p1(v[i].x, v[i].y);
-        // VoronoiHandler::point_type p2(v[next].x, v[next].y);
-        // segments.emplace_back(VoronoiHandler::segment_type(p1, p2));
-        // points.emplace_back(v[i].x, v[i].y);
-        // std::cout<< "\tx " << v[i].x << "\ty " << v[i].y << std::endl;
-    //   }
-    // }
-
-    // std::cout<< "borders:" << std::endl;
-
-    // for (int i = 0, next; i < borders.size(); i++)
-      // {
-        // next = (i + 1) % borders.size();
-        // VoronoiHandler::point_type p1(borders[i].x, borders[i].y);
-        // VoronoiHandler::point_type p2(borders[next].x, borders[next].y);
-        // segments.emplace_back(VoronoiHandler::segment_type(p1, p2));
-        // points.emplace_back(borders[i].x, borders[i].y);
-        // std::cout<< "\tx " << borders[i].x << "\ty " << borders[i].y << std::endl;
-      // }
-
-
-
-    
-    
-    std::vector<Point> out;
     Graph::Graph graph;
-    VoronoiHandler::buildVoronoi(borders, obstacle_list, out, graph, 100, 1e6);
-
+    VoronoiHandler::buildVoronoi(borders, obstacle_list, graph, 100, 1e6);
 
     // std::cout<< "Number of Lines: " << out.size() << std::endl;
-    
+
     cv::Mat image;
     image = cv::imread("graph.jpg", cv::IMREAD_COLOR);
     std::ifstream infile;
-    infile.open(config_folder+"/scale.txt");
+    infile.open(config_folder + "/scale.txt");
     char s[20];
     char *p_;
     infile >> s;
     double scale = std::strtod(s, &p_);
 
     std::cout << "Scale: " << scale << std::endl;
-    
-    for (int i = 0; i < graph.size(); i++)
+    for (int v = 0; v < graph.size(); v++)
     {
-      //cv::line(image, cv::Point(scale*out[i].p0.x, scale*out[i].p0.y), cv::Point(scale*out[i].p1.x, scale*out[i].p1.y), cv::Scalar( 0, 0, 255),1, cv::LINE_AA);
-      cv::Point p(graph[i].x*scale, graph[i].y*scale);
-      cv::circle(image, p, scale*0.004, cv::Scalar(255, 0, 255), cv::FILLED, cv::LINE_AA);
-      // std::cout<< "\tx0: " << out[i].p0.x << "\ty0: " << out[i].p0.y << "\tx1: " << out[i].p1.x << "\ty1: " << out[i].p1.y << std::endl;
+      // if (graph[v].neighbours.size() > 2)
+      // {
+        for (int i = 0; i < graph[v].neighbours.size(); i++)
+        {
+          int removed = graph[v].removed || graph[graph[v].neighbours[i]].removed ? 1 : 0;
+          cv::line(image, cv::Point(scale * graph[v].x, scale * graph[v].y), cv::Point(scale * graph[graph[v].neighbours[i]].x, scale * graph[graph[v].neighbours[i]].y), cv::Scalar(255, 255*removed, 0), 1, cv::LINE_AA);
+          // cv::Point p(graph[i].x*scale, graph[i].y*scale);
+          // cv::circle(image, p, scale*0.004, cv::Scalar(255, 0, 255), cv::FILLED, cv::LINE_AA);
+          // std::cout<< "\tx0: " << out[i].p0.x << "\ty0: " << out[i].p0.y << "\tx1: " << out[i].p1.x << "\ty1: " << out[i].p1.y << std::endl;
+        }
+      // }
     }
 
     cv::imshow("graph", image);
     cv::waitKey(0);
-    
-    return true;
 
+    return true;
   }
-}
+} // namespace student

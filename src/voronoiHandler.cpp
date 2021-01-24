@@ -1,7 +1,8 @@
 #include "voronoiHandler.hpp"
 #include <iostream>
+#include "collision_detection.hpp"
 
-void VoronoiHandler::buildVoronoi(const Polygon &borders, const std::vector<Polygon> &obstacle_list, std::vector<Point> &out, Graph::Graph &outGraph, double discretizationSize, float precision)
+void VoronoiHandler::buildVoronoi(const Polygon &borders, const std::vector<Polygon> &obstacle_list, Graph::Graph &outGraph, double discretizationSize, float precision)
 {
     std::vector<VoronoiHandler::segment_type> segments;
     for (int ob = 0; ob < obstacle_list.size(); ob++)
@@ -30,47 +31,35 @@ void VoronoiHandler::buildVoronoi(const Polygon &borders, const std::vector<Poly
     voronoi_diagram<double> vd;
     construct_voronoi(segments.begin(), segments.end(), &vd);
 
-    std::cout << "Number of Edges: " << vd.edges().size() << std::endl;
+    std::cout << "Edges: " << vd.edges().size() << "\tVertices: " << vd.vertices().size() << std::endl;
 
-    // for (voronoi_diagram<double>::const_edge_iterator it = vd.edges().begin(); it != vd.edges().end(); ++it)
-    // {
-    //     if (it->is_secondary() || it->is_infinite()) // ingora edges secondari e infiniti
-    //         continue;
+    vector<Polygon> rescaled_ob_list = VoronoiHandler::scale(obstacle_list, 1.2);
 
-    //     std::vector<point_type> samples;
-    //     point_type vertex0(it->vertex0()->x(), it->vertex0()->y());
-    //     samples.push_back(vertex0);
-    //     point_type vertex1(it->vertex1()->x(), it->vertex1()->y());
-    //     samples.push_back(vertex1);
-
-    //     // if (it->is_curved())
-    //     // {
-    //     //     coordinate_type max_dist = static_cast<coordinate_type>(discretizationSize*precision);
-    //     //     point_type point = it->cell()->contains_point() ? retrieve_point(*it->cell(), segments) : retrieve_point(*it->twin()->cell(), segments);
-    //     //     segment_type segment = it->cell()->contains_point() ? retrieve_segment(*it->twin()->cell(), segments) : retrieve_segment(*it->cell(), segments);
-    //     //     VoronoiHelper<coordinate_type>::discretize(point, segment, max_dist, &samples);
-    //     // }
-
-    //     for (int i = 0; i < samples.size() - 1; i++)
-    //         out.emplace_back(Segment(samples[i].x() / precision, samples[i].y() / precision, samples[i + 1].x() / precision, samples[i + 1].y() / precision));
-    // }
-
-    // vector<Graph::node> nodes;
-    // nodes.resize(vd.num_vertices());
-    // vector<Graph::cell> cells;
-    // cells.resize(vd.num_cells());
-    outGraph.resize(vd.num_vertices());
     int i = 0;
     for (voronoi_diagram<double>::const_vertex_iterator it = vd.vertices().begin();
          it != vd.vertices().end(); ++it)
     {
-        out.emplace_back(it->x() / precision, it->y() / precision);
-        it->color(i);
-        outGraph[i].x = it->x() / precision;
-        outGraph[i].y = it->y() / precision;
-        i++;
+        float x = it->x() / precision;
+        float y = it->y() / precision;
+        // if (!isInside_Global(Point(x, y), rescaled_ob_list))
+        // {
+            Graph::node n;
+            it->color(i);
+            n.x = x;
+            n.y = y;
+            outGraph.emplace_back(n);
+            i++;
+            if (isInside_Global(Point(x, y), rescaled_ob_list))
+                n.removed = true;
+        // }
+        // else
+        // {
+        //     it->color(-1);
+        // }
     }
-    i = 0;
+
+    std::cout << "Vertices removed: " << vd.vertices().size()-i << std::endl;
+    // int i = 0;
     for (voronoi_diagram<double>::const_cell_iterator it = vd.cells().begin();
          it != vd.cells().end(); ++it)
     {
@@ -81,8 +70,10 @@ void VoronoiHandler::buildVoronoi(const Polygon &borders, const std::vector<Poly
         {
             if (edge->is_primary() && edge->is_finite())
             {
-                int pos = edge->vertex0()->color();
-                outGraph[pos].neighbours.emplace_back(edge->vertex1()->color());
+                int pos0 = edge->vertex0()->color();
+                int pos1 = edge->vertex1()->color();
+                // if (pos0 >= 0 && pos1 >= 0)
+                    outGraph[pos0].neighbours.emplace_back(pos1);
                 // nodes[pos].neighboursCells.emplace_back(i);
                 // cells[i].nodes.emplace_back(pos);
             }
@@ -117,4 +108,34 @@ VoronoiHandler::segment_type VoronoiHandler::retrieve_segment(const VoronoiHandl
 {
     cell::source_index_type index = cell.source_index() /* - point_data_.size()*/;
     return segments[index];
+}
+
+vector<Polygon> VoronoiHandler::scale(const vector<Polygon>& polygons, float scale)
+{
+    vector<Polygon> resized;
+    resized.resize(polygons.size());
+    for (int i = 0; i < polygons.size(); i++)
+    {
+        Polygon poly = polygons[i];
+        float x = 0, y = 0;
+        for (Point p : poly)
+        {
+            x += p.x;
+            y += p.y;
+        }
+        x /= poly.size();
+        y /= poly.size();
+
+        Polygon newP;
+
+        for(auto p : poly){
+            float diffX = p.x - x;
+            float diffY = p.y - y;
+            diffX *= scale;
+            diffY *= scale;
+            newP.emplace_back(diffX + x, diffY + y);
+        }
+        resized[i] = newP;
+    }
+    return resized;
 }
