@@ -1,6 +1,7 @@
 #include "voronoiHandler.hpp"
 #include <iostream>
 #include "collision_detection.hpp"
+#include "debug.hpp"
 
 void VoronoiHandler::buildVoronoi(const Polygon &borders, const std::vector<Polygon> &obstacle_list, Graph::Graph &outGraph, double discretizationSize, float precision)
 {
@@ -33,9 +34,10 @@ void VoronoiHandler::buildVoronoi(const Polygon &borders, const std::vector<Poly
 
     std::cout << "Edges: " << vd.edges().size() << "\tVertices: " << vd.vertices().size() << std::endl;
 
-    vector<Polygon> rescaled_ob_list = VoronoiHandler::scale(obstacle_list, 1.2);
+    vector<Polygon> rescaled_ob_list = VoronoiHandler::scale(obstacle_list, 0.02);
+    showPolygons(rescaled_ob_list);
 
-    int i = 0;
+    int i = 0, rem = 0;
     for (voronoi_diagram<double>::const_vertex_iterator it = vd.vertices().begin();
          it != vd.vertices().end(); ++it)
     {
@@ -47,10 +49,12 @@ void VoronoiHandler::buildVoronoi(const Polygon &borders, const std::vector<Poly
             it->color(i);
             n.x = x;
             n.y = y;
-            outGraph.emplace_back(n);
             i++;
-            if (isInside_Global(Point(x, y), rescaled_ob_list))
+            if (isInside_Global(Point(x,y), rescaled_ob_list)){
                 n.removed = true;
+                rem++;
+            }
+            outGraph.emplace_back(n);
         // }
         // else
         // {
@@ -58,7 +62,7 @@ void VoronoiHandler::buildVoronoi(const Polygon &borders, const std::vector<Poly
         // }
     }
 
-    std::cout << "Vertices removed: " << vd.vertices().size()-i << std::endl;
+    std::cout << "Vertices removed: " << rem << std::endl;
     // int i = 0;
     for (voronoi_diagram<double>::const_cell_iterator it = vd.cells().begin();
          it != vd.cells().end(); ++it)
@@ -129,11 +133,11 @@ vector<Polygon> VoronoiHandler::scale(const vector<Polygon>& polygons, float sca
         Polygon newP;
 
         for(auto p : poly){
-            float diffX = p.x - x;
-            float diffY = p.y - y;
-            diffX *= scale;
-            diffY *= scale;
-            newP.emplace_back(diffX + x, diffY + y);
+            // float diffX = p.x - x;
+            // float diffY = p.y - y;
+            float theta = atan((p.y - y)/(p.x - x));
+            float sign = (p.x - x) > 0 ? 1 : -1;
+            newP.emplace_back(p.x + cos(theta)*scale*sign, p.y + sin(theta)*scale*sign);
         }
         resized[i] = newP;
     }
