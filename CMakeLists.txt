@@ -6,15 +6,12 @@ add_compile_options(-std=c++11)
 
 find_package(OpenCV REQUIRED )
 find_package(project_interface REQUIRED )
-find_package(Qt4 COMPONENTS QtCore QtGui QtOpenGL REQUIRED)
 
 ## Specify additional locations of header files
 include_directories(
  include 
  ${OpenCV_INCLUDE_DIRS}
  ${project_interface_INCLUDE_DIRS}
- ${QT_QTOPENGL_INCLUDE_DIR}
- ${OPENGL_INCLUDE_DIR}
 )
 
 ## CREATE EXECUTABLE LIBRARY
@@ -24,6 +21,7 @@ add_library(student SHARED
    src/collision_detection.cpp
    src/voronoiHandler.cpp
    src/graph.cpp
+   src/debug.cpp
 )
 
 target_link_libraries(student
@@ -59,7 +57,6 @@ add_executable(creat_real_map
 add_executable(demo_voronoi
   src/demo_shape_detection/voronoi_web_demo.cpp
 )
-
 add_executable(AstarPathPlanning
   src/Astar_pathplanning.cpp
 )
@@ -84,9 +81,7 @@ target_link_libraries(demo_full_example
 )
 target_link_libraries(demo_simple_shape_detection
   ${OpenCV_LIBRARIES}
-
 )
-
 target_link_libraries(creat_real_map
   ${OpenCV_LIBRARIES}
 

@@ -21,6 +21,7 @@
 #include <atomic>
 #include <unistd.h>
 #include <fstream>
+#include "debug.hpp"
 
 namespace student
 {
@@ -496,6 +497,7 @@ namespace student
   {
     // DubinsCurvesHandler dcHandler(5);
     // Point gateCenter;
+<<<<<<< HEAD
      float xgate = 0, ygate = 0, xcenter_g, ycenter_g;
     
     for (int i = 0; i< gate.size();i++)
@@ -506,6 +508,16 @@ namespace student
      xcenter_g = x / gate.size();
      ycenter_g = y / gate.size();
      
+=======
+    // double x = 0, y = 0;
+    // for (auto item : gate)
+    // {
+    //     x += item.x;
+    //     y += item.y;
+    // }
+    // x = x / gate.size();
+    // y = y / gate.size();
+>>>>>>> 0de882204080b2e12368ab26775bb2fb2dc42899
     // DubinsCurve c = dcHandler.findShortestPath(x, y, theta, gateCenter.x, gateCenter.y, 0);
     // std::cout << "x: " << x << "\ty: " << y << "\tth: " << theta << "\tgateX: " << gateCenter.x << "\tgateY: " << gateCenter.y << std::endl;
 
@@ -518,35 +530,7 @@ namespace student
     Graph::Graph graph;
     VoronoiHandler::buildVoronoi(borders, obstacle_list, graph, 100, 1e6);
 
-    // std::cout<< "Number of Lines: " << out.size() << std::endl;
-
-    cv::Mat image;
-    image = cv::imread("graph.jpg", cv::IMREAD_COLOR);
-    std::ifstream infile;
-    infile.open(config_folder + "/scale.txt");
-    char s[20];
-    char *p_;
-    infile >> s;
-    double scale = std::strtod(s, &p_);
-
-    std::cout << "Scale: " << scale << std::endl;
-    for (int v = 0; v < graph.size(); v++)
-    {
-      // if (graph[v].neighbours.size() > 2)
-      // {
-        for (int i = 0; i < graph[v].neighbours.size(); i++)
-        {
-          int removed = graph[v].removed || graph[graph[v].neighbours[i]].removed ? 1 : 0;
-          cv::line(image, cv::Point(scale * graph[v].x, scale * graph[v].y), cv::Point(scale * graph[graph[v].neighbours[i]].x, scale * graph[graph[v].neighbours[i]].y), cv::Scalar(255, 255*removed, 0), 1, cv::LINE_AA);
-          // cv::Point p(graph[i].x*scale, graph[i].y*scale);
-          // cv::circle(image, p, scale*0.004, cv::Scalar(255, 0, 255), cv::FILLED, cv::LINE_AA);
-          // std::cout<< "\tx0: " << out[i].p0.x << "\ty0: " << out[i].p0.y << "\tx1: " << out[i].p1.x << "\ty1: " << out[i].p1.y << std::endl;
-        }
-      // }
-    }
-
-    cv::imshow("graph", image);
-    cv::waitKey(0);
+    showGraph(graph);
 
     return true;
   }

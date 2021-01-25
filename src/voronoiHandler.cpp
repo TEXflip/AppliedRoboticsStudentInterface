@@ -1,6 +1,11 @@
 #include "voronoiHandler.hpp"
 #include <iostream>
 #include "collision_detection.hpp"
+#include "debug.hpp"
+
+#define footprint_width 0.09
+#define footprint_height 0.02
+#define footprint_length 0.19
 
 void VoronoiHandler::buildVoronoi(const Polygon &borders, const std::vector<Polygon> &obstacle_list, Graph::Graph &outGraph, double discretizationSize, float precision)
 {
@@ -33,32 +38,35 @@ void VoronoiHandler::buildVoronoi(const Polygon &borders, const std::vector<Poly
 
     std::cout << "Edges: " << vd.edges().size() << "\tVertices: " << vd.vertices().size() << std::endl;
 
-    vector<Polygon> rescaled_ob_list = VoronoiHandler::scale(obstacle_list, 1.2);
+    vector<Polygon> rescaled_ob_list = VoronoiHandler::scale(obstacle_list, footprint_width/1.5);
+    // showPolygons(rescaled_ob_list);
 
-    int i = 0;
+    int i = 0, rem = 0;
     for (voronoi_diagram<double>::const_vertex_iterator it = vd.vertices().begin();
          it != vd.vertices().end(); ++it)
     {
         float x = it->x() / precision;
         float y = it->y() / precision;
-        // if (!isInside_Global(Point(x, y), rescaled_ob_list))
-        // {
+        if (!isInside_Global(Point(x, y), rescaled_ob_list))
+        {
             Graph::node n;
             it->color(i);
             n.x = x;
             n.y = y;
+            // if (isInside_Global(Point(x,y), rescaled_ob_list)){
+            //     n.removed = true;
+            //     rem++;
+            // }
             outGraph.emplace_back(n);
             i++;
-            if (isInside_Global(Point(x, y), rescaled_ob_list))
-                n.removed = true;
-        // }
-        // else
-        // {
-        //     it->color(-1);
-        // }
+        }
+        else
+        {
+            it->color(-1);
+        }
     }
 
-    std::cout << "Vertices removed: " << vd.vertices().size()-i << std::endl;
+    // std::cout << "Vertices removed: " << rem << std::endl;
     // int i = 0;
     for (voronoi_diagram<double>::const_cell_iterator it = vd.cells().begin();
          it != vd.cells().end(); ++it)
@@ -72,8 +80,13 @@ void VoronoiHandler::buildVoronoi(const Polygon &borders, const std::vector<Poly
             {
                 int pos0 = edge->vertex0()->color();
                 int pos1 = edge->vertex1()->color();
-                // if (pos0 >= 0 && pos1 >= 0)
+                if (pos0 >= 0 && pos1 >= 0)
                     outGraph[pos0].neighbours.emplace_back(pos1);
+                // if (intersect_Global(Point(edge->vertex0()->x()/ precision,edge->vertex0()->y()/ precision), Point(edge->vertex1()->x()/ precision,edge->vertex1()->y()/ precision), rescaled_ob_list))
+                // {
+                //     outGraph[pos0].removed = true;
+                //     outGraph[pos1].removed = true;
+                // }
                 // nodes[pos].neighboursCells.emplace_back(i);
                 // cells[i].nodes.emplace_back(pos);
             }
@@ -81,6 +94,7 @@ void VoronoiHandler::buildVoronoi(const Polygon &borders, const std::vector<Poly
             edge = edge->next();
         } while (edge != cell.incident_edge());
     }
+    // showGraphAndPolygons(outGraph, rescaled_ob_list);
     // std::cout << "Tot Cells1: " << cells.size() << "\t" << &cells << std::endl;
     // outGraph.setCells(&cells);
     // outGraph.setNodes(&nodes);
@@ -129,11 +143,11 @@ vector<Polygon> VoronoiHandler::scale(const vector<Polygon>& polygons, float sca
         Polygon newP;
 
         for(auto p : poly){
-            float diffX = p.x - x;
-            float diffY = p.y - y;
-            diffX *= scale;
-            diffY *= scale;
-            newP.emplace_back(diffX + x, diffY + y);
+            // float diffX = p.x - x;
+            // float diffY = p.y - y;
+            float theta = atan((p.y - y)/(p.x - x));
+            float sign = (p.x - x) > 0 ? 1 : -1;
+            newP.emplace_back(p.x + cos(theta)*scale*sign, p.y + sin(theta)*scale*sign);
         }
         resized[i] = newP;
     }

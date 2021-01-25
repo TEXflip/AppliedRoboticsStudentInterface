@@ -1,5 +1,6 @@
 #include <stack>
 #include <vector>
+#include <cmath>
 
 #include "boost/polygon/isotropy.hpp"
 #include "boost/polygon/point_concept.hpp"
