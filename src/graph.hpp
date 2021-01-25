@@ -1,5 +1,8 @@
 #pragma once
 #include <vector>
+#include <map>
+#include"collision_detection.hpp"
+
 // #include <iostream>
 
 namespace Graph
@@ -27,3 +30,4 @@ namespace Graph
     typedef std::vector<node> Graph;
     // std::vector<cell> *cells_ = nullptr;
 };
+void closestPoint(Graph::Graph &graph,const float x, const float y, const std::vector<Polygon> &obstacle_list);
