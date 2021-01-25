@@ -39,7 +39,7 @@ void VoronoiHandler::buildVoronoi(const Polygon &borders, const std::vector<Poly
     std::cout << "Edges: " << vd.edges().size() << "\tVertices: " << vd.vertices().size() << std::endl;
 
     vector<Polygon> rescaled_ob_list = VoronoiHandler::scale(obstacle_list, footprint_width/1.5);
-    showPolygons(rescaled_ob_list);
+    // showPolygons(rescaled_ob_list);
 
     int i = 0, rem = 0;
     for (voronoi_diagram<double>::const_vertex_iterator it = vd.vertices().begin();
@@ -82,6 +82,11 @@ void VoronoiHandler::buildVoronoi(const Polygon &borders, const std::vector<Poly
                 int pos1 = edge->vertex1()->color();
                 if (pos0 >= 0 && pos1 >= 0)
                     outGraph[pos0].neighbours.emplace_back(pos1);
+                // if (intersect_Global(Point(edge->vertex0()->x()/ precision,edge->vertex0()->y()/ precision), Point(edge->vertex1()->x()/ precision,edge->vertex1()->y()/ precision), rescaled_ob_list))
+                // {
+                //     outGraph[pos0].removed = true;
+                //     outGraph[pos1].removed = true;
+                // }
                 // nodes[pos].neighboursCells.emplace_back(i);
                 // cells[i].nodes.emplace_back(pos);
             }
@@ -89,6 +94,7 @@ void VoronoiHandler::buildVoronoi(const Polygon &borders, const std::vector<Poly
             edge = edge->next();
         } while (edge != cell.incident_edge());
     }
+    // showGraphAndPolygons(outGraph, rescaled_ob_list);
     // std::cout << "Tot Cells1: " << cells.size() << "\t" << &cells << std::endl;
     // outGraph.setCells(&cells);
     // outGraph.setNodes(&nodes);

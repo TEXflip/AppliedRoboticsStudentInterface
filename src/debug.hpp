@@ -17,3 +17,5 @@ void getImage(cv::Mat& image, float& scale);
 void showGraph(const Graph::Graph& graph, bool printPoints = false);
 
 void showPolygons(const vector<Polygon>& p);
+
+void showGraphAndPolygons(const Graph::Graph& graph, const vector<Polygon>& p);

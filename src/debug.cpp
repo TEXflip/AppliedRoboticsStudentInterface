@@ -49,3 +49,33 @@ void showPolygons(const vector<Polygon>& p){
     cv::imshow("polygons", image);
     cv::waitKey(0);
 }
+
+void showGraphAndPolygons(const Graph::Graph& graph, const vector<Polygon>& p){
+    cv::Mat image;
+    float scale;
+    getImage(image, scale);
+
+    for (Polygon poly : p)
+    {
+        for (int i = 0; i < poly.size(); i++)
+        {
+            int next = (i + 1) % poly.size();
+            cv::line(image, cv::Point(scale * poly[i].x, scale * poly[i].y), cv::Point(scale * poly[next].x, scale * poly[next].y), cv::Scalar(255, 0, 255), 1, cv::LINE_AA);
+        }
+    }
+
+    for (int v = 0; v < graph.size(); v++)
+    {
+        for (int i = 0; i < graph[v].neighbours.size(); i++)
+        {
+          int removed = graph[v].removed ? 1 : 0;
+        //   if (!printPoints)
+            cv::line(image, cv::Point(scale * graph[v].x, scale * graph[v].y), cv::Point(scale * graph[graph[v].neighbours[i]].x, scale * graph[graph[v].neighbours[i]].y), cv::Scalar(255*(1-removed), 131*removed, 255*removed), 1, cv::LINE_AA);
+        //   else
+        //     cv::circle(image, cv::Point(scale * graph[v].x, scale * graph[v].y), scale*0.004, cv::Scalar(255*(1-removed), 131*removed, 255*removed), cv::FILLED, cv::LINE_AA);
+        }
+    }
+
+    cv::imshow("graph and polygons", image);
+    cv::waitKey(0);
+}
