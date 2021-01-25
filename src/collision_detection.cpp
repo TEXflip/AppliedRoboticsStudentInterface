@@ -229,7 +229,7 @@ bool intersect(const Point &a0, const Point &a1, const Point &b0, const Point &b
 
 bool intersectPolygon(const Point &a0, const Point &a1, const Polygon &p)
 {
-    int i, j, n = polygon.size();
+    int i, j, n = p.size();
     for (i = 0, j = n - 1; i < n; j = i++)
         if (intersect(a0, a1, p[i], p[j]))
             return true;
