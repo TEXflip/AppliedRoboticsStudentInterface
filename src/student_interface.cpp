@@ -497,6 +497,7 @@ namespace student
   {
     // DubinsCurvesHandler dcHandler(5);
     // Point gateCenter;
+
     float xgate = 0, ygate = 0, xcenter_g, ycenter_g;
 
     for (int i = 0; i < gate.size(); i++)
