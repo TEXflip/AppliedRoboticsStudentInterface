@@ -496,14 +496,16 @@ namespace student
   {
     // DubinsCurvesHandler dcHandler(5);
     // Point gateCenter;
-    // double x = 0, y = 0;
-    // for (auto item : gate)
-    // {
-    //     x += item.x;
-    //     y += item.y;
-    // }
-    // out.x = x / gate.size();
-    // out.y = y / gate.size();
+     float xgate = 0, ygate = 0, xcenter_g, ycenter_g;
+    
+    for (int i = 0; i< gate.size();i++)
+    {
+       xgate += gate[i].x;
+       ygate += gate[i].y;
+     }
+     xcenter_g = x / gate.size();
+     ycenter_g = y / gate.size();
+     
     // DubinsCurve c = dcHandler.findShortestPath(x, y, theta, gateCenter.x, gateCenter.y, 0);
     // std::cout << "x: " << x << "\ty: " << y << "\tth: " << theta << "\tgateX: " << gateCenter.x << "\tgateY: " << gateCenter.y << std::endl;
 
