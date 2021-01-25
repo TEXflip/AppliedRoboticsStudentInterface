@@ -1,4 +1,5 @@
 #include "collision_detection.hpp"
+#include <cmath>
 
 float *boundingBoxcaracteristics(Polygon &x)
 {
@@ -177,12 +178,12 @@ bool collide(Polygon a, Polygon b)
     return collided;
 }
 
-bool isInside(const Point& point,const Polygon& polygon)
+bool isInside(const Point &point, const Polygon &polygon)
 {
-    int i, j, nvert = polygon.size();
+    int i, j, n = polygon.size();
     bool c = false;
 
-    for (i = 0, j = nvert - 1; i < nvert; j = i++)
+    for (i = 0, j = n - 1; i < n; j = i++)
     {
         if (((polygon[i].y >= point.y) != (polygon[j].y >= point.y)) &&
             (point.x <= (polygon[j].x - polygon[i].x) * (point.y - polygon[i].y) / (polygon[j].y - polygon[i].y) + polygon[i].x))
@@ -192,7 +193,7 @@ bool isInside(const Point& point,const Polygon& polygon)
     return c;
 }
 
-bool isInside_Global(const Point& p, const std::vector<Polygon> &obstacle_list)
+bool isInside_Global(const Point &p, const std::vector<Polygon> &obstacle_list)
 {
     for (int i = 0; i < obstacle_list.size(); i++)
     {
@@ -201,5 +202,44 @@ bool isInside_Global(const Point& p, const std::vector<Polygon> &obstacle_list)
         if (isInside(p, obstacle))
             return true;
     }
+    return false;
+}
+
+bool intersect(const Point &a0, const Point &a1, const Point &b0, const Point &b1)
+{
+    float dax = a1.x - a0.x;
+    float day = a1.y - a0.y;
+
+    float dbx = b0.x - b1.x;
+    float dby = b0.y - b1.y;
+
+    float dx = b0.x - a0.x;
+    float dy = b0.y - a0.y;
+
+    float det = dax * dby - day * dbx;
+
+    if (fabs(det) < 10e-6)
+        return false;
+
+    float r = (dx * dby - dy * dbx) / det;
+    float s = (dax * dy - day * dx) / det;
+
+    return !(r < 0 || r > 1 || s < 0 || s > 1);
+}
+
+bool intersectPolygon(const Point &a0, const Point &a1, const Polygon &p)
+{
+    int i, j, n = polygon.size();
+    for (i = 0, j = n - 1; i < n; j = i++)
+        if (intersect(a0, a1, p[i], p[j]))
+            return true;
+    return false;
+}
+
+bool intersect_Global(const Point &a0, const Point &a1, std::vector<Polygon> &obstacle_list)
+{
+    for (Polygon p : obstacle_list)
+        if (intersectPolygon(a0, a1, p))
+            return true;
     return false;
 }
