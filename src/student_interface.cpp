@@ -6,6 +6,7 @@
 // #include "voronoiHelper.hpp"
 #include "graph.hpp"
 #include "voronoiHandler.hpp"
+#include "gridBasedPlanning.hpp"
 // #include "graph.hpp"
 
 #include "collision_detection.hpp"
@@ -518,9 +519,10 @@ namespace student
     //   path.points.emplace_back(lines[i].s, lines[i].x, lines[i].y, lines[i].th, lines[i].k);
 
     Graph::Graph graph;
-    VoronoiHandler::buildVoronoi(borders, obstacle_list, graph, 100, 1e6);
+    // VoronoiHandler::buildVoronoi(borders, obstacle_list, graph, 100, 1e6);
+    buildGridGraph(graph, obstacle_list, borders, 0.02);
 
-    showGraph(graph);
+    // showGraph(graph);
 
     return true;
   }

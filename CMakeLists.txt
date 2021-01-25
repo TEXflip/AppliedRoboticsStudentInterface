@@ -22,6 +22,7 @@ add_library(student SHARED
    src/voronoiHandler.cpp
    src/graph.cpp
    src/debug.cpp
+   src/gridBasedPlanning.cpp
 )
 
 target_link_libraries(student
