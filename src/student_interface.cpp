@@ -7,6 +7,7 @@
 #include "graph.hpp"
 #include "voronoiHandler.hpp"
 #include "gridBasedPlanning.hpp"
+#include "Astar_pathplanning.hpp"
 // #include "graph.hpp"
 
 #include "collision_detection.hpp"
@@ -520,9 +521,23 @@ namespace student
 
     Graph::Graph graph;
     // VoronoiHandler::buildVoronoi(borders, obstacle_list, graph, 100, 1e6);
-    buildGridGraph(graph, obstacle_list, borders, 0.02);
+    float sideLength = 0.02;
+    int nOriz = max(max(borders[0].x, borders[1].x), max(borders[2].x, borders[3].x)) / sideLength;
+    int nVert = max(max(borders[0].y, borders[1].y), max(borders[2].y, borders[3].y)) / sideLength;
 
-    // showGraph(graph);
+    buildGridGraph(graph, obstacle_list, nVert, nOriz, sideLength);
+
+    int robotX = ((int)(x / sideLength));
+    int robotY = ((int)(y / sideLength));
+    int gateX = ((int)(xcenter_g / sideLength));
+    int gateY = ((int)(ycenter_g / sideLength));
+
+    std::cout << "robot X: " << robotX << " robot Y: " << robotY << std::endl;
+    std::cout << "start: " << (robotY * nOriz + robotX) << " end: " << (gateY * nOriz + gateX) << std::endl;
+
+    vector<int> optPath = Astar::Solve_AStar(graph, (robotY * nOriz + robotX), (gateY * nOriz + gateX));
+    std::cout << optPath.size() << std::endl;
+    showPath(graph, optPath);
 
 
 

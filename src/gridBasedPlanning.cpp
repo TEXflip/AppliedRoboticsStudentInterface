@@ -7,10 +7,8 @@
 
 #define footprint_width 0.09
 
-void buildGridGraph(Graph::Graph &graph, const std::vector<Polygon> &obstacle_list, const Polygon &borders, float sideLength)
+void buildGridGraph(Graph::Graph &graph, const std::vector<Polygon> &obstacle_list, int nVert, int nOriz, float sideLength)
 {
-    int nOriz = max(max(borders[0].x, borders[1].x), max(borders[2].x, borders[3].x)) / sideLength;
-    int nVert = max(max(borders[0].y, borders[1].y), max(borders[2].y, borders[3].y)) / sideLength;
     graph.resize(nOriz * nVert);
 
     vector<Polygon> rescaled_ob_list = offsetPolygon(obstacle_list, footprint_width / 1.6);
@@ -42,7 +40,7 @@ void buildGridGraph(Graph::Graph &graph, const std::vector<Polygon> &obstacle_li
                 graph[i * nOriz + j].neighbours.emplace_back(i * nOriz + j - 1);
         }
 
-    showGraphAndPolygons(graph, rescaled_ob_list);
+    // showGraphAndPolygons(graph, rescaled_ob_list);
 }
 
 std::vector<Polygon> extend(const std::vector<Polygon> &polygons, float summedLength)
