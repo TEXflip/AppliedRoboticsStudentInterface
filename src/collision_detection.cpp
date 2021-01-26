@@ -236,7 +236,7 @@ bool intersectPolygon(const Point &a0, const Point &a1, const Polygon &p)
     return false;
 }
 
-bool intersect_Global(const Point &a0, const Point &a1, std::vector<Polygon> &obstacle_list)
+bool intersect_Global(const Point &a0, const Point &a1,const std::vector<Polygon> &obstacle_list)
 {
     for (Polygon p : obstacle_list)
         if (intersectPolygon(a0, a1, p))

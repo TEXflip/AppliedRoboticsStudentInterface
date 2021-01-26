@@ -1,7 +1,7 @@
 #pragma once
 #include <vector>
 #include <map>
-#include"collision_detection.hpp"
+#include "collision_detection.hpp"
 
 // #include <iostream>
 
@@ -30,4 +30,7 @@ namespace Graph
     typedef std::vector<node> Graph;
     // std::vector<cell> *cells_ = nullptr;
 };
-void closestPoint(Graph::Graph &graph,const float x, const float y, const std::vector<Polygon> &obstacle_list);
+void connectRobot(Graph::Graph &graph,const float x, const float y, const float xgate,float ygate, const std::vector<Polygon> &obstacle_list);
+void connectVictim(Graph::Graph &graph,const float x, const float y, 
+const float xgate,float ygate, const std::vector<Polygon> &obstacle_list,const std::vector<std::pair<int, Polygon>> &victim_list);
+
