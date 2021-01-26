@@ -107,7 +107,8 @@ std::vector<Polygon> offsetPolygon(const std::vector<Polygon> &polygons, float o
             srcPoly << ClipperLib::IntPoint((p.x * INT_ROUND), (p.y * INT_ROUND));
 
         ClipperLib::ClipperOffset co;
-        co.AddPath(srcPoly, ClipperLib::jtSquare, ClipperLib::etClosedPolygon);
+        co.ArcTolerance = 0.0015 * INT_ROUND;
+        co.AddPath(srcPoly, ClipperLib::jtRound, ClipperLib::etClosedPolygon);
         co.Execute(newPoly, offset * INT_ROUND);
 
         Polygon myPoly;

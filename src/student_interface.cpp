@@ -522,7 +522,6 @@ namespace student
     // VoronoiHandler::buildVoronoi(borders, obstacle_list, graph, 100, 1e6);
     buildGridGraph(graph, obstacle_list, borders, 0.02);
 
-    // showGraph(graph);
 
     return true;
   }
