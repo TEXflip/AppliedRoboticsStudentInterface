@@ -273,7 +273,7 @@ namespace student
     for (int i = 0; i < contours.size(); ++i)
     {
 
-      approxPolyDP(contours[i], approx_curve, 3, true); // approxPolyDP( InputArray curve,OutputArray approxCurve,double epsilon, bool closed )
+      approxPolyDP(contours[i], approx_curve, 8, true); // approxPolyDP( InputArray curve,OutputArray approxCurve,double epsilon, bool closed )
                                                         //function that closes eventual opend contoures ???
 
       //scaling loop
@@ -521,9 +521,10 @@ namespace student
     Graph::Graph graph;
     // VoronoiHandler::buildVoronoi(borders, obstacle_list, graph, 100, 1e6);
     buildGridGraph(graph, obstacle_list, borders, 0.02);
-   
-    
+
     // showGraph(graph);
+
+
 
     //select start and ending point to enter the astar solve function
 

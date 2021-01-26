@@ -23,6 +23,7 @@ add_library(student SHARED
    src/graph.cpp
    src/debug.cpp
    src/gridBasedPlanning.cpp
+   src/clipper/clipper.cpp
 )
 
 target_link_libraries(student
