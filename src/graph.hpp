@@ -16,6 +16,7 @@ namespace Graph
     struct node
     {
         bool visited = false; // Have we searched this node before?
+        bool obstacle = false;
         bool removed = false;
         float fGlobalGoal;    // Distance to goal so far
         float fLocalGoal;     // Distance to goal if we took the alternative route
