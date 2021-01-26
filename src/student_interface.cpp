@@ -273,7 +273,7 @@ namespace student
     for (int i = 0; i < contours.size(); ++i)
     {
 
-      approxPolyDP(contours[i], approx_curve, 3, true); // approxPolyDP( InputArray curve,OutputArray approxCurve,double epsilon, bool closed )
+      approxPolyDP(contours[i], approx_curve, 8, true); // approxPolyDP( InputArray curve,OutputArray approxCurve,double epsilon, bool closed )
                                                         //function that closes eventual opend contoures ???
 
       //scaling loop

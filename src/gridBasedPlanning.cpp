@@ -3,6 +3,7 @@
 #include "debug.hpp"
 
 #include <cmath>
+#include <iostream>
 
 #define footprint_width 0.09
 
@@ -12,7 +13,7 @@ void buildGridGraph(Graph::Graph &graph, const std::vector<Polygon> &obstacle_li
     int nVert = max(max(borders[0].y, borders[1].y), max(borders[2].y, borders[3].y)) / sideLength;
     graph.resize(nOriz * nVert);
 
-    vector<Polygon> rescaled_ob_list = scale(obstacle_list, footprint_width / 1.5);
+    vector<Polygon> rescaled_ob_list = offsetPolygon(obstacle_list, footprint_width / 1.6);
 
     for (int i = 0; i < nVert; i++)
         for (int j = 0; j < nOriz; j++)
@@ -20,7 +21,8 @@ void buildGridGraph(Graph::Graph &graph, const std::vector<Polygon> &obstacle_li
             Graph::node newNode;
             newNode.x = sideLength * j;
             newNode.y = sideLength * i;
-            if (isInside_Global(Point(newNode.x, newNode.y), rescaled_ob_list)){
+            if (isInside_Global(Point(newNode.x, newNode.y), rescaled_ob_list))
+            {
                 newNode.obstacle = true;
                 newNode.removed = true;
             }
@@ -39,16 +41,17 @@ void buildGridGraph(Graph::Graph &graph, const std::vector<Polygon> &obstacle_li
             if (j - 1 != -1)
                 graph[i * nOriz + j].neighbours.emplace_back(i * nOriz + j - 1);
         }
-    
+
     showGraphAndPolygons(graph, rescaled_ob_list);
 }
 
-std::vector<Polygon> scale(const std::vector<Polygon> &polygons, float scale)
+std::vector<Polygon> extend(const std::vector<Polygon> &polygons, float summedLength)
 {
     vector<Polygon> resized;
     resized.resize(polygons.size());
     for (int i = 0; i < polygons.size(); i++)
     {
+        // calcolo punto centrale del poligono
         Polygon poly = polygons[i];
         float x = 0, y = 0;
         for (Point p : poly)
@@ -59,17 +62,60 @@ std::vector<Polygon> scale(const std::vector<Polygon> &polygons, float scale)
         x /= poly.size();
         y /= poly.size();
 
-        Polygon newP;
+        // estendo i punti del poligono
 
-        for (auto p : poly)
+        Polygon newP;
+        int p, prec, nPoints = poly.size();
+        for (p = 0, prec = nPoints - 1; p < nPoints; prec = p++)
         {
-            // float diffX = p.x - x;
-            // float diffY = p.y - y;
-            float theta = atan((p.y - y) / (p.x - x));
-            float sign = (p.x - x) > 0 ? 1 : -1;
-            newP.emplace_back(p.x + cos(theta) * scale * sign, p.y + sin(theta) * scale * sign);
+            float Xavg = (poly[p].x + poly[prec].x) / 2 - x;
+            float Yavg = (poly[p].y + poly[prec].y) / 2 - y;   // vettore tra centro e punto medio del segmento
+            float avgLength = sqrt(Xavg * Xavg + Yavg * Yavg); // lunghezza del vettore del punto medio del segmento
+
+            float dpx = (poly[p].x - x);
+            float dpy = (poly[p].y - y);                     // vettore tra centro e punto del poligono
+            float pointLength = sqrt(dpx * dpx + dpy * dpy); // lunghezza del vettore tra centro e punto del poligono
+
+            float cosAngle = (Xavg * dpx + Yavg * dpy) / (sqrt(dpx * dpx + dpy * dpy) * avgLength); // cos(alpha) = prodotto scalare / prodotto dei moduli
+            // float cosAngle = cos( 2 * M_PI /nPoints);
+            float extension = (avgLength + summedLength) / cosAngle - pointLength; // lunghezza tra centro e nuovo punto
+
+            float theta = M_PI_2, sign = 1;
+            if (dpx != 0)
+            {
+                theta = atan(dpy / dpx); // angolo sull'asse X del punto
+                sign = dpx > 0 ? 1 : -1; // salvo l'orientamento su X
+            }
+            newP.emplace_back(poly[p].x + cos(theta) * extension * sign, poly[p].y + sin(theta) * extension * sign); //
         }
         resized[i] = newP;
+    }
+    return resized;
+}
+
+std::vector<Polygon> offsetPolygon(const std::vector<Polygon> &polygons, float offset)
+{
+    float INT_ROUND = 1e8, i = 0;
+    vector<Polygon> resized;
+    resized.resize(polygons.size());
+    for (const Polygon &poly : polygons)
+    {
+        ClipperLib::Path srcPoly;
+        ClipperLib::Paths newPoly;
+
+        for (const Point &p : poly)
+            srcPoly << ClipperLib::IntPoint((p.x * INT_ROUND), (p.y * INT_ROUND));
+
+        ClipperLib::ClipperOffset co;
+        co.AddPath(srcPoly, ClipperLib::jtSquare, ClipperLib::etClosedPolygon);
+        co.Execute(newPoly, offset * INT_ROUND);
+
+        Polygon myPoly;
+
+        for (const ClipperLib::IntPoint &p : newPoly[0])
+            myPoly.emplace_back(p.X / INT_ROUND, p.Y / INT_ROUND);
+
+        resized[i++] = myPoly;
     }
     return resized;
 }
