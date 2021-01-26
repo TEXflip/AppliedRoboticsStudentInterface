@@ -37,6 +37,7 @@ protected:
 		// Create a 2D array of nodes - this is for convenience of rendering and construction
 		// and is not required for the algorithm to work - the nodes could be placed anywhere
 		// in any space, in multiple dimensions...
+		//nodes is a node[array]
 		nodes = new sNode[nMapWidth * nMapHeight]; //array of node numbers(depending how many nodes we have)
 		for (int x = 0; x < nMapWidth; x++)
 			for (int y = 0; y < nMapHeight; y++)

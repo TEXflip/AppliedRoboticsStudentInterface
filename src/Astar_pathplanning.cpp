@@ -6,6 +6,8 @@
 #include"Astar_pathplanning.h"
 
 using namespace std;
+using namespace Graph;
+
 
 bool Test:: gama(){
 		return false;
@@ -15,136 +17,93 @@ bool Test:: gama(){
 
 
 
+float distance (Graph::Graph &graph, int a, int b)
+    {
+      return sqrtf((graph[a].x - graph[b].x)*(graph[a].x - graph[b].x) + (graph[a].y - graph[b].y)*(graph[a].y - graph[b].y)); //Sqrt(dx^2+dy^2)
+    };
+
+float heuristic (Graph::Graph &graph,int a, int b) // So we can experiment with heuristic
+		{
+			return distance(graph,a, b);
+		};
 
 
-
-bool  Astar:: Graph()
-	{
-		// Create a 2D array of nodes - this is for convenience of rendering and construction
-		// and is not required for the algorithm to work - the nodes could be placed anywhere
-		// in any space, in multiple dimensions...
-		nodes = new sNode[nMapWidth * nMapHeight];
-		for (int x = 0; x < nMapWidth; x++)
-			for (int y = 0; y < nMapHeight; y++)
-			{
-				nodes[y * nMapWidth + x].x = x; // ...because we give each node its own coordinates
-				nodes[y * nMapWidth + x].y = y;
-				nodes[y * nMapWidth + x].bObstacle = false;
-				nodes[y * nMapWidth + x].parent = nullptr;
-				nodes[y * nMapWidth + x].bVisited = false;
-			}
-
-		// Create connections - in this case nodes are on a regular grid
-		for (int x = 0; x < nMapWidth; x++)
-			for (int y = 0; y < nMapHeight; y++)
-			{
-				if(y>0) //connection to the north
-					nodes[y*nMapWidth + x].vecNeighbours.push_back(&nodes[(y - 1) * nMapWidth + (x + 0)]);
-				if(y<nMapHeight-1)//connection to the south
-					nodes[y*nMapWidth + x].vecNeighbours.push_back(&nodes[(y + 1) * nMapWidth + (x + 0)]);
-				if (x>0)//connection to the left
-					nodes[y*nMapWidth + x].vecNeighbours.push_back(&nodes[(y + 0) * nMapWidth + (x - 1)]);
-				if(x<nMapWidth-1)//connection to the right
-					nodes[y*nMapWidth + x].vecNeighbours.push_back(&nodes[(y + 0) * nMapWidth + (x + 1)]);
-
-				// We can also connect diagonally
-				/*if (y>0 && x>0)
-					nodes[y*nMapWidth + x].vecNeighbours.push_back(&nodes[(y - 1) * nMapWidth + (x - 1)]);
-				if (y<nMapHeight-1 && x>0)
-					nodes[y*nMapWidth + x].vecNeighbours.push_back(&nodes[(y + 1) * nMapWidth + (x - 1)]);
-				if (y>0 && x<nMapWidth-1)
-					nodes[y*nMapWidth + x].vecNeighbours.push_back(&nodes[(y - 1) * nMapWidth + (x + 1)]);
-				if (y<nMapHeight - 1 && x<nMapWidth-1)
-					nodes[y*nMapWidth + x].vecNeighbours.push_back(&nodes[(y + 1) * nMapWidth + (x + 1)]);
-				*/
-			}
-
-		// Manually positio the start and end markers so they are not nullptr
-		nodeStart = &nodes[(nMapHeight / 2) * nMapWidth + 1];
-		nodeEnd = &nodes[(nMapHeight / 2) * nMapWidth + nMapWidth-2];
-		return true;
-	}
-
-	bool Astar :: Solve_AStar()
+	bool Astar :: Solve_AStar(Graph::Graph &graph)
 	{
 		// Reset Navigation Graph - default all node states
-		for (int x = 0; x < nMapWidth; x++)
-			for (int y = 0; y < nMapHeight; y++)
+		for (int x = 0; x < graph.size(); x++)
 			{
-				nodes[y*nMapWidth + x].bVisited = false;
-				nodes[y*nMapWidth + x].fGlobalGoal = INFINITY;
-				nodes[y*nMapWidth + x].fLocalGoal = INFINITY;
-				nodes[y*nMapWidth + x].parent = nullptr;	// No parents
+				graph[x].visited = false;
+				graph[x].fGlobalGoal = INFINITY;
+				graph[x].fLocalGoal = INFINITY;
+				graph[x].parent = -1;	// No parents
 			}
 
-		auto distance = [](sNode* a, sNode* b)
-		{
-			return sqrtf((a->x - b->x)*(a->x - b->x) + (a->y - b->y)*(a->y - b->y)); //Sqrt(dx^2+dy^2)
-		};
 
-		auto heuristic = [distance](sNode* a, sNode* b) // So we can experiment with heuristic
-		{
-			return distance(a, b);
-		};
 
 		// Setup starting conditions
-		sNode *nodeCurrent = nodeStart;
-		nodeStart->fLocalGoal = 0.0f;
-		nodeStart->fGlobalGoal = heuristic(nodeStart, nodeEnd);
+		int nodeCurrent = nodeStart;
+		graph[nodeStart].fLocalGoal = 0.0f;
+		graph[nodeStart].fGlobalGoal = heuristic(graph,nodeStart, nodeEnd);
 
-		// Add start node to not tested list - this will ensure it gets tested.
+		// Add start node to not tested map - this will ensure it gets tested.
 		// As the algorithm progresses, newly discovered nodes get added to this
-		// list, and will themselves be tested later
-		list<sNode*> listNotTestedNodes;
-		listNotTestedNodes.push_back(nodeStart);
+		// map, and will themselves be tested later(soted by global)
+		multimap<float,int> mapNotTestedNodes;
+		mapNotTestedNodes.insert(std::pair<float,int>(graph[nodeStart].fGlobalGoal,nodeStart));
+    	std::multimap<float, int>::const_iterator it_NotTestedNodes = mapNotTestedNodes.begin();
+	
 
-		// if the not tested list contains nodes, there may be better paths
+		// if the not tested map contains nodes, there may be better paths
 		// which have not yet been explored. However, we will also stop 
-		// searching when we reach the target - there may well be better
+		// searching when we reaach the target - there may well be better
 		// paths but this one will do - it wont be the longest.
-		while (!listNotTestedNodes.empty() && nodeCurrent != nodeEnd)// Find absolutely shortest path // && nodeCurrent != nodeEnd)
+		while (!mapNotTestedNodes.empty() && nodeCurrent != nodeEnd)// Find absolutely shortest path // && nodeCurrent != nodeEnd)
 		{
-			// Sort Untested nodes by global goal, so lowest is first
-			listNotTestedNodes.sort([](const sNode* lhs, const sNode* rhs){ return lhs->fGlobalGoal < rhs->fGlobalGoal; } );
-			
-			// Front of listNotTestedNodes is potentially the lowest distance node. Our
-			// list may also contain nodes that have been visited, so ditch these...
-			while(!listNotTestedNodes.empty() && listNotTestedNodes.front()->bVisited)
-				listNotTestedNodes.pop_front();
+			it_NotTestedNodes = mapNotTestedNodes.begin();
+			// Front of mapNotTestedNodes is potentially the lowest distance node. Our
+			// map may also contain nodes that have been visited, so ditch these...
+			while(!mapNotTestedNodes.empty() && graph[it_NotTestedNodes->second].visited)
+				mapNotTestedNodes.erase(it_NotTestedNodes);
 
 			// ...or abort because there are no valid nodes left to test
-			if (listNotTestedNodes.empty())
+			if (mapNotTestedNodes.empty())
 				break;
+			
 
-			nodeCurrent = listNotTestedNodes.front();
-			nodeCurrent->bVisited = true; // We only explore a node once
+			it_NotTestedNodes = mapNotTestedNodes.begin();
+
+			nodeCurrent = it_NotTestedNodes->second;
+			graph[nodeCurrent].visited = true; // We only explore a node once
 			
 					
 			// Check each of this node's neighbours...
-			for (auto nodeNeighbour : nodeCurrent->vecNeighbours)
+			for (int i = 0; i < graph[nodeCurrent].neighbours.size(); i++)
 			{
+				int currNode = graph[nodeCurrent].neighbours[i];
+			
 				// ... and only if the neighbour is not visited and is 
 				// not an obstacle, add it to NotTested List
-				if (!nodeNeighbour->bVisited && nodeNeighbour->bObstacle == 0)
-					listNotTestedNodes.push_back(nodeNeighbour);
+				if (graph[currNode].visited && graph[currNode].obstacle == 0)
+					mapNotTestedNodes.insert(std::pair<float,int>(graph[currNode].fGlobalGoal,currNode));
 
 				// Calculate the neighbours potential lowest parent distance
-				float fPossiblyLowerGoal = nodeCurrent->fLocalGoal + distance(nodeCurrent, nodeNeighbour);
+				float fPossiblyLowerGoal = 	graph[nodeCurrent].fLocalGoal + distance(graph,nodeCurrent, currNode);
 
 				// If choosing to path through this node is a lower distance than what 
 				// the neighbour currently has set, update the neighbour to use this node
 				// as the path source, and set its distance scores as necessary
-				if (fPossiblyLowerGoal < nodeNeighbour->fLocalGoal)
+				if (fPossiblyLowerGoal < graph[currNode].fLocalGoal)
 				{
-					nodeNeighbour->parent = nodeCurrent;
-					nodeNeighbour->fLocalGoal = fPossiblyLowerGoal;
+					graph[currNode].parent = nodeCurrent;
+					graph[currNode].fLocalGoal = fPossiblyLowerGoal;
 
 					// The best path length to the neighbour being tested has changed, so
 					// update the neighbour's score. The heuristic is used to globally bias
 					// the path algorithm, so it knows if its getting better or worse. At some
 					// point the algo will realise this path is worse and abandon it, and then go
 					// and search along the next best path.
-					nodeNeighbour->fGlobalGoal = nodeNeighbour->fLocalGoal + heuristic(nodeNeighbour, nodeEnd);
+					graph[currNode].fGlobalGoal = graph[currNode].fGlobalGoal + heuristic(graph,currNode, nodeEnd);
 				}
 			}	
 		}

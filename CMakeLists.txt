@@ -36,6 +36,9 @@ add_executable(demo_dilatation_erosion
 add_executable(demo_hsv_filter
   src/demo_shape_detection/demo_hsv_filter.cpp
 )
+add_executable(Astar
+  src/Astar_pathplanning.cpp
+)
 add_executable(demo_smoothing
   src/demo_shape_detection/demo_smoothing.cpp
 )

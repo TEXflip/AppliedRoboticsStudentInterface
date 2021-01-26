@@ -23,7 +23,7 @@ namespace Graph
         float x;              // Nodes position in 2D space
         float y;
         std::vector<int> neighbours; // Connections to neighbours
-        node *parent; // Node connecting to this node that offers shortest parent
+        int parent; // Node connecting to this node that offers shortest parent
     };
 
     bool Solve_AStar();

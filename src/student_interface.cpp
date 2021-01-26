@@ -521,8 +521,11 @@ namespace student
     Graph::Graph graph;
     // VoronoiHandler::buildVoronoi(borders, obstacle_list, graph, 100, 1e6);
     buildGridGraph(graph, obstacle_list, borders, 0.02);
-
+   
+    
     // showGraph(graph);
+
+    //select start and ending point to enter the astar solve function
 
     return true;
   }
