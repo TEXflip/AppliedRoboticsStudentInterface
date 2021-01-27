@@ -121,7 +121,7 @@ vector<int> Astar::Solve_AStar(Graph::Graph &graph, int nodeStart, int nodeEnd)
 	return optimalPath;
 }
 
-void Astar::smoothPath(vector<Point> &path, vector<Point> &newPath, const std::vector<Polygon> &obstacle_list)
+void Astar::smoothPath(Graph::Graph& graph, vector<int> &path, vector<int> &newPath, const std::vector<Polygon> &obstacle_list)
 {
 	list<pair<int, int>> selected;
 	selected.push_back(pair<int, int>(0, path.size() - 1));
@@ -131,8 +131,8 @@ void Astar::smoothPath(vector<Point> &path, vector<Point> &newPath, const std::v
 		pair<int, int> segment = selected.back();
 		selected.pop_back();
 
-		Point p0(path[segment.first]);
-		Point p1(path[segment.second]);
+		Point p0(graph[path[segment.first]].x, graph[path[segment.first]].y);
+		Point p1(graph[path[segment.second]].x, graph[path[segment.second]].y);
 
 		bool hit = intersect_Global(p0, p1, obstacle_list);
 
