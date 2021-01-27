@@ -3,7 +3,9 @@
 #include <algorithm>
 #include <list>
 
+#include "collision_detection.hpp"
 #include "Astar_pathplanning.hpp"
+#include "utils.hpp"
 
 using namespace std;
 using namespace Graph;
@@ -54,7 +56,8 @@ vector<int> Astar::Solve_AStar(Graph::Graph &graph, int nodeStart, int nodeEnd)
 		it_NotTestedNodes = mapNotTestedNodes.begin();
 		// Front of mapNotTestedNodes is potentially the lowest distance node. Our
 		// map may also contain nodes that have been visited, so ditch these...
-		while (!mapNotTestedNodes.empty() && graph[it_NotTestedNodes->second].visited){
+		while (!mapNotTestedNodes.empty() && graph[it_NotTestedNodes->second].visited)
+		{
 			mapNotTestedNodes.erase(it_NotTestedNodes);
 			it_NotTestedNodes = mapNotTestedNodes.begin();
 		}
@@ -109,4 +112,32 @@ vector<int> Astar::Solve_AStar(Graph::Graph &graph, int nodeStart, int nodeEnd)
 		optimalPath.emplace_back(curr);
 	}
 	return optimalPath;
+}
+
+void Astar::smoothPath(vector<Point> &path, vector<Point> &newPath, const std::vector<Polygon> &obstacle_list)
+{
+	list<pair<int, int>> selected;
+	selected.push_back(pair<int, int>(0, path.size() - 1));
+
+	while (!selected.empty())
+	{
+		pair<int, int> segment = selected.pop_back();
+
+		Point p0(path[segment.first]);
+		Point p1(path[segment.second]);
+
+		bool hit = intersect_Global(p0, p1, obstacle_list);
+
+		if (hit)
+		{
+			int mid = (int)((segment.second + segment.first) / 2);
+			selected.push_back(pair<int, int>(mid, segment.second));
+			selected.push_back(pair<int, int>(segment.first, mid));
+		}
+		else
+		{
+			newPath.push_back(path[segment.first]);
+		}
+	}
+	newPath.push_back(path[path.size() - 1]);
 }
