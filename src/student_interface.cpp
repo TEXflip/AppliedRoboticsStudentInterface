@@ -578,15 +578,13 @@ namespace student
     vector<int> segmentsize;
 
     vector<int> opti_path;
-    vector<int> path_segment = Astar::Solve_AStar(graph, (robotY * nOriz + robotX), (victim1y * nOriz + victim1x));
     vector<int> smoothed_path;
+    vector<int> path_segment = Astar::Solve_AStar(graph, (robotY * nOriz + robotX), (victim1y * nOriz + victim1x));
     Astar::smoothPath(graph, path_segment, smoothed_path, obstacle_list);
 
     opti_path.insert(opti_path.end(), smoothed_path.begin(), smoothed_path.end());
     path_segment.clear();
     smoothed_path.clear();
-
-
 
     for (int i = 0; i < victim_centers.size() - 1; i++)
     {
@@ -596,15 +594,20 @@ namespace student
       victim2y = ((int)(victim_centers[i + 1].y / sideLength));
 
       path_segment = Astar::Solve_AStar(graph, (victim1y * nOriz + victim1x), (victim2y * nOriz + victim2x));
-      opti_path.insert(opti_path.end(), path_segment.begin(), path_segment.end());
+      Astar::smoothPath(graph, path_segment, smoothed_path, obstacle_list);
+
+      opti_path.insert(opti_path.end(), smoothed_path.begin(), smoothed_path.end());
       path_segment.clear();
+      smoothed_path.clear();
     }
-  
 
     path_segment = Astar::Solve_AStar(graph, (victim2y * nOriz + victim2x), (gateY * nOriz + gateX));
-    opti_path.insert(opti_path.end(), path_segment.begin(), path_segment.end());
-  
-    // showPath(graph, opti_path);
+    Astar::smoothPath(graph, path_segment, smoothed_path, obstacle_list);
+
+    opti_path.insert(opti_path.end(), smoothed_path.begin(), smoothed_path.end());
+    path_segment.clear();
+    smoothed_path.clear();
+    //showPath(graph, opti_path);
 
     return true;
   }
