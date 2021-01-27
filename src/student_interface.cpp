@@ -500,15 +500,15 @@ namespace student
     // DubinsCurvesHandler dcHandler(5);
     // Point gateCenter;
 
-    float xgate = 0, ygate = 0, xcenter_g, ycenter_g;
+    float xgate = 0, ygate = 0;
 
     for (int i = 0; i < gate.size(); i++)
     {
       xgate += gate[i].x;
       ygate += gate[i].y;
     }
-    xcenter_g = x / gate.size();
-    ycenter_g = y / gate.size();
+    xgate /= gate.size();
+    ygate /= gate.size();
 
     // DubinsCurve c = dcHandler.findShortestPath(x, y, theta, gateCenter.x, gateCenter.y, 0);
     // std::cout << "x: " << x << "\ty: " << y << "\tth: " << theta << "\tgateX: " << gateCenter.x << "\tgateY: " << gateCenter.y << std::endl;
@@ -529,14 +529,14 @@ namespace student
 
     int robotX = ((int)(x / sideLength));
     int robotY = ((int)(y / sideLength));
-    int gateX = ((int)(xcenter_g / sideLength));
-    int gateY = ((int)(ycenter_g / sideLength));
+    int gateX = ((int)(xgate / sideLength));
+    int gateY = ((int)(ygate / sideLength));
 
     std::cout << "robot X: " << robotX << " robot Y: " << robotY << std::endl;
     std::cout << "start: " << (robotY * nOriz + robotX) << " end: " << (gateY * nOriz + gateX) << std::endl;
 
     vector<int> optPath = Astar::Solve_AStar(graph, (robotY * nOriz + robotX), (gateY * nOriz + gateX));
-    std::cout << optPath.size() << std::endl;
+    // std::cout << optPath.size() << std::endl;
     showPath(graph, optPath);
 
 

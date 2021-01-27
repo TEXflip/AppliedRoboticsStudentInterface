@@ -94,7 +94,7 @@ void showPath(const Graph::Graph &graph, const vector<int> &path)
     for (int i = 1, j = 0; i < path.size(); j = i++)
     {
         cv::line(image, cv::Point(scale * graph[path[i]].x, scale * graph[path[i]].y), cv::Point(scale * graph[path[j]].x, scale * graph[path[j]].y), cv::Scalar(255, 0, 255), 1, cv::LINE_AA);
-        std::cout << "\t" << path[i] << std::endl;
+        // std::cout << "\t" << path[i] << std::endl;
     }
 
     cv::imshow("path", image);

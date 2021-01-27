@@ -2,21 +2,22 @@
 #include <string>
 #include <algorithm>
 #include <list>
-#include <iostream>
 
 #include "Astar_pathplanning.hpp"
 
 using namespace std;
 using namespace Graph;
 
-float distance(Graph::Graph &graph, int a, int b)
+float Astar::distance(Graph::Graph &graph, int a, int b)
 {
-	return sqrtf((graph[a].x - graph[b].x) * (graph[a].x - graph[b].x) + (graph[a].y - graph[b].y) * (graph[a].y - graph[b].y)); //Sqrt(dx^2+dy^2)
+	float dx = (graph[a].x - graph[b].x);
+	float dy = (graph[a].y - graph[b].y);
+	return sqrtf(dx * dx + dy * dy); //Sqrt(dx^2+dy^2)
 };
 
-float heuristic(Graph::Graph &graph, int a, int b) // So we can experiment with heuristic
+float Astar::heuristic(Graph::Graph &graph, int a, int b) // So we can experiment with heuristic
 {
-	return distance(graph, a, b);
+	return Astar::distance(graph, a, b);
 };
 
 vector<int> Astar::Solve_AStar(Graph::Graph &graph, int nodeStart, int nodeEnd)
@@ -33,11 +34,12 @@ vector<int> Astar::Solve_AStar(Graph::Graph &graph, int nodeStart, int nodeEnd)
 	// Setup starting conditions
 	int nodeCurrent = nodeStart;
 	graph[nodeStart].fLocalGoal = 0.0f;
-	graph[nodeStart].fGlobalGoal = heuristic(graph, nodeStart, nodeEnd);
+	graph[nodeStart].fGlobalGoal = Astar::heuristic(graph, nodeStart, nodeEnd);
 
 	// Add start node to not tested map - this will ensure it gets tested.
 	// As the algorithm progresses, newly discovered nodes get added to this
 	// map, and will themselves be tested later(soted by global)
+	// list<int> listNotTestedNodes;
 	multimap<float, int> mapNotTestedNodes;
 	mapNotTestedNodes.insert(std::pair<float, int>(graph[nodeStart].fGlobalGoal, nodeStart));
 	std::multimap<float, int>::const_iterator it_NotTestedNodes = mapNotTestedNodes.begin();
@@ -48,12 +50,14 @@ vector<int> Astar::Solve_AStar(Graph::Graph &graph, int nodeStart, int nodeEnd)
 	// paths but this one will do - it wont be the longest.
 	while (!mapNotTestedNodes.empty() && nodeCurrent != nodeEnd) // Find absolutely shortest path // && nodeCurrent != nodeEnd)
 	{
-		cout << nodeCurrent << endl;
+		// cout << nodeCurrent << endl;
 		it_NotTestedNodes = mapNotTestedNodes.begin();
 		// Front of mapNotTestedNodes is potentially the lowest distance node. Our
 		// map may also contain nodes that have been visited, so ditch these...
-		while (!mapNotTestedNodes.empty() && graph[it_NotTestedNodes->second].visited)
+		while (!mapNotTestedNodes.empty() && graph[it_NotTestedNodes->second].visited){
 			mapNotTestedNodes.erase(it_NotTestedNodes);
+			it_NotTestedNodes = mapNotTestedNodes.begin();
+		}
 
 		// ...or abort because there are no valid nodes left to test
 		if (mapNotTestedNodes.empty())
@@ -67,30 +71,30 @@ vector<int> Astar::Solve_AStar(Graph::Graph &graph, int nodeStart, int nodeEnd)
 		// Check each of this node's neighbours...
 		for (int i = 0; i < graph[nodeCurrent].neighbours.size(); i++)
 		{
-			int currNode = graph[nodeCurrent].neighbours[i];
+			int neighNode = graph[nodeCurrent].neighbours[i];
 
 			// ... and only if the neighbour is not visited and is
 			// not an obstacle, add it to NotTested List
-			if (graph[currNode].visited && graph[currNode].obstacle == 0)
-				mapNotTestedNodes.insert(std::pair<float, int>(graph[currNode].fGlobalGoal, currNode));
+			if (!graph[neighNode].visited && !graph[neighNode].obstacle)
+				mapNotTestedNodes.insert(std::pair<float, int>(graph[neighNode].fGlobalGoal, neighNode));
 
 			// Calculate the neighbours potential lowest parent distance
-			float fPossiblyLowerGoal = graph[nodeCurrent].fLocalGoal + distance(graph, nodeCurrent, currNode);
+			float fPossiblyLowerGoal = graph[nodeCurrent].fLocalGoal + Astar::distance(graph, nodeCurrent, neighNode);
 
 			// If choosing to path through this node is a lower distance than what
 			// the neighbour currently has set, update the neighbour to use this node
 			// as the path source, and set its distance scores as necessary
-			if (fPossiblyLowerGoal < graph[currNode].fLocalGoal)
+			if (fPossiblyLowerGoal < graph[neighNode].fLocalGoal)
 			{
-				graph[currNode].parent = nodeCurrent;
-				graph[currNode].fLocalGoal = fPossiblyLowerGoal;
+				graph[neighNode].parent = nodeCurrent;
+				graph[neighNode].fLocalGoal = fPossiblyLowerGoal;
 
 				// The best path length to the neighbour being tested has changed, so
 				// update the neighbour's score. The heuristic is used to globally bias
 				// the path algorithm, so it knows if its getting better or worse. At some
 				// point the algo will realise this path is worse and abandon it, and then go
 				// and search along the next best path.
-				graph[currNode].fGlobalGoal = graph[currNode].fGlobalGoal + heuristic(graph, currNode, nodeEnd);
+				graph[neighNode].fGlobalGoal = graph[neighNode].fGlobalGoal + Astar::heuristic(graph, neighNode, nodeEnd);
 			}
 		}
 	}
@@ -99,7 +103,8 @@ vector<int> Astar::Solve_AStar(Graph::Graph &graph, int nodeStart, int nodeEnd)
 	int curr = nodeEnd;
 	optimalPath.emplace_back(curr);
 
-	while(curr != nodeStart){
+	while (curr != nodeStart)
+	{
 		curr = graph[curr].parent;
 		optimalPath.emplace_back(curr);
 	}
