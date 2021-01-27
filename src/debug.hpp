@@ -18,6 +18,8 @@ void showGraph(const Graph::Graph& graph, bool printPoints = false);
 
 void showPolygons(const vector<Polygon>& p);
 
-void showPath(const Graph::Graph &graph, const vector<int>& path);
+void showPath(const Graph::Graph &graph, const vector<int>& path, bool showGraph = false);
+
+void showPath(const Graph::Graph &graph, const vector<int>& path, const vector<Point>& points, bool showGraph = false);
 
 void showGraphAndPolygons(const Graph::Graph& graph, const vector<Polygon>& p);

@@ -429,6 +429,7 @@ namespace student
     // cv::imshow("blue mask" ,blue_mask);
     // cv::waitKey(10);
     cv::findContours(blue_mask, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
+
     bool found = false;
     for (int i = 0; i < contours.size() && found == false; ++i)
     {
@@ -451,6 +452,11 @@ namespace student
 
       found = true;
     }
+
+    // cv::drawContours(img_in, contours_approx, -1, cv::Scalar(0, 170, 220), 3, cv::LINE_AA);
+    // cv::imshow("robot contours", img_in);
+    // cv::waitKey(0);
+
     //find the barrycentre and rotation
     if (found)
     {
@@ -497,18 +503,25 @@ namespace student
                 const std::vector<std::pair<int, Polygon>> &victim_list,
                 const Polygon &gate, const float x, const float y, const float theta, Path &path, const std::string &config_folder)
   {
+    std::vector<Point> printPoints;
+    printPoints.emplace_back(x, y);
+
+    auto avgPoint = [](const Polygon &polygon) {
+      float avgX = 0, avgY = 0;
+      for (int i = 0; i < polygon.size(); i++)
+      {
+        avgX += polygon[i].x;
+        avgY += polygon[i].y;
+      }
+      avgX /= polygon.size();
+      avgY /= polygon.size();
+      return Point(avgX, avgY);
+    };
+
     // DubinsCurvesHandler dcHandler(5);
-    // Point gateCenter;
+    // Point gateCenter
 
-    float xgate = 0, ygate = 0;
-
-    for (int i = 0; i < gate.size(); i++)
-    {
-      xgate += gate[i].x;
-      ygate += gate[i].y;
-    }
-    xgate /= gate.size();
-    ygate /= gate.size();
+    Point avgGate = avgPoint(gate);
 
     // DubinsCurve c = dcHandler.findShortestPath(x, y, theta, gateCenter.x, gateCenter.y, 0);
     // std::cout << "x: " << x << "\ty: " << y << "\tth: " << theta << "\tgateX: " << gateCenter.x << "\tgateY: " << gateCenter.y << std::endl;
@@ -525,22 +538,12 @@ namespace student
     int nOriz = max(max(borders[0].x, borders[1].x), max(borders[2].x, borders[3].x)) / sideLength;
     int nVert = max(max(borders[0].y, borders[1].y), max(borders[2].y, borders[3].y)) / sideLength;
 
+    auto toGraphCoord = [sideLength](float coord) {
+      return (int)((coord + sideLength * 0.5) / sideLength);
+    };
+
     buildGridGraph(graph, obstacle_list, nVert, nOriz, sideLength);
 
-    /*
-    int robotX = ((int)(x / sideLength));
-    int robotY = ((int)(y / sideLength));
-    int gateX = ((int)(xgate / sideLength));
-    int gateY = ((int)(ygate / sideLength));
-
-    std::cout << "robot X: " << robotX << " robot Y: " << robotY << std::endl;
-    std::cout << "start: " << (robotY * nOriz + robotX) << " end: " << (gateY * nOriz + gateX) << std::endl;
-
-    vector<int> optPath = Astar::Solve_AStar(graph, (robotY * nOriz + robotX), (gateY * nOriz + gateX));
-    // std::cout << optPath.size() << std::endl;
-    showPath(graph, optPath);
-    //select start and ending point to enter the astar solve function
-    */
     /////////////////////////////////////////////////////////////////////////
     //calculate center of victims in order to calculate the path
     vector<Point> victim_centers;
@@ -550,16 +553,7 @@ namespace student
 
     for (std::vector<std::pair<int, Polygon>>::const_iterator itv = victim_list.begin(); itv != victim_list.end(); itv++)
     {
-      center.x = 0;
-      center.y = 0;
-      for (int i = 0; i < itv->second.size(); i++)
-      {
-        center.x += itv->second[i].x;
-        center.y += itv->second[i].y;
-      }
-
-      center.x /= itv->second.size();
-      center.y /= itv->second.size();
+      center = avgPoint(itv->second);
       victim_centers.push_back(center);
     }
     std::cout << "center size " << victim_centers.size() << std::endl;
@@ -567,14 +561,16 @@ namespace student
 
     ///////////////////////////////////////////////////////////////////////////////
     //convert the position of a point in the grid reference system
-    int victim1x = ((int)(victim_centers[0].x / sideLength));
-    int victim1y = ((int)(victim_centers[0].y / sideLength));
+    int victim1x = toGraphCoord(victim_centers[0].x); //((int)(victim_centers[0].x / sideLength));
+    int victim1y = toGraphCoord(victim_centers[0].y); //((int)(victim_centers[0].y / sideLength));
     int victim2x;
     int victim2y;
-    int robotX = ((int)(x / sideLength));
-    int robotY = ((int)(y / sideLength));
-    int gateX = ((int)(xgate / sideLength));
-    int gateY = ((int)(ygate / sideLength));
+    int robotX = toGraphCoord(x); //((int)(x / sideLength));
+    int robotY = toGraphCoord(y); //((int)(y / sideLength));
+
+    printPoints.emplace_back(avgGate);
+    int gateX = toGraphCoord(avgGate.x);
+    int gateY = toGraphCoord(avgGate.y);
     vector<int> segmentsize;
 
     vector<int> opti_path;
@@ -586,25 +582,22 @@ namespace student
     path_segment.clear();
     smoothed_path.clear();
 
-
-
     for (int i = 0; i < victim_centers.size() - 1; i++)
     {
-      victim1x = ((int)(victim_centers[i].x / sideLength));
-      victim1y = ((int)(victim_centers[i].y / sideLength));
-      victim2x = ((int)(victim_centers[i + 1].x / sideLength));
-      victim2y = ((int)(victim_centers[i + 1].y / sideLength));
+      victim1x = toGraphCoord(victim_centers[i].x);     //((int)(victim_centers[i].x / sideLength));
+      victim1y = toGraphCoord(victim_centers[i].y);     //((int)(victim_centers[i].y / sideLength));
+      victim2x = toGraphCoord(victim_centers[i + 1].x); //((int)(victim_centers[i + 1].x / sideLength));
+      victim2y = toGraphCoord(victim_centers[i + 1].y); //((int)(victim_centers[i + 1].y / sideLength));
 
       path_segment = Astar::Solve_AStar(graph, (victim1y * nOriz + victim1x), (victim2y * nOriz + victim2x));
       opti_path.insert(opti_path.end(), path_segment.begin(), path_segment.end());
       path_segment.clear();
     }
-  
 
     path_segment = Astar::Solve_AStar(graph, (victim2y * nOriz + victim2x), (gateY * nOriz + gateX));
     opti_path.insert(opti_path.end(), path_segment.begin(), path_segment.end());
-  
-    // showPath(graph, opti_path);
+
+    showPath(graph, opti_path, printPoints);
 
     return true;
   }
