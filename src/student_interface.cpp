@@ -509,7 +509,7 @@ namespace student
     }
     xgate /= gate.size();
     ygate /= gate.size();
-
+    std::cout << "512" << std::endl;
     // DubinsCurve c = dcHandler.findShortestPath(x, y, theta, gateCenter.x, gateCenter.y, 0);
     // std::cout << "x: " << x << "\ty: " << y << "\tth: " << theta << "\tgateX: " << gateCenter.x << "\tgateY: " << gateCenter.y << std::endl;
 
@@ -526,7 +526,9 @@ namespace student
     int nVert = max(max(borders[0].y, borders[1].y), max(borders[2].y, borders[3].y)) / sideLength;
 
     buildGridGraph(graph, obstacle_list, nVert, nOriz, sideLength);
+    std::cout << "529" << std::endl;
 
+    /*
     int robotX = ((int)(x / sideLength));
     int robotY = ((int)(y / sideLength));
     int gateX = ((int)(xgate / sideLength));
@@ -538,10 +540,68 @@ namespace student
     vector<int> optPath = Astar::Solve_AStar(graph, (robotY * nOriz + robotX), (gateY * nOriz + gateX));
     // std::cout << optPath.size() << std::endl;
     showPath(graph, optPath);
-
-
-
     //select start and ending point to enter the astar solve function
+*/
+    /////////////////////////////////////////////////////////////////////////
+    //calculate center of victims in order to calculate the path
+    vector<Point> victim_centers;
+    Point center;
+
+    std::vector<std::pair<int, Polygon>>::const_iterator itv = victim_list.begin();
+
+    std::cout << "552" << std::endl;
+
+    for (std::vector<std::pair<int, Polygon>>::const_iterator itv = victim_list.begin(); itv != victim_list.end(); itv++)
+    {
+      center.x = 0;
+      center.y = 0;
+      for (int i = 0; i < itv->second.size(); i++)
+      {
+        center.x += itv->second[i].x;
+        center.y += itv->second[i].y;
+      }
+
+      center.x /= itv->second.size();
+      center.y /= itv->second.size();
+      victim_centers.push_back(center);
+    }
+    std::cout << "center size " << victim_centers.size() << std::endl;
+    std::cout << "center size victim 0 " << victim_centers[0].x << "       " << victim_centers[0].y << std::endl;
+
+    ///////////////////////////////////////////////////////////////////////////////
+    //convert the position of a point in the grid reference system
+    int victim1x = ((int)(victim_centers[0].x / sideLength));
+    int victim1y = ((int)(victim_centers[0].y / sideLength));
+    int victim2x;
+    int victim2y;
+    int robotX = ((int)(x / sideLength));
+    int robotY = ((int)(y / sideLength));
+    int gateX = ((int)(xgate / sideLength));
+    int gateY = ((int)(ygate / sideLength));
+    vector<int> segmentsize;
+
+    vector<int> opti_path;
+    vector<int> path_segment = Astar::Solve_AStar(graph, (robotY * nOriz + robotX), (victim1y * nOriz + victim1x));
+    opti_path.insert(opti_path.end(), path_segment.begin(), path_segment.end());
+    path_segment.clear();
+
+    for (int i = 0; i < victim_centers.size() - 1; i++)
+    {
+      victim1x = ((int)(victim_centers[i].x / sideLength));
+      victim1y = ((int)(victim_centers[i].y / sideLength));
+      victim2x = ((int)(victim_centers[i + 1].x / sideLength));
+      victim2y = ((int)(victim_centers[i + 1].y / sideLength));
+      std::cout << "610" << std::endl;
+      path_segment = Astar::Solve_AStar(graph, (victim1y * nOriz + victim1x), (victim2y * nOriz + victim2x));
+      opti_path.insert(opti_path.end(), path_segment.begin(), path_segment.end());
+      path_segment.clear();
+    }
+  
+
+    path_segment = Astar::Solve_AStar(graph, (victim2y * nOriz + victim2x), (gateY * nOriz + gateX));
+    opti_path.insert(opti_path.end(), path_segment.begin(), path_segment.end());
+  
+    showPath(graph, opti_path);
 
     return true;
   }

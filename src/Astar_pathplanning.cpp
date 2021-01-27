@@ -111,6 +111,14 @@ vector<int> Astar::Solve_AStar(Graph::Graph &graph, int nodeStart, int nodeEnd)
 		curr = graph[curr].parent;
 		optimalPath.emplace_back(curr);
 	}
+
+	for(int i= 0; i <(int)(optimalPath.size()/2); i++)
+	{
+		int temp = optimalPath[i];
+		optimalPath[i]=optimalPath[optimalPath.size()-(i+1)];
+		optimalPath[optimalPath.size()-(i+1)] = temp;
+		
+	}
 	return optimalPath;
 }
 
