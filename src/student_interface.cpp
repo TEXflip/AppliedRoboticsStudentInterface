@@ -561,12 +561,12 @@ namespace student
 
     ///////////////////////////////////////////////////////////////////////////////
     //convert the position of a point in the grid reference system
-    int victim1x = toGraphCoord(victim_centers[0].x); //((int)(victim_centers[0].x / sideLength));
-    int victim1y = toGraphCoord(victim_centers[0].y); //((int)(victim_centers[0].y / sideLength));
+    int victim1x = toGraphCoord(victim_centers[0].x);
+    int victim1y = toGraphCoord(victim_centers[0].y);
     int victim2x;
     int victim2y;
-    int robotX = toGraphCoord(x); //((int)(x / sideLength));
-    int robotY = toGraphCoord(y); //((int)(y / sideLength));
+    int robotX = toGraphCoord(x);
+    int robotY = toGraphCoord(y);
 
     printPoints.emplace_back(avgGate);
     int gateX = toGraphCoord(avgGate.x);
@@ -584,15 +584,19 @@ namespace student
 
     for (int i = 0; i < victim_centers.size() - 1; i++)
     {
-      victim1x = toGraphCoord(victim_centers[i].x);     //((int)(victim_centers[i].x / sideLength));
-      victim1y = toGraphCoord(victim_centers[i].y);     //((int)(victim_centers[i].y / sideLength));
-      victim2x = toGraphCoord(victim_centers[i + 1].x); //((int)(victim_centers[i + 1].x / sideLength));
-      victim2y = toGraphCoord(victim_centers[i + 1].y); //((int)(victim_centers[i + 1].y / sideLength));
+      victim1x = toGraphCoord(victim_centers[i].x);
+      victim1y = toGraphCoord(victim_centers[i].y);
+      victim2x = toGraphCoord(victim_centers[i + 1].x);
+      victim2y = toGraphCoord(victim_centers[i + 1].y);
 
       path_segment = Astar::Solve_AStar(graph, (victim1y * nOriz + victim1x), (victim2y * nOriz + victim2x));
       Astar::smoothPath(graph, path_segment, smoothed_path, obstacle_list);
 
-      opti_path.insert(opti_path.end(), smoothed_path.begin(), smoothed_path.end());
+      if (smoothed_path.size() == 2)
+        opti_path.push_back(smoothed_path[1]);
+      else
+        opti_path.insert(opti_path.end(), smoothed_path.begin() + 1, smoothed_path.end());
+
       path_segment.clear();
       smoothed_path.clear();
     }
@@ -601,9 +605,14 @@ namespace student
 
     Astar::smoothPath(graph, path_segment, smoothed_path, obstacle_list);
 
-    opti_path.insert(opti_path.end(), smoothed_path.begin(), smoothed_path.end());
+    opti_path.insert(opti_path.end(), smoothed_path.begin()+1, smoothed_path.end());
     path_segment.clear();
     smoothed_path.clear();
+    
+    // for (int p : opti_path){
+    //     std::cout << "x: " << graph[p].x << "\ty: " << graph[p].y << std::endl;
+    // }
+
     showPath(graph, opti_path, printPoints);
 
     return true;
