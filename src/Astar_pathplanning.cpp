@@ -112,12 +112,11 @@ vector<int> Astar::Solve_AStar(Graph::Graph &graph, int nodeStart, int nodeEnd)
 		optimalPath.emplace_back(curr);
 	}
 
-	for(int i= 0; i <(int)(optimalPath.size()/2); i++)
+	for (int i = 0; i < (int)(optimalPath.size() / 2); i++)
 	{
 		int temp = optimalPath[i];
-		optimalPath[i]=optimalPath[optimalPath.size()-(i+1)];
-		optimalPath[optimalPath.size()-(i+1)] = temp;
-		
+		optimalPath[i] = optimalPath[optimalPath.size() - (i + 1)];
+		optimalPath[optimalPath.size() - (i + 1)] = temp;
 	}
 	return optimalPath;
 }
@@ -129,7 +128,8 @@ void Astar::smoothPath(vector<Point> &path, vector<Point> &newPath, const std::v
 
 	while (!selected.empty())
 	{
-		pair<int, int> segment = selected.pop_back();
+		pair<int, int> segment = selected.back();
+		selected.pop_back();
 
 		Point p0(path[segment.first]);
 		Point p1(path[segment.second]);

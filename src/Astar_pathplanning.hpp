@@ -19,5 +19,5 @@ private:
 
 public:
 	static vector<int> Solve_AStar(Graph::Graph &graph, int start, int end);
-	static void Astar::smoothPath(vector<Point> &path, vector<Point> &newPath, const std::vector<Polygon> &obstacle_list)
+	static void smoothPath(vector<Point> &path, vector<Point> &newPath, const std::vector<Polygon> &obstacle_list);
 };
