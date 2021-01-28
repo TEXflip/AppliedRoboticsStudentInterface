@@ -6,107 +6,75 @@
 
 #include <iostream>
 #include <string>
+#include <vector>
+#include <cmath>
 
 using namespace std;
 using namespace cv;
 
-/** Function Headers */
-void on_low_r_thresh_trackbar(int, void *);
-void on_high_r_thresh_trackbar(int, void *);
-void on_low_g_thresh_trackbar(int, void *);
-void on_high_g_thresh_trackbar(int, void *);
-void on_low_b_thresh_trackbar(int, void *);
-void on_high_b_thresh_trackbar(int, void *);
+struct Pose{
+    float x,y,theta;
+};
 
-/** Global Variables */
-int low_r=30, low_g=30, low_b=30;
-int high_r=100, high_g=100, high_b=100;
+int main(){
 
-/** @function main */
-int main(int argc, char* argv[])
+
+     /*
+x: 0.16	y: 0.22
+x: 0.8	y: 0.2
+x: 1.3	y: 0.2
+x: 1.32	y: 0.46
+x: 1.32	y: 0.76
+x: 1.32	y: 1.02
+
+     */
+vector<Point2d> p;
+vector<Pose> c;
+
+p.emplace_back(0.16,0.22);
+p.emplace_back(0.8,0.2);
+p.emplace_back(1.3,0.2);
+p.emplace_back(1.32,0.46);
+p.emplace_back( 1.32,0.76);
+p.emplace_back( 1.32,1.02);
+
+float x1= 0.8;
+float x2 = 1.3;
+float y1  = 0.2 ;
+float y2 = 0.2;
+float b; //cross product
+int sign; // sign del cross product
+float av; // angle between exit direction and x - axis
+float a; //angle between the 2 segments (entry and exit direction)
+float ah; // angle for the robot to assume in the certain location (theta f for the dubins)
+float angle;
+float mag;
+float dot;
+Pose pose;
+
+
+for(int i = 0; i <p.size()-2;i++ )
 {
-    if (argc != 2) {
-        cout << "Usage: " << argv[0] << " <image>" << endl;
-        return 0;
-    }
+x1 =p[i+1].x-p[i].x; 
+x2 =p[i+2].x-p[i+1].x;
+y1 =p[i+1].y-p[i].y; 
+y2 =p[i+2].y-p[i+1].y;
+
+dot = x1*x2 + y1*y2 ;     // dot product between [x1, y1] and [x2, y2]
+mag = (sqrt((x1*x1)+(y1*y1)))*(sqrt((x2*x2)+(y2*y2)));
+
+b = ((x1*y2)-(x2*y1)); //cros product
+sign = b > 0 ? 1 : -1; // sign of cross product
+av = atan2(y2,x2); //angle between exit direction and x -axis
+a = M_PI-acos((dot)/(mag)); // angle between entrz and exit direction
+ah = sign*a/2+av+M_PI/2; // theta f
+if(sign>0)
+{
+    ah= ah-M_PI;
+}
+cout << "angle " << ah * 180/M_PI  << " x " << p[i+1].x << " y " << p[i+1].y<<endl;
     
-    //! [mat]
-    Mat frame, frame_threshold;
-    //! [mat]
-    //! [cap]
-    //! [cap]
-    //! [window]
-    namedWindow("Original Image", WINDOW_AUTOSIZE);
-    namedWindow("Filtered Image", WINDOW_AUTOSIZE);
-    //! [window]
-    //! [trackbar]
-    //-- Trackbars to set thresholds for RGB values
-    createTrackbar("Low R","Filtered Image", &low_r, 255, on_low_r_thresh_trackbar);
-    createTrackbar("High R","Filtered Image", &high_r, 255, on_high_r_thresh_trackbar);
-    createTrackbar("Low G","Filtered Image", &low_g, 255, on_low_g_thresh_trackbar);
-    createTrackbar("High G","Filtered Image", &high_g, 255, on_high_g_thresh_trackbar);
-    createTrackbar("Low B","Filtered Image", &low_b, 255, on_low_b_thresh_trackbar);
-    createTrackbar("High B","Filtered Image", &high_b, 255, on_high_b_thresh_trackbar);
-    
-    string filename = argv[1];
-    frame = imread(filename.c_str());
-    if(frame.empty())
-        throw runtime_error("Failed to open file " + filename);
-    imshow("Original Image", frame);
-    
-    //! [trackbar]
-    while((char)waitKey(1)!='q'){
-        //! [while]
-        //-- Detect the object based on RGB Range Values
-        inRange(frame, Scalar(low_b,low_g,low_r), Scalar(high_b,high_g,high_r), frame_threshold);
-        //! [while]
-        //! [show]
-        //-- Show the frames
-        imshow("Filtered Image",frame_threshold);
-        //! [show]
-    }
-    return 0;
-}
-//! [low]
-/** @function on_low_r_thresh_trackbar */
-void on_low_r_thresh_trackbar(int, void *)
-{
-    low_r = min(high_r-1, low_r);
-    setTrackbarPos("Low R","Filtered Image", low_r);
-}
-//! [low]
-//! [high]
-/** @function on_high_r_thresh_trackbar */
-void on_high_r_thresh_trackbar(int, void *)
-{
-    high_r = max(high_r, low_r+1);
-    setTrackbarPos("High R", "Filtered Image", high_r);
-}
-//![high]
-/** @function on_low_g_thresh_trackbar */
-void on_low_g_thresh_trackbar(int, void *)
-{
-    low_g = min(high_g-1, low_g);
-    setTrackbarPos("Low G","Filtered Image", low_g);
+ 
 }
 
-/** @function on_high_g_thresh_trackbar */
-void on_high_g_thresh_trackbar(int, void *)
-{
-    high_g = max(high_g, low_g+1);
-    setTrackbarPos("High G", "Filtered Image", high_g);
-}
-
-/** @function on_low_b_thresh_trackbar */
-void on_low_b_thresh_trackbar(int, void *)
-{
-    low_b= min(high_b-1, low_b);
-    setTrackbarPos("Low B","Filtered Image", low_b);
-}
-
-/** @function on_high_b_thresh_trackbar */
-void on_high_b_thresh_trackbar(int, void *)
-{
-    high_b = max(high_b, low_b+1);
-    setTrackbarPos("High B", "Filtered Image", high_b);
 }

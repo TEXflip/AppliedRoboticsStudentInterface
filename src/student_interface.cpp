@@ -605,14 +605,80 @@ namespace student
 
     Astar::smoothPath(graph, path_segment, smoothed_path, obstacle_list);
 
-    opti_path.insert(opti_path.end(), smoothed_path.begin()+1, smoothed_path.end());
+    opti_path.insert(opti_path.end(), smoothed_path.begin() + 1, smoothed_path.end());
     path_segment.clear();
     smoothed_path.clear();
-    
-    // for (int p : opti_path){
-    //     std::cout << "x: " << graph[p].x << "\ty: " << graph[p].y << std::endl;
-    // }
 
+    for (int p : opti_path)
+    {
+      std::cout << "x: " << graph[p].x << "\ty: " << graph[p].y << std::endl;
+    }
+    /*
+x: 0.16	y: 0.22
+x: 0.8	y: 0.2
+x: 1.3	y: 0.2
+x: 1.32	y: 0.46
+x: 1.32	y: 0.76
+x: 1.32	y: 1.02
+
+     */
+
+    ///////////////////////////////////////////////////////////////
+
+    //create pose vector for dubins curve
+    vector<Pose> pose;
+    Pose p;
+    float x1;
+    float x2;
+    float y1;
+    float y2;
+    float b;       //cross product
+    int sign;      // sign del cross product
+    float av;      // angle between exit direction and x - axis
+    float a_seg;   //angle between the 2 segments (entry and exit direction)
+    float theta_f; // angle for the robot to assume in the certain location (theta f for the dubins)
+    float mag;
+    float dot;
+
+    //initial position
+    p.x = x;
+    p.y = y;
+    p.theta = theta;
+    pose.push_back(p);
+
+    for (int i = 0; i < opti_path.size() - 2; i++)
+    {
+      x1 = graph[opti_path[i + 1]].x - graph[opti_path[i]].x;
+      x2 = graph[opti_path[i + 2]].x - graph[opti_path[i + 1]].x;
+      y1 = graph[opti_path[i + 1]].y - graph[opti_path[i]].y;
+      y2 = graph[opti_path[i + 2]].y - graph[opti_path[i + 1]].y;
+
+      dot = x1 * x2 + y1 * y2; // dot product between [x1, y1] and [x2, y2]
+      mag = (sqrt((x1 * x1) + (y1 * y1))) * (sqrt((x2 * x2) + (y2 * y2)));
+
+      b = ((x1 * y2) - (x2 * y1));                //cros product
+      sign = b > 0 ? 1 : -1;                      // sign of cross product
+      av = atan2(y2, x2);                         //angle between exit direction and x -axis
+      a_seg = M_PI - acos((dot) / (mag));         // angle between entrz and exit direction
+      theta_f = sign * a_seg / 2 + av + M_PI / 2; // theta f
+      if (sign > 0)
+      {
+        theta_f = theta_f - M_PI;
+      }
+      p.x = graph[opti_path[i + 1]].x;
+      p.y = graph[opti_path[i + 1]].y;
+      p.theta = theta_f;
+      pose.push_back(p);
+      //cout << "angle " << theta_f * 180 / M_PI << " x " << graph[opti_path[i + 1]].x << " y " << graph[opti_path[i + 1]].y << endl;
+    }
+    //final position
+    p.x = avgGate.x;
+    p.y = avgGate.y;
+    pose.push_back(p);
+    for(int i = 0; i < pose.size();i++)
+    {
+      std::cout << "angle " << pose[i].theta * 180 / M_PI << " x " << pose[i].x << " y " << pose[i].y << endl;
+    }
     showPath(graph, opti_path, printPoints);
 
     return true;

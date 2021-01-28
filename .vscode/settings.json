@@ -69,7 +69,8 @@
         "rope": "cpp",
         "scoped_allocator": "cpp",
         "shared_mutex": "cpp",
-        "regex": "cpp"
+        "regex": "cpp",
+        "string": "cpp"
     },
     "cmake.configureOnOpen": false
 }
