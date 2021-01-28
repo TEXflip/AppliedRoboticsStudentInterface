@@ -518,19 +518,7 @@ namespace student
       return Point(avgX, avgY);
     };
 
-    // DubinsCurvesHandler dcHandler(5);
-    // Point gateCenter
-
     Point avgGate = avgPoint(gate);
-
-    // DubinsCurve c = dcHandler.findShortestPath(x, y, theta, gateCenter.x, gateCenter.y, 0);
-    // std::cout << "x: " << x << "\ty: " << y << "\tth: " << theta << "\tgateX: " << gateCenter.x << "\tgateY: " << gateCenter.y << std::endl;
-
-    // std::vector<DubinsLine> lines = dcHandler.discretizeDubinsCurve(c, 0.02);
-    // float L = 0;
-
-    // for (int i = 0; i < lines.size(); i++)
-    //   path.points.emplace_back(lines[i].s, lines[i].x, lines[i].y, lines[i].th, lines[i].k);
 
     Graph::Graph graph;
     // VoronoiHandler::buildVoronoi(borders, obstacle_list, graph, 100, 1e6);
@@ -675,11 +663,30 @@ x: 1.32	y: 1.02
     p.x = avgGate.x;
     p.y = avgGate.y;
     pose.push_back(p);
-    for(int i = 0; i < pose.size();i++)
+
+    for (Pose p : pose)
     {
-      std::cout << "angle " << pose[i].theta * 180 / M_PI << " x " << pose[i].x << " y " << pose[i].y << endl;
+      std::cout << "angle " << p.theta * 180 / M_PI << "\tx " << p.x << "\ty " << p.y << endl;
     }
-    showPath(graph, opti_path, printPoints);
+
+
+    DubinsCurvesHandler dcHandler(8);
+    DubinsCurve dubin;
+    std::vector<DubinsLine> lines, currLines;
+
+    for (int i = 0; i < pose.size()-1; i++)
+    {
+      dubin = dcHandler.findShortestPath(pose[i].x, pose[i].y, pose[i].theta, pose[i + 1].x, pose[i + 1].y, pose[i + 1].theta);
+      currLines = dcHandler.discretizeDubinsCurve(dubin, 0.02);
+      lines.insert(lines.end(), currLines.begin(), currLines.end());
+      currLines.clear();
+    }
+
+    for (int i = 0; i < lines.size(); i++)
+      path.points.emplace_back(lines[i].s, lines[i].x, lines[i].y, lines[i].th, lines[i].k);
+
+
+    // showPath(graph, opti_path, printPoints);
 
     return true;
   }
