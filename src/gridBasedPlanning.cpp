@@ -5,13 +5,9 @@
 #include <cmath>
 #include <iostream>
 
-#define footprint_width 0.09
-
 void buildGridGraph(Graph::Graph &graph, const std::vector<Polygon> &obstacle_list, int nVert, int nOriz, float sideLength)
 {
     graph.resize(nOriz * nVert);
-
-    vector<Polygon> rescaled_ob_list = offsetPolygon(obstacle_list, footprint_width / 1.6);
 
     for (int i = 0; i < nVert; i++)
         for (int j = 0; j < nOriz; j++)
@@ -19,7 +15,7 @@ void buildGridGraph(Graph::Graph &graph, const std::vector<Polygon> &obstacle_li
             Graph::node newNode;
             newNode.x = sideLength * j;
             newNode.y = sideLength * i;
-            if (isInside_Global(Point(newNode.x, newNode.y), rescaled_ob_list))
+            if (isInside_Global(Point(newNode.x, newNode.y), obstacle_list))
             {
                 newNode.obstacle = true;
                 newNode.removed = true;
@@ -40,10 +36,10 @@ void buildGridGraph(Graph::Graph &graph, const std::vector<Polygon> &obstacle_li
                 graph[i * nOriz + j].neighbours.emplace_back(i * nOriz + j - 1);
         }
 
-    // showGraphAndPolygons(graph, rescaled_ob_list);
+    // showGraphAndPolygons(graph, obstacle_list);
 }
 
-std::vector<Polygon> extend(const std::vector<Polygon> &polygons, float summedLength)
+/*std::vector<Polygon> extend(const std::vector<Polygon> &polygons, float summedLength)
 {
     vector<Polygon> resized;
     resized.resize(polygons.size());
@@ -91,30 +87,4 @@ std::vector<Polygon> extend(const std::vector<Polygon> &polygons, float summedLe
     return resized;
 }
 
-std::vector<Polygon> offsetPolygon(const std::vector<Polygon> &polygons, float offset)
-{
-    float INT_ROUND = 1e8, i = 0;
-    vector<Polygon> resized;
-    resized.resize(polygons.size());
-    for (const Polygon &poly : polygons)
-    {
-        ClipperLib::Path srcPoly;
-        ClipperLib::Paths newPoly;
-
-        for (const Point &p : poly)
-            srcPoly << ClipperLib::IntPoint((p.x * INT_ROUND), (p.y * INT_ROUND));
-
-        ClipperLib::ClipperOffset co;
-        co.ArcTolerance = 0.0015 * INT_ROUND;
-        co.AddPath(srcPoly, ClipperLib::jtRound, ClipperLib::etClosedPolygon);
-        co.Execute(newPoly, offset * INT_ROUND);
-
-        Polygon myPoly;
-
-        for (const ClipperLib::IntPoint &p : newPoly[0])
-            myPoly.emplace_back(p.X / INT_ROUND, p.Y / INT_ROUND);
-
-        resized[i++] = myPoly;
-    }
-    return resized;
-}
+*/

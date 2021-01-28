@@ -141,6 +141,7 @@ void Astar::smoothPath(Graph::Graph& graph, vector<int> &path, vector<int> &newP
 			int mid = (int)((segment.second + segment.first) / 2);
 			selected.push_back(pair<int, int>(mid, segment.second));
 			selected.push_back(pair<int, int>(segment.first, mid));
+			std::cout << "intersection in: " << p0.x << " , " << p0.y << "\tmid: " << graph[path[mid]].x << " , " << graph[path[mid]].y << std::endl;
 		}
 		else
 		{

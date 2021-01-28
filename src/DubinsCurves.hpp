@@ -77,5 +77,6 @@ public:
     DubinsCurvesHandler() = default;
     explicit DubinsCurvesHandler(double k_max);
     DubinsCurve findShortestPath(double x0, double y0, double th0, double x1, double y1, double th1);
+    std::pair<float, float> findShortestTheta(double x0, double y0, std::vector<float>& theta0, double x1, double y1, std::vector<float>& theta1);
     std::vector<DubinsLine> discretizeDubinsCurve(DubinsCurve& curve, float minLength);
 };

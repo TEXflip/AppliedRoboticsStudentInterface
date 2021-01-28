@@ -218,7 +218,7 @@ bool intersect(const Point &a0, const Point &a1, const Point &b0, const Point &b
 
     float det = dax * dby - day * dbx;
 
-    if (fabs(det) < 10e-6)
+    if (fabs(det) < 1e-6)
         return false;
 
     float r = (dx * dby - dy * dbx) / det;
@@ -242,4 +242,32 @@ bool intersect_Global(const Point &a0, const Point &a1,const std::vector<Polygon
         if (intersectPolygon(a0, a1, p))
             return true;
     return false;
+}
+
+std::vector<Polygon> offsetPolygon(const std::vector<Polygon> &polygons, float offset)
+{
+    float INT_ROUND = 1e8, i = 0;
+    std::vector<Polygon> resized;
+    resized.resize(polygons.size());
+    for (const Polygon &poly : polygons)
+    {
+        ClipperLib::Path srcPoly;
+        ClipperLib::Paths newPoly;
+
+        for (const Point &p : poly)
+            srcPoly << ClipperLib::IntPoint((p.x * INT_ROUND), (p.y * INT_ROUND));
+
+        ClipperLib::ClipperOffset co;
+        co.ArcTolerance = 0.0015 * INT_ROUND;
+        co.AddPath(srcPoly, ClipperLib::jtRound, ClipperLib::etClosedPolygon);
+        co.Execute(newPoly, offset * INT_ROUND);
+
+        Polygon myPoly;
+
+        for (const ClipperLib::IntPoint &p : newPoly[0])
+            myPoly.emplace_back(p.X / INT_ROUND, p.Y / INT_ROUND);
+
+        resized[i++] = myPoly;
+    }
+    return resized;
 }
