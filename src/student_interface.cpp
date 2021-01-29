@@ -506,7 +506,7 @@ namespace student
                 const Polygon &gate, const float x, const float y, const float theta, Path &path, const std::string &config_folder)
   {
     std::vector<Point> printPoints;
-    DubinsCurvesHandler dcHandler(12);
+    DubinsCurvesHandler dcHandler(42);
     printPoints.emplace_back(x, y);
 
     auto avgPoint = [](const Polygon &polygon) {
@@ -573,7 +573,7 @@ namespace student
     Astar::smoothPath(graph, path_segment, smoothed_path, rescaled_ob_list);
 
     opti_path.insert(opti_path.end(), smoothed_path.begin(), smoothed_path.end());
-    opti_path_unsmoothed.insert(opti_path_unsmoothed.end(), path_segment.begin(), path_segment.end());
+    // opti_path_unsmoothed.insert(opti_path_unsmoothed.end(), path_segment.begin(), path_segment.end());
     path_segment.clear();
     smoothed_path.clear();
 
@@ -586,7 +586,7 @@ namespace student
 
       path_segment = Astar::Solve_AStar(graph, (victim1y * nOriz + victim1x), (victim2y * nOriz + victim2x));
       Astar::smoothPath(graph, path_segment, smoothed_path, rescaled_ob_list);
-      opti_path_unsmoothed.insert(opti_path_unsmoothed.end(), path_segment.begin(), path_segment.end());
+      // opti_path_unsmoothed.insert(opti_path_unsmoothed.end(), path_segment.begin(), path_segment.end());
 
       if (smoothed_path.size() == 2)
         opti_path.push_back(smoothed_path[1]);
@@ -601,22 +601,18 @@ namespace student
 
     Astar::smoothPath(graph, path_segment, smoothed_path, rescaled_ob_list);
 
-    opti_path_unsmoothed.insert(opti_path_unsmoothed.end(), path_segment.begin(), path_segment.end());
+    // opti_path_unsmoothed.insert(opti_path_unsmoothed.end(), path_segment.begin(), path_segment.end());
     opti_path.insert(opti_path.end(), smoothed_path.begin() + 1, smoothed_path.end());
     path_segment.clear();
     smoothed_path.clear();
 
-    showPath(graph, opti_path_unsmoothed, printPoints, true);
-    showPath(graph, opti_path, printPoints, true);
+    // showPath(graph, opti_path_unsmoothed, printPoints, true);
+    // showPath(graph, opti_path, printPoints, true);
 
-    for (int p : opti_path)
-    {
-      std::cout << "x: " << graph[p].x << "\ty: " << graph[p].y << std::endl;
-    }
-<<<<<<< HEAD
-
-=======
->>>>>>> 78dedb00a0bedc89946a0772f478fb9890ce31a1
+    // for (int p : opti_path)
+    // {
+    //   std::cout << "x: " << graph[p].x << "\ty: " << graph[p].y << std::endl;
+    // }
 
     ///////////////////////////////////////////////////////////////
 
@@ -664,9 +660,9 @@ namespace student
       p.y = graph[opti_path[i + 1]].y;
       p.theta = theta_f;
 
-      std::vector<float> theta0 = { atan2f(y1, x1), atan2f(y2, x2), theta_f };
-      std::vector<float> theta1 = { atan2f(y1, x1), atan2f(y2, x2), theta_f };
-      dcHandler.findShortestTheta( graph[opti_path[i + 1]].x,  graph[opti_path[i + 1]].y, theta0, graph[opti_path[i + 2]].x, graph[opti_path[i + 2]].y, theta1);
+      // std::vector<float> theta0 = { atan2f(y1, x1), atan2f(y2, x2), theta_f };
+      // std::vector<float> theta1 = { atan2f(y1, x1), atan2f(y2, x2), theta_f };
+      // dcHandler.findShortestTheta( graph[opti_path[i + 1]].x,  graph[opti_path[i + 1]].y, theta0, graph[opti_path[i + 2]].x, graph[opti_path[i + 2]].y, theta1);
 
       pose.push_back(p);
       //cout << "angle " << theta_f * 180 / M_PI << " x " << graph[opti_path[i + 1]].x << " y " << graph[opti_path[i + 1]].y << endl;
@@ -676,16 +672,11 @@ namespace student
     p.y = avgGate.y;
     pose.push_back(p);
 
-    for (Pose p : pose)
-    {
-      std::cout << "angle " << p.theta * 180 / M_PI << "\tx " << p.x << "\ty " << p.y << endl;
-    }
+    // for (Pose p : pose)
+    // {
+    //   std::cout << "angle " << p.theta * 180 / M_PI << "\tx " << p.x << "\ty " << p.y << endl;
+    // }
 
-
-<<<<<<< HEAD
-    DubinsCurvesHandler dcHandler(50);
-=======
->>>>>>> 78dedb00a0bedc89946a0772f478fb9890ce31a1
     DubinsCurve dubin;
     std::vector<DubinsLine> lines, currLines;
 
@@ -700,7 +691,7 @@ namespace student
     for (int i = 0; i < lines.size(); i++)
       path.points.emplace_back(lines[i].s, lines[i].x, lines[i].y, lines[i].th, lines[i].k);
 
-    showPath(graph, opti_path, path.points);
+    // showPath(graph, opti_path, path.points);
 
     return true;
   }

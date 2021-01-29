@@ -304,8 +304,8 @@ DubinsCurve DubinsCurvesHandler::findShortestPath(double x0, double y0, double t
         p.s3 = cur_s3;
         ScaledCurveSegments segment = scaleFromStandard(p, s.lambda);
         // std::cout << "RESCALED CURVES\ts1: " << segment.s1 << "\ts2: " << segment.s2 << "\ts3: " << segment.s3 << (segment.ok?"\tok":"") << "\tlambda: " << s.lambda << std::endl;
-        if (!check(p.s1, p.s2, p.s3, curves_arguments[pidx][0]*s.sc_k_max, curves_arguments[pidx][1]*s.sc_k_max, curves_arguments[pidx][2]*s.sc_k_max, s.sc_th0, s.sc_thf))
-            std::cout << "CHECK NOT PASSED" << std::endl;
+        // if (!check(p.s1, p.s2, p.s3, curves_arguments[pidx][0]*s.sc_k_max, curves_arguments[pidx][1]*s.sc_k_max, curves_arguments[pidx][2]*s.sc_k_max, s.sc_th0, s.sc_thf))
+        //     std::cout << "CHECK NOT PASSED" << std::endl;
         // std::cout << "KMAX" << s.sc_k_max;
         return computeDubinsCurve(x0, y0, th0, segment.s1, segment.s2, segment.s3, curves_arguments[pidx][0]*this->k_max, curves_arguments[pidx][1]*this->k_max, curves_arguments[pidx][2]*this->k_max);
     }
