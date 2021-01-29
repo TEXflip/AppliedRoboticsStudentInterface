@@ -601,15 +601,7 @@ namespace student
     {
       std::cout << "x: " << graph[p].x << "\ty: " << graph[p].y << std::endl;
     }
-    /*
-x: 0.16	y: 0.22
-x: 0.8	y: 0.2
-x: 1.3	y: 0.2
-x: 1.32	y: 0.46
-x: 1.32	y: 0.76
-x: 1.32	y: 1.02
 
-     */
 
     ///////////////////////////////////////////////////////////////
 
@@ -670,14 +662,14 @@ x: 1.32	y: 1.02
     }
 
 
-    DubinsCurvesHandler dcHandler(8);
+    DubinsCurvesHandler dcHandler(50);
     DubinsCurve dubin;
     std::vector<DubinsLine> lines, currLines;
 
     for (int i = 0; i < pose.size()-1; i++)
     {
       dubin = dcHandler.findShortestPath(pose[i].x, pose[i].y, pose[i].theta, pose[i + 1].x, pose[i + 1].y, pose[i + 1].theta);
-      currLines = dcHandler.discretizeDubinsCurve(dubin, 0.02);
+      currLines = dcHandler.discretizeDubinsCurve(dubin, 0.01);
       lines.insert(lines.end(), currLines.begin(), currLines.end());
       currLines.clear();
     }

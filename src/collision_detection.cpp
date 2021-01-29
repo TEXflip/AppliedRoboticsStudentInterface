@@ -236,10 +236,76 @@ bool intersectPolygon(const Point &a0, const Point &a1, const Polygon &p)
     return false;
 }
 
-bool intersect_Global(const Point &a0, const Point &a1,const std::vector<Polygon> &obstacle_list)
+bool intersect_Global(const Point &a0, const Point &a1, const std::vector<Polygon> &obstacle_list)
 {
     for (Polygon p : obstacle_list)
         if (intersectPolygon(a0, a1, p))
             return true;
     return false;
+}
+bool DubinsCircle_intersection()
+{
+}
+bool intersectCircleLine(float a, float b, float r,float x1, float x2, float y1, float y2)
+{
+    /*
+        a,b is the cicrcle center
+        r is its radius
+        
+
+    */
+    float p1 = 2 * x1 * x2;
+    float p2 = 2 * y1 * y2;
+    float p3 = 2 * a * x1;
+    float p4 = 2 * a * x2;
+    float p5 = 2 * b * y1;
+    float p6 = 2 * b * y2;
+    
+
+    float c1 = x1 * x1 + x2 * x2 - p1 + y1 * y1 + y2 * y2 - p2;
+    float c2 = -2 * x2 * x2 + p1 - p3 + p4 - 2 * y2 * y2 + p2 - p5 + p6;
+    float c3 = x2 * x2 - p4 + a * a + y2 * y2 - p6 + b * b - r * r;
+    /*
+    t = roots([ c1, c2, c3 ]);
+    % t = t(find(imag(t) == 0));
+
+    */
+    float t1;
+    float x;
+    float y;
+    float t2;
+    float deltaSq;
+    float delta = c2 * c2 - 4 * c1 * c3;
+    std::vector<Point> pts;
+    std::vector<Point> t;
+    if (delta < 0)
+        return false;
+    if (delta > 0)
+    {
+        deltaSq = sqrt(delta);
+        t1 = (-c2 + deltaSq) / (2 * c1);
+        t2 = (-c2 - deltaSq) / (2 * c1);
+    }
+    else
+    {
+        t1 = -c2 / (2 * c1);
+        t2 = t1;
+    }
+
+    if (t1 >= 0 && t1 <= 1)
+    {
+        x = x1 * t1 + x2 * (1 - t1);
+        y = y1 * t1 + y2 * (1 - t1);
+        pts.emplace_back(x, y);
+        //t = [t t1];
+    }
+
+    if (t2 >= 0 && t2 <= 1 && t2 != t1)
+    {
+        x = x1 * t2 + x2 * (1 - t2);
+        y = y1 * t2 + y2 * (1 - t2);
+        pts.emplace_back(x, y);
+    }
+
+ return pts.empty();
 }
