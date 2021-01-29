@@ -218,7 +218,7 @@ bool intersect(const Point &a0, const Point &a1, const Point &b0, const Point &b
 
     float det = dax * dby - day * dbx;
 
-    if (fabs(det) < 10e-6)
+    if (fabs(det) < 1e-6)
         return false;
 
     float r = (dx * dby - dy * dbx) / det;
@@ -243,6 +243,7 @@ bool intersect_Global(const Point &a0, const Point &a1, const std::vector<Polygo
             return true;
     return false;
 }
+<<<<<<< HEAD
 bool DubinsCircle_intersection()
 {
 }
@@ -308,4 +309,33 @@ bool intersectCircleLine(float a, float b, float r,float x1, float x2, float y1,
     }
 
  return pts.empty();
+=======
+
+std::vector<Polygon> offsetPolygon(const std::vector<Polygon> &polygons, float offset)
+{
+    float INT_ROUND = 1e8, i = 0;
+    std::vector<Polygon> resized;
+    resized.resize(polygons.size());
+    for (const Polygon &poly : polygons)
+    {
+        ClipperLib::Path srcPoly;
+        ClipperLib::Paths newPoly;
+
+        for (const Point &p : poly)
+            srcPoly << ClipperLib::IntPoint((p.x * INT_ROUND), (p.y * INT_ROUND));
+
+        ClipperLib::ClipperOffset co;
+        co.ArcTolerance = 0.0015 * INT_ROUND;
+        co.AddPath(srcPoly, ClipperLib::jtRound, ClipperLib::etClosedPolygon);
+        co.Execute(newPoly, offset * INT_ROUND);
+
+        Polygon myPoly;
+
+        for (const ClipperLib::IntPoint &p : newPoly[0])
+            myPoly.emplace_back(p.X / INT_ROUND, p.Y / INT_ROUND);
+
+        resized[i++] = myPoly;
+    }
+    return resized;
+>>>>>>> 78dedb00a0bedc89946a0772f478fb9890ce31a1
 }

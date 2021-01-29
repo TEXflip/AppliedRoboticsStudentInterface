@@ -23,3 +23,5 @@ void showPath(const Graph::Graph &graph, const vector<int>& path, bool showGraph
 void showPath(const Graph::Graph &graph, const vector<int>& path, const vector<Point>& points, bool showGraph = false);
 
 void showGraphAndPolygons(const Graph::Graph& graph, const vector<Polygon>& p);
+
+void showPath(const Graph::Graph &graph, const vector<int> &path, const vector<Pose> &dubins, bool showGraph = false);
