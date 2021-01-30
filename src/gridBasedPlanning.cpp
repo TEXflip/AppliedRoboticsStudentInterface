@@ -43,8 +43,6 @@ void buildGridGraph(Graph::Graph &graph, const std::vector<Polygon> &obstacle_li
             if (i - 1 != -1 && j - 1 != -1)
                 graph[i * nOriz + j].neighbours.emplace_back((i - 1) * nOriz + j - 1); //   up left cell
         }
-
-    // showGraphAndPolygons(graph, rescaled_ob_list);
 }
 
 /*std::vector<Polygon> extend(const std::vector<Polygon> &polygons, float summedLength)

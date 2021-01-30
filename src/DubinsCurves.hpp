@@ -86,5 +86,5 @@ public:
                                                                const std::vector<Polygon> &obstacle_list,
                                                                bool (*circleIntersection)(float a, float b, float r, const std::vector<Polygon> &obstacle_list),
                                                                bool (*lineIntersection)(const Point &a0, const Point &a1, const std::vector<Polygon> &obstacle_list));
-    std::vector<DubinsLine> discretizeDubinsCurve(DubinsCurve& curve, float minLength);
+    std::vector<DubinsLine> discretizeDubinsCurve(DubinsCurve& curve, float minLength, float currLength);
 };

@@ -2,6 +2,7 @@
 #include <string>
 #include <algorithm>
 #include <list>
+#include <map>
 
 #include "collision_detection.hpp"
 #include "Astar_pathplanning.hpp"

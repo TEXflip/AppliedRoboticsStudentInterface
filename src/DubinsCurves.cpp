@@ -341,10 +341,10 @@ float DubinsCurvesHandler::findShortestTheta(double x0, double y0,double th0, do
     return best;
 }
 
-std::vector<DubinsLine> DubinsCurvesHandler::discretizeDubinsCurve(DubinsCurve &curve, float minLength)
+std::vector<DubinsLine> DubinsCurvesHandler::discretizeDubinsCurve(DubinsCurve &curve, float minLength, float currLength)
 {
     std::vector<DubinsLine> out{};
-    float totL = 0;
+    float totL = currLength;
     int nPoints;
 
     for (int iArc = 0; iArc < 3; iArc++)
@@ -360,10 +360,6 @@ std::vector<DubinsLine> DubinsCurvesHandler::discretizeDubinsCurve(DubinsCurve &
             out.emplace_back(line);
         }
     }
-
-    // DubinsArc arc = curve.arcs[2];
-    // DubinsLine last = {totL + arc.L/nPoints, arc.xf, arc.yf, arc.thf, arc.k};
-    // out.emplace_back(last);
 
     return out;
 }

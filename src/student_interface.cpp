@@ -3,11 +3,10 @@
 
 #include "DubinsCurves.hpp"
 #include "graph.hpp"
-#include "voronoiHandler.hpp"
 #include "gridBasedPlanning.hpp"
 #include "Astar_pathplanning.hpp"
 #include "collision_detection.hpp"
-#include "missionPlanning.hpp"
+// #include "missionPlanning.hpp"
 
 #include <stdexcept>
 #include <sstream>
@@ -503,7 +502,7 @@ namespace student
                 const Polygon &gate, const float x, const float y, const float theta, Path &path, const std::string &config_folder)
   {
     std::vector<Point> printPoints;
-    DubinsCurvesHandler dcHandler(42);
+    DubinsCurvesHandler dcHandler(45);
     printPoints.emplace_back(x, y);
 
     auto avgPoint = [](const Polygon &polygon) {
@@ -612,8 +611,8 @@ namespace student
     ///////////////////////////////////////////////////////////////
 
     //create pose vector for dubins curve
-    vector<CustomPose> pose;
-    CustomPose p;
+    vector<Pose> pose;
+    Pose p;
     float x1;
     float x2;
     float y1;
@@ -629,7 +628,8 @@ namespace student
     //initial position
     p.x = x;
     p.y = y;
-    p.thetas.push_back(theta);
+    p.theta = theta;
+    // p.thetas.push_back(theta);
     pose.push_back(p);
 
     for (int i = 0; i < opti_path.size() - 2; i++)
@@ -654,9 +654,9 @@ namespace student
       p.x = graph[opti_path[i + 1]].x;
       p.y = graph[opti_path[i + 1]].y;
       p.theta = theta_f;
-      p.thetas.push_back(theta_f);
-      p.thetas.push_back(atan2f(y1, x1));
-      p.thetas.push_back(atan2f(y2, x2));
+      // p.thetas.push_back(theta_f);
+      // p.thetas.push_back(atan2f(y1, x1));
+      // p.thetas.push_back(atan2f(y2, x2));
 
       pose.push_back(p);
       //cout << "angle " << theta_f * 180 / M_PI << " x " << graph[opti_path[i + 1]].x << " y " << graph[opti_path[i + 1]].y << endl;
@@ -673,26 +673,23 @@ namespace student
 
     DubinsCurve dubin;
     std::vector<DubinsLine> lines, currLines;
-
+    float totLength = 0;
     for (int i = 0; i < pose.size() - 1; i++)
     {
-      float theta = pose[i + 1].thetas[0];
-      // if (i != 0)
-      // {
-      //   std::vector<float> theta1 = {pose[i + 1].theta, p.s, p.kappa, pose[i + 1].theta + (float)M_PI};
-      //   theta = dcHandler.findShortestTheta(pose[i].x, pose[i].y, pose[i].theta, pose[i + 1].x, pose[i + 1].y, theta1, rescaled_ob_list, *intersectCircle_Global, *intersect_Global);
-      // }
-      // pose[i + 1].theta = theta;
       dubin = dcHandler.findShortestPath(pose[i].x, pose[i].y, pose[i].theta, pose[i + 1].x, pose[i + 1].y, pose[i + 1].theta);
-      currLines = dcHandler.discretizeDubinsCurve(dubin, 0.01);
+      currLines = dcHandler.discretizeDubinsCurve(dubin, 0.005, totLength);
       lines.insert(lines.end(), currLines.begin(), currLines.end());
       currLines.clear();
+
+      totLength += dubin.L;
     }
 
-    for (int i = 0; i < lines.size(); i++)
+    for (int i = 0; i < lines.size(); i++){
       path.points.emplace_back(lines[i].s, lines[i].x, lines[i].y, lines[i].th, lines[i].k);
+      // std::cout << lines[i].s << std::endl;
+    }
 
-    showPath(graph, opti_path, path.points, true);
+    // showPath(graph, opti_path, path.points, true);
 
     return true;
   }
