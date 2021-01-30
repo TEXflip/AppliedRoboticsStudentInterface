@@ -138,7 +138,7 @@ void showPath(const Graph::Graph &graph, const vector<int> &path, const vector<P
             {
                 int removed = graph[v].removed ? 1 : 0;
                 //   if (!printPoints)
-                cv::line(image, cv::Point(scale * graph[v].x, scale * graph[v].y), cv::Point(scale * graph[graph[v].neighbours[i]].x, scale * graph[graph[v].neighbours[i]].y), cv::Scalar(255 * (1 - removed), 131 * removed, 255 * removed), 1, cv::LINE_AA);
+                cv::line(image, cv::Point(scale * graph[v].x, scale * graph[v].y), cv::Point(scale * graph[graph[v].neighbours[i]].x, scale * graph[graph[v].neighbours[i]].y), cv::Scalar(255 * (1 - removed), 131 * removed, 255 * removed), 0.2, cv::LINE_AA);
                 //   else
                 //     cv::circle(image, cv::Point(scale * graph[v].x, scale * graph[v].y), scale*0.004, cv::Scalar(255*(1-removed), 131*removed, 255*removed), cv::FILLED, cv::LINE_AA);
             }
@@ -146,7 +146,7 @@ void showPath(const Graph::Graph &graph, const vector<int> &path, const vector<P
 
     for (int i = 1, j = 0; i < path.size(); j = i++)
     {
-        cv::line(image, cv::Point(scale * graph[path[i]].x, scale * graph[path[i]].y), cv::Point(scale * graph[path[j]].x, scale * graph[path[j]].y), cv::Scalar(255, 0, 255), 1, cv::LINE_AA);
+        cv::line(image, cv::Point(scale * graph[path[i]].x, scale * graph[path[i]].y), cv::Point(scale * graph[path[j]].x, scale * graph[path[j]].y), cv::Scalar(255, 0, 255), 2, cv::LINE_AA);
         // std::cout << "\t" << path[i] << std::endl;
     }
 

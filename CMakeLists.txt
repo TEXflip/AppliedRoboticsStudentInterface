@@ -19,12 +19,13 @@ add_library(student SHARED
    src/student_interface.cpp
    src/DubinsCurves.cpp
    src/collision_detection.cpp
-   src/voronoiHandler.cpp
+#  src/voronoiHandler.cpp
    src/graph.cpp
    src/debug.cpp
    src/gridBasedPlanning.cpp
    src/clipper/clipper.cpp
    src/Astar_pathplanning.cpp
+   src/missionPlanning.cpp
 )
 
 target_link_libraries(student

@@ -26,17 +26,25 @@ void buildGridGraph(Graph::Graph &graph, const std::vector<Polygon> &obstacle_li
     for (int i = 0; i < nVert; i++)
         for (int j = 0; j < nOriz; j++)
         {
-            if (i + 1 != nVert)
-                graph[i * nOriz + j].neighbours.emplace_back((i + 1) * nOriz + j);
+            if (i + 1 != nVert)                                                    //           Connect to:
+                graph[i * nOriz + j].neighbours.emplace_back((i + 1) * nOriz + j); //       bottom cell
             if (i - 1 != -1)
-                graph[i * nOriz + j].neighbours.emplace_back((i - 1) * nOriz + j);
+                graph[i * nOriz + j].neighbours.emplace_back((i - 1) * nOriz + j); //       upper cell
             if (j + 1 != nOriz)
-                graph[i * nOriz + j].neighbours.emplace_back(i * nOriz + j + 1);
+                graph[i * nOriz + j].neighbours.emplace_back(i * nOriz + j + 1); //         right cell
             if (j - 1 != -1)
-                graph[i * nOriz + j].neighbours.emplace_back(i * nOriz + j - 1);
+                graph[i * nOriz + j].neighbours.emplace_back(i * nOriz + j - 1); //         left cell
+            if (i + 1 != nVert && j + 1 != nOriz)
+                graph[i * nOriz + j].neighbours.emplace_back((i + 1) * nOriz + j + 1); //   bottom right cell
+            if (i + 1 != nVert && j - 1 != -1)
+                graph[i * nOriz + j].neighbours.emplace_back((i + 1) * nOriz + j - 1); //   bottom left cell
+            if (i - 1 != -1 && j + 1 != nOriz)
+                graph[i * nOriz + j].neighbours.emplace_back((i - 1) * nOriz + j + 1); //   up right cell
+            if (i - 1 != -1 && j - 1 != -1)
+                graph[i * nOriz + j].neighbours.emplace_back((i - 1) * nOriz + j - 1); //   up left cell
         }
 
-    // showGraphAndPolygons(graph, obstacle_list);
+    // showGraphAndPolygons(graph, rescaled_ob_list);
 }
 
 /*std::vector<Polygon> extend(const std::vector<Polygon> &polygons, float summedLength)

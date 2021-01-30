@@ -1,8 +1,10 @@
-#include <cstdint>
+// #include <cstdint>
 #include <vector>
 #include <algorithm>
 #include <cmath>
 #include <iostream>
+
+#include "utils.hpp"
 
 enum curve_type
 {
@@ -33,7 +35,10 @@ struct DubinsLine
 
 struct DubinsArc
 {
-    double k, L, x0, y0, th0, xf, yf, thf; // L = length, k = curvature
+    double k, L, 
+    x0, y0, th0, 
+    xf, yf, thf, 
+    xc, yc;
 };
 
 struct DubinsCurve
@@ -77,6 +82,9 @@ public:
     DubinsCurvesHandler() = default;
     explicit DubinsCurvesHandler(double k_max);
     DubinsCurve findShortestPath(double x0, double y0, double th0, double x1, double y1, double th1);
-    std::pair<float, float> findShortestTheta(double x0, double y0, std::vector<float>& theta0, double x1, double y1, std::vector<float>& theta1);
+    float findShortestTheta(double x0, double y0,double th0, double x1, double y1, std::vector<float> &theta0,
+                                                               const std::vector<Polygon> &obstacle_list,
+                                                               bool (*circleIntersection)(float a, float b, float r, const std::vector<Polygon> &obstacle_list),
+                                                               bool (*lineIntersection)(const Point &a0, const Point &a1, const std::vector<Polygon> &obstacle_list));
     std::vector<DubinsLine> discretizeDubinsCurve(DubinsCurve& curve, float minLength);
 };

@@ -8,14 +8,11 @@
 #include <string>
 #include <vector>
 #include <cmath>
+#include "utils.hpp"
 
 using namespace std;
 using namespace cv;
 
-struct Pose
-{
-    float x, y, theta;
-};
 bool intersectCircleLine(float a, float b, float r, float x1, float y1, float x2, float y2)
 {
     /*
@@ -45,8 +42,8 @@ bool intersectCircleLine(float a, float b, float r, float x1, float y1, float x2
     float t2;
     float deltaSq;
     float delta = c2 * c2 - 4 * c1 * c3;
-    std::vector<Point> pts;
-    std::vector<float> t;
+    // std::vector<Point> pts;
+    // std::vector<float> t;
     if (delta < 0)
         return false;
 
