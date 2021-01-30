@@ -1,8 +1,11 @@
 #include "missionPlanning.hpp"
 #include "DubinsCurves.hpp"
+#include "graph.hpp"
 
 #include <list>
 #include <tuple>
+
+
 class MissionPlanning
 {
 private:

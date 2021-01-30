@@ -121,7 +121,7 @@ vector<int> Astar::Solve_AStar(Graph::Graph &graph, int nodeStart, int nodeEnd)
 	return optimalPath;
 }
 
-void Astar::smoothPath(Graph::Graph& graph, vector<int> &path, vector<int> &newPath, const std::vector<Polygon> &obstacle_list)
+void Astar::smoothPath(Graph::Graph &graph, vector<int> &path, vector<int> &newPath, const std::vector<Polygon> &obstacle_list)
 {
 	list<pair<int, int>> selected;
 	selected.push_back(pair<int, int>(0, path.size() - 1));
@@ -139,9 +139,12 @@ void Astar::smoothPath(Graph::Graph& graph, vector<int> &path, vector<int> &newP
 		if (hit)
 		{
 			int mid = (int)((segment.second + segment.first) / 2);
-			selected.push_back(pair<int, int>(mid, segment.second));
-			selected.push_back(pair<int, int>(segment.first, mid));
-			// std::cout << "intersection in: " << p0.x << " , " << p0.y << "\tmid: " << graph[path[mid]].x << " , " << graph[path[mid]].y << std::endl;
+			if (mid != segment.first && mid != segment.second)
+			{
+				selected.push_back(pair<int, int>(mid, segment.second));
+				selected.push_back(pair<int, int>(segment.first, mid));
+			}
+			//std::cout << "intersection in: " << p0.x << " , " << p0.y << "\tmid: " << graph[path[mid]].x << " , " << graph[path[mid]].y << std::endl;
 		}
 		else
 		{
