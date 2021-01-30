@@ -506,7 +506,7 @@ namespace student
                 const Polygon &gate, const float x, const float y, const float theta, Path &path, const std::string &config_folder)
   {
     std::vector<Point> printPoints;
-    DubinsCurvesHandler dcHandler(12);
+    DubinsCurvesHandler dcHandler(50);
     printPoints.emplace_back(x, y);
 
     auto avgPoint = [](const Polygon &polygon) {
@@ -613,10 +613,6 @@ namespace student
     {
       std::cout << "x: " << graph[p].x << "\ty: " << graph[p].y << std::endl;
     }
-<<<<<<< HEAD
-
-=======
->>>>>>> 78dedb00a0bedc89946a0772f478fb9890ce31a1
 
     ///////////////////////////////////////////////////////////////
 
@@ -682,10 +678,7 @@ namespace student
     }
 
 
-<<<<<<< HEAD
-    DubinsCurvesHandler dcHandler(50);
-=======
->>>>>>> 78dedb00a0bedc89946a0772f478fb9890ce31a1
+    //DubinsCurvesHandler dcHandler(50);
     DubinsCurve dubin;
     std::vector<DubinsLine> lines, currLines;
 

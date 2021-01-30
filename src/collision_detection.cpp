@@ -243,7 +243,6 @@ bool intersect_Global(const Point &a0, const Point &a1, const std::vector<Polygo
             return true;
     return false;
 }
-<<<<<<< HEAD
 bool DubinsCircle_intersection()
 {
 }
@@ -309,7 +308,7 @@ bool intersectCircleLine(float a, float b, float r,float x1, float x2, float y1,
     }
 
  return pts.empty();
-=======
+}
 
 std::vector<Polygon> offsetPolygon(const std::vector<Polygon> &polygons, float offset)
 {
@@ -337,5 +336,4 @@ std::vector<Polygon> offsetPolygon(const std::vector<Polygon> &polygons, float o
         resized[i++] = myPoly;
     }
     return resized;
->>>>>>> 78dedb00a0bedc89946a0772f478fb9890ce31a1
 }
