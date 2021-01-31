@@ -25,7 +25,6 @@
 
 namespace student
 {
-  const std::string RAW_IMAGE("/image/raw");
 
   void loadImage(cv::Mat &img_out, const std::string &config_folder)
   {
@@ -215,11 +214,6 @@ namespace student
 
   bool processMap(const cv::Mat &img_in, const double scale, std::vector<Polygon> &obstacle_list, std::vector<std::pair<int, Polygon>> &victim_list, Polygon &gate, const std::string &config_folder)
   {
-    static const int W_0 = 300;
-    static const int H_0 = 0;
-    static const int OFFSET_W = 10;
-    static const int OFFSET_H = 100;
-
     cv::imwrite("graph.jpg", img_in);
     std::ofstream outfile;
     outfile.open(config_folder + "/scale.txt", std::ios_base::out);
@@ -231,14 +225,6 @@ namespace student
 
     // Matrix for the colormasks
     cv::Mat red_mask_high, red_mask_low, red_obstacle_mask, green_victim_mask, black_border_mask;
-
-    /*!
-      values for masks (H_low,S_low,V_low) (H_hight,S_hight,V_hight)
-      RED     (0,10,150) (10,255,255) && (142,029,199) (180,255,255)
-      Green   (52,12,151) (82,255,255)
-      Black   (0,0,0)   (0-180..doesnt mater,1-180,225) !! the V value is important to be at 224
-      The values change if applied to real images
-    */
 
     //selecting the red_obstacles
     cv::inRange(hsv_img, cv::Scalar(0, 9, 69), cv::Scalar(20, 255, 255), red_mask_high);
@@ -296,7 +282,7 @@ namespace student
     cv::findContours(green_victim_mask, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
 
     //elaborating the found contours
-    const double MIN_AREA_SIZE = 100;
+    const double MIN_AREA_SIZE = 500;
     cv::Mat contours_img_boundingbox = cv::Mat(img_in.size(), CV_8UC3, cv::Scalar::all(0));
     std::vector<cv::Rect> boundRect(contours.size());
     Polygon scaled_contour_green;
@@ -330,9 +316,10 @@ namespace student
 
     // Load Templatenumbers into a vector
     std::vector<cv::Mat> templROIs;
+    std::string home = getenv("HOME");
     for (int i = 0; i <= 9; ++i)
     {
-      cv::Mat templImg = cv::imread("/home/ubuntu/Desktop/workspace/project/src/01_template_matching/template/" + std::to_string(i) + ".png");
+      cv::Mat templImg = cv::imread(home + "/workspace/project/src/01_template_matching/template/" + std::to_string(i) + ".png");
       cv::flip(templImg, templImg, 1);
       templROIs.emplace_back(templImg);
     }
