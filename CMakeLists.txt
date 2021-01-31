@@ -23,7 +23,7 @@ add_library(student SHARED
    src/gridBasedPlanning.cpp
    src/clipper/clipper.cpp
    src/Astar_pathplanning.cpp
-   #src/missionPlanning.cpp
+   src/missionPlanning.cpp
 )
 
 target_link_libraries(student
