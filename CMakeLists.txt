@@ -56,7 +56,9 @@ add_executable(demo_simple_shape_detection
 add_executable(creat_real_map
   src/demo_shape_detection/creat_real_map.cpp
 )
-
+add_executable(calibration
+  src/camera_calibration.cpp
+)
 add_executable(demo_voronoi
   src/demo_shape_detection/voronoi_web_demo.cpp
 )
@@ -84,7 +86,9 @@ target_link_libraries(demo_simple_shape_detection
 )
 target_link_libraries(creat_real_map
   ${OpenCV_LIBRARIES}
-
+)
+target_link_libraries(calibration
+  ${OpenCV_LIBRARIES}
 )
 
 
