@@ -5,7 +5,7 @@
 #include <cmath>
 #include <iostream>
 
-void buildGridGraph(Graph::Graph &graph, const std::vector<Polygon> &obstacle_list, int nVert, int nOriz, float sideLength)
+void buildGridGraph(Graph::Graph &graph, const std::vector<Polygon> &obstacle_list, float margin, int nVert, int nOriz, float sideLength)
 {
     graph.resize(nOriz * nVert);
 
@@ -16,6 +16,11 @@ void buildGridGraph(Graph::Graph &graph, const std::vector<Polygon> &obstacle_li
             newNode.x = sideLength * j;
             newNode.y = sideLength * i;
             if (isInside_Global(Point(newNode.x, newNode.y), obstacle_list))
+            {
+                newNode.obstacle = true;
+                newNode.removed = true;
+            }
+            if (newNode.x < margin || newNode.x > nOriz * sideLength - margin || newNode.y < margin || newNode.y > nVert * sideLength - margin)
             {
                 newNode.obstacle = true;
                 newNode.removed = true;

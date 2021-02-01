@@ -46,19 +46,17 @@ pair<float, vector<int>> MissionPlanning::pickDecision(float **costs, vector<dec
     remaining.erase(curr);
 
     float min = INFINITY;
-    int minI = -1;
     pair<float, vector<int>> currDec;
     vector<int> bestPath;
 
     for (int i : remaining)
     {
-        float cost = currCost + costs[curr][i] - (decisions[i].isGate ? 0 : this->bonusTime);
+        float cost = currCost + costs[curr][i] - decisions[i].reward;
         currDec = pickDecision(costs, decisions, remaining, cost, i);
 
         if (min > currDec.first)
         {
             min = currDec.first;
-            minI = i;
             bestPath = currDec.second;
         }
     }
@@ -73,10 +71,7 @@ MissionPlanning::MissionPlanning(float bonusTime, const float x, const float y, 
     this->bonusTime = bonusTime;
     this->start = Point(x, y);
     this->obstacle_list = obstacle_list;
-    for (int i = 0; i < victim_list.size(); i++)
-    {
-        this->victim_list.push_back(victim_list[i].second);
-    }
+    this->victim_list = victim_list;
     this->gate = gate;
 }
 
@@ -88,11 +83,11 @@ void MissionPlanning::initDecisions(vector<decision> &decisions)
     d.x = this->start.x;
     d.y = this->start.y;
     decisions.push_back(d);
-    for (Polygon p : this->victim_list)
+    for (pair<int, Polygon> p : this->victim_list)
     {
         d.reward = this->bonusTime;
         d.isGate = false;
-        Point avg = avgPoint(p);
+        Point avg = avgPoint(p.second);
         d.x = avg.x;
         d.y = avg.y;
         decisions.push_back(d);
@@ -105,7 +100,7 @@ void MissionPlanning::initDecisions(vector<decision> &decisions)
     decisions.push_back(d);
 }
 
-void MissionPlanning::buildDecisionTree(Graph::Graph &graph, int nVert, int nOriz, float sideLength)
+vector<Pose> MissionPlanning::buildDecisionPath(Graph::Graph &graph, int nVert, int nOriz, float sideLength)
 {
     vector<decision> decisions;
     initDecisions(decisions);
@@ -150,10 +145,24 @@ void MissionPlanning::buildDecisionTree(Graph::Graph &graph, int nVert, int nOri
 
     pair<float, vector<int>> best = this->pickDecision(costs, decisions, remaining, 0, 0);
 
-    cout << "min Cost: " << best.first << endl;
+    // cout << "min Cost: " << best.first << endl;
 
-    for (int i = 0; i < best.second.size(); i++)
+    // for (int i = 1; i < best.second.size()-1; i++)
+    // {
+    //     cout << best.second[i] << endl;
+    // }
+
+    vector<Pose> finalPath;
+    finalPath.resize(best.second.size());
+    int j = best.second.size()-1;
+    for (int i : best.second)
     {
-        cout << best.second[i] << endl;
+        Pose p;
+        p.x = decisions[i].x;
+        p.y = decisions[i].y;
+        p.theta = 0;
+        finalPath[j--] = p;
     }
+
+    return finalPath;
 }

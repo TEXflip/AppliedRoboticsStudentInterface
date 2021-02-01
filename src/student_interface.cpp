@@ -25,7 +25,7 @@
 
 namespace student
 {
-  bool MISSION_PLANNING = false;
+  bool MISSION_PLANNING = true;
 
   void loadImage(cv::Mat &img_out, const std::string &config_folder)
   {
@@ -505,6 +505,22 @@ namespace student
       return Point(avgX, avgY);
     };
 
+    auto tangentAngle = [](float x1, float y1, float x2, float y2) {
+      float dot = x1 * x2 + y1 * y2; // dot product between [x1, y1] and [x2, y2]
+      float mag = sqrt(x1 * x1 + y1 * y1) * sqrt(x2 * x2 + y2 * y2);
+
+      float b = x1 * y2 - x2 * y1;                      // cross product
+      int sign = b > 0 ? 1 : -1;                        // sign of cross product
+      float av = atan2(y2, x2);                         // angle between exit direction and x -axis
+      float a_seg = M_PI - acos(dot / mag);             // angle between entrz and exit direction
+      float theta_f = sign * a_seg / 2 + av + M_PI / 2; // theta f
+
+      if (sign > 0)
+        theta_f = theta_f - M_PI;
+
+      return theta_f;
+    };
+
     Point avgGate = avgPoint(gate);
 
     Graph::Graph graph;
@@ -519,7 +535,8 @@ namespace student
 
     vector<Polygon> rescaled_ob_list = offsetPolygon(obstacle_list, footprint_width / 1.4);
 
-    buildGridGraph(graph, rescaled_ob_list, nVert, nOriz, sideLength);
+    buildGridGraph(graph, rescaled_ob_list, footprint_width / 1.4, nVert, nOriz, sideLength);
+
     if (!MISSION_PLANNING)
     {
       /////////////////////////////////////////////////////////////////////////
@@ -602,57 +619,34 @@ namespace student
       //create pose vector for dubins curve
       vector<Pose> pose;
       Pose p;
-      float x1;
-      float x2;
-      float y1;
-      float y2;
-      float b;       //cross product
-      int sign;      // sign del cross product
-      float av;      // angle between exit direction and x - axis
-      float a_seg;   //angle between the 2 segments (entry and exit direction)
-      float theta_f; // angle for the robot to assume in the certain location (theta f for the dubins)
-      float mag;
-      float dot;
 
       //initial position
       p.x = x;
       p.y = y;
       p.theta = theta;
-      // p.thetas.push_back(theta);
       pose.push_back(p);
 
       for (int i = 0; i < opti_path.size() - 2; i++)
       {
-        x1 = graph[opti_path[i + 1]].x - graph[opti_path[i]].x;
-        x2 = graph[opti_path[i + 2]].x - graph[opti_path[i + 1]].x;
-        y1 = graph[opti_path[i + 1]].y - graph[opti_path[i]].y;
-        y2 = graph[opti_path[i + 2]].y - graph[opti_path[i + 1]].y;
+        float x1 = graph[opti_path[i + 1]].x - graph[opti_path[i]].x;
+        float x2 = graph[opti_path[i + 2]].x - graph[opti_path[i + 1]].x;
+        float y1 = graph[opti_path[i + 1]].y - graph[opti_path[i]].y;
+        float y2 = graph[opti_path[i + 2]].y - graph[opti_path[i + 1]].y;
 
-        dot = x1 * x2 + y1 * y2; // dot product between [x1, y1] and [x2, y2]
-        mag = (sqrt((x1 * x1) + (y1 * y1))) * (sqrt((x2 * x2) + (y2 * y2)));
-
-        b = ((x1 * y2) - (x2 * y1));                // cross product
-        sign = b > 0 ? 1 : -1;                      // sign of cross product
-        av = atan2(y2, x2);                         // angle between exit direction and x -axis
-        a_seg = M_PI - acos((dot) / (mag));         // angle between entrz and exit direction
-        theta_f = sign * a_seg / 2 + av + M_PI / 2; // theta f
-        if (sign > 0)
-        {
-          theta_f = theta_f - M_PI;
-        }
         p.x = graph[opti_path[i + 1]].x;
         p.y = graph[opti_path[i + 1]].y;
-        p.theta = theta_f;
-        // p.thetas.push_back(theta_f);
-        // p.thetas.push_back(atan2f(y1, x1));
-        // p.thetas.push_back(atan2f(y2, x2));
+        p.theta = tangentAngle(x1, y1, x2, y2);
 
         pose.push_back(p);
         //cout << "angle " << theta_f * 180 / M_PI << " x " << graph[opti_path[i + 1]].x << " y " << graph[opti_path[i + 1]].y << endl;
       }
+
       //final position
+      float x2 = graph[opti_path[size - 1]].x - graph[opti_path[size - 2]].x;
+      float y2 = graph[opti_path[size - 1]].y - graph[opti_path[size - 2]].y;
       p.x = avgGate.x;
       p.y = avgGate.y;
+      p.theta = atan2(y2,x2);
       pose.push_back(p);
 
       // for (Pose p : pose)
@@ -681,9 +675,87 @@ namespace student
 
       // showPath(graph, opti_path, path.points, true);
     }
-    else{
-      MissionPlanning mp(0.4, x, y, rescaled_ob_list, victim_list, gate);
-      mp.buildDecisionTree(graph, nVert, nOriz, sideLength);
+    else
+    {
+      MissionPlanning mp(0.5, x, y, rescaled_ob_list, victim_list, gate);
+      vector<Pose> finalPath = mp.buildDecisionPath(graph, nVert, nOriz, sideLength);
+
+      ///////////////////////////////////////////////////////////////////////////////
+      //convert the position of a point in the grid reference system
+
+      vector<int> opti_path;
+      vector<int> opti_path_unsmoothed;
+      vector<int> smoothed_path;
+      vector<int> path_segment;
+
+      for (int i = 0; i < finalPath.size() - 1; i++)
+      {
+        int x1 = toGraphCoord(finalPath[i].x);
+        int y1 = toGraphCoord(finalPath[i].y);
+        int x2 = toGraphCoord(finalPath[i + 1].x);
+        int y2 = toGraphCoord(finalPath[i + 1].y);
+
+        path_segment = Astar::Solve_AStar(graph, (y1 * nOriz + x1), (y2 * nOriz + x2));
+        Astar::smoothPath(graph, path_segment, smoothed_path, rescaled_ob_list);
+        // opti_path_unsmoothed.insert(opti_path_unsmoothed.end(), path_segment.begin(), path_segment.end());
+
+        if (i == 0)
+          opti_path.insert(opti_path.end(), smoothed_path.begin(), smoothed_path.end());
+        else if (smoothed_path.size() == 2)
+          opti_path.push_back(smoothed_path[1]);
+        else
+          opti_path.insert(opti_path.end(), smoothed_path.begin() + 1, smoothed_path.end());
+
+        path_segment.clear();
+        smoothed_path.clear();
+      }
+
+      vector<Pose> pose;
+      Pose p;
+
+      int size = opti_path.size();
+      pose.resize(size);
+      pose[0].x = x;
+      pose[0].y = y;
+      pose[0].theta = theta;
+
+      for (int i = 1; i < size - 1; i++)
+      {
+        float x1 = graph[opti_path[i]].x - graph[opti_path[i - 1]].x;
+        float y1 = graph[opti_path[i]].y - graph[opti_path[i - 1]].y;
+        float x2 = graph[opti_path[i + 1]].x - graph[opti_path[i]].x;
+        float y2 = graph[opti_path[i + 1]].y - graph[opti_path[i]].y;
+
+        pose[i].x = graph[opti_path[i]].x;
+        pose[i].y = graph[opti_path[i]].y;
+        pose[i].theta = tangentAngle(x1, y1, x2, y2);
+      }
+      float x2 = graph[opti_path[size - 1]].x - graph[opti_path[size - 2]].x;
+      float y2 = graph[opti_path[size - 1]].y - graph[opti_path[size - 2]].y;
+      pose[size - 1].x = avgGate.x;
+      pose[size - 1].y = avgGate.y;
+      pose[size - 1].theta = atan2f(y2, x2);
+
+      DubinsCurve dubin;
+      std::vector<DubinsLine> lines, currLines;
+      float totLength = 0;
+      for (int i = 0; i < pose.size() - 1; i++)
+      {
+        dubin = dcHandler.findShortestPath(pose[i].x, pose[i].y, pose[i].theta, pose[i + 1].x, pose[i + 1].y, pose[i + 1].theta);
+        currLines = dcHandler.discretizeDubinsCurve(dubin, 0.005, totLength);
+        lines.insert(lines.end(), currLines.begin(), currLines.end());
+        currLines.clear();
+
+        totLength += dubin.L;
+      }
+
+      for (int i = 0; i < lines.size(); i++)
+      {
+        path.points.emplace_back(lines[i].s, lines[i].x, lines[i].y, lines[i].th, lines[i].k);
+        // std::cout << lines[i].s << std::endl;
+      }
+
+      showPath(graph, opti_path, path.points, true);
     }
     return true;
   }

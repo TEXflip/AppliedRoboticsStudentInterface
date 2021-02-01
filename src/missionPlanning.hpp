@@ -11,7 +11,7 @@ private:
     float bonusTime;
     float velocity = 1;
     vector<Polygon> obstacle_list;
-    vector<Polygon> victim_list;
+    vector<pair<int, Polygon>> victim_list;
     Polygon gate;
     Point start;
 
@@ -28,5 +28,5 @@ private:
 
 public:
     explicit MissionPlanning(float bonusTime, const float x, const float y, vector<Polygon> &obstacle_list,const vector<pair<int, Polygon>> &victim_list, const Polygon &gate);
-    void buildDecisionTree(Graph::Graph &graph, int nVert, int nOriz, float sideLength);
+    vector<Pose> buildDecisionPath(Graph::Graph &graph, int nVert, int nOriz, float sideLength);
 };
