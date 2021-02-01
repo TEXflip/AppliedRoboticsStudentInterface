@@ -642,8 +642,8 @@ namespace student
       }
 
       //final position
-      float x2 = graph[opti_path[size - 1]].x - graph[opti_path[size - 2]].x;
-      float y2 = graph[opti_path[size - 1]].y - graph[opti_path[size - 2]].y;
+      float x2 = graph[opti_path[opti_path.size() - 1]].x - graph[opti_path[opti_path.size() - 2]].x;
+      float y2 = graph[opti_path[opti_path.size() - 1]].y - graph[opti_path[opti_path.size() - 2]].y;
       p.x = avgGate.x;
       p.y = avgGate.y;
       p.theta = atan2(y2,x2);
