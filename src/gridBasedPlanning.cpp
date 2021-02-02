@@ -5,7 +5,7 @@
 #include <cmath>
 #include <iostream>
 
-void buildGridGraph(Graph::Graph &graph, const std::vector<Polygon> &obstacle_list, float margin, int nVert, int nOriz, float sideLength)
+void buildGridGraph(Graph::Graph &graph, const std::vector<Polygon> &obstacle_list,const Polygon& gate, float margin, int nVert, int nOriz, float sideLength)
 {
     graph.resize(nOriz * nVert);
 
@@ -20,11 +20,13 @@ void buildGridGraph(Graph::Graph &graph, const std::vector<Polygon> &obstacle_li
                 newNode.obstacle = true;
                 newNode.removed = true;
             }
-            if (newNode.x < margin || newNode.x > nOriz * sideLength - margin || newNode.y < margin || newNode.y > nVert * sideLength - margin)
+            if ((newNode.x < margin || newNode.x > nOriz * sideLength - margin || newNode.y < margin || newNode.y > nVert * sideLength - margin) && 
+                !isInside(Point(newNode.x,newNode.y), gate))
             {
                 newNode.obstacle = true;
                 newNode.removed = true;
             }
+
             graph[i * nOriz + j] = newNode;
         }
 

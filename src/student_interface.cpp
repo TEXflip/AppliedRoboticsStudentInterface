@@ -25,7 +25,7 @@
 
 namespace student
 {
-  bool MISSION_PLANNING = true;
+  bool MISSION_PLANNING = false;
 
   void loadImage(cv::Mat &img_out, const std::string &config_folder)
   {
@@ -535,7 +535,7 @@ namespace student
 
     vector<Polygon> rescaled_ob_list = offsetPolygon(obstacle_list, footprint_width / 1.4);
 
-    buildGridGraph(graph, rescaled_ob_list, footprint_width / 1.4, nVert, nOriz, sideLength);
+    buildGridGraph(graph, rescaled_ob_list,gate, footprint_width / 1.4, nVert, nOriz, sideLength);
 
     if (!MISSION_PLANNING)
     {
@@ -755,7 +755,7 @@ namespace student
         // std::cout << lines[i].s << std::endl;
       }
 
-      showPath(graph, opti_path, path.points, true);
+      // showPath(graph, opti_path, path.points, true);
     }
     return true;
   }
