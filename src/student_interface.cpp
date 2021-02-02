@@ -25,11 +25,20 @@
 
 namespace student
 {
-  bool MISSION_PLANNING = false;
+  bool MISSION_PLANNING = true;
 
   void loadImage(cv::Mat &img_out, const std::string &config_folder)
   {
-    throw std::logic_error("STUDENT FUNCTION - LOAD IMAGE - NOT IMPLEMENTED");
+    std::string home = getenv("HOME");
+
+    int i = 0;
+    img_out = cv::imread(home + "/workspace/camera_image_raw/00" + std::to_string(i) + ".jpg");
+    // img_out = cv::imread(home + "/workspace/camera_image_raw/sim.jpg");
+
+    if (img_out.empty()) // Check for invalid input
+      cout << "Could not open or find the image" << std::endl;
+
+    // Show our image inside it.
   }
 
   void genericImageListener(const cv::Mat &img_in, std::string topic, const std::string &config_folder)
@@ -165,7 +174,7 @@ namespace student
     }
 
     cv::Mat dist_coeffs;
-    dist_coeffs   = (cv::Mat1d(1,4) << 0, 0, 0, 0, 0);
+    dist_coeffs = (cv::Mat1d(1, 4) << 0, 0, 0, 0, 0);
     bool ok = cv::solvePnP(object_points, image_points, camera_matrix, dist_coeffs, rvec, tvec);
 
     if (!ok)
@@ -257,20 +266,26 @@ namespace student
     //process the found contours (aprox and scale)
     for (int i = 0; i < contours.size(); ++i)
     {
+      double area = cv::contourArea(contours[i]); // check the contour
+
+      if (area < 100)
+        continue;
 
       approxPolyDP(contours[i], approx_curve, 8, true); // approxPolyDP( InputArray curve,OutputArray approxCurve,double epsilon, bool closed )
                                                         //function that closes eventual opend contoures ???
 
+
       //scaling loop
+
       Polygon scaled_contour; //typedev vector
 
       for (const auto &pt : approx_curve)
-      {
         scaled_contour.emplace_back(pt.x / scale, pt.y / scale);
-      }
 
       obstacle_list.push_back(scaled_contour); //add the aprox and scaled object to the list
     }
+    contours.clear();
+
 
     //process GREEN_VICTIMS AND GATE///////////////////////////////////////
     // eventual filtering on green_victim_mask
@@ -284,31 +299,44 @@ namespace student
     //elaborating the found contours
     const double MIN_AREA_SIZE = 500;
     cv::Mat contours_img_boundingbox = cv::Mat(img_in.size(), CV_8UC3, cv::Scalar::all(0));
-    std::vector<cv::Rect> boundRect(contours.size());
+    std::vector<cv::Rect> boundRect;
     Polygon scaled_contour_green;
-    std::vector<cv::Point> contours_approx_array[12];
+    std::vector<std::vector<cv::Point>> contours_approx_array;
 
+    int minVer = INT32_MAX, Nver;
+    std::vector<cv::Point> gateApprox;
     for (int i = 0; i < contours.size(); ++i)
     {
       double area = cv::contourArea(contours[i]); // check the contour area to remove false positives
       if (area < MIN_AREA_SIZE)
         continue;
 
-      approxPolyDP(contours[i], approx_curve, 11, true); //aproxximate the contoure in less vertices
+      approxPolyDP(contours[i], approx_curve, 5, true); // aproxximate the contour in less vertices -- 11
 
-      if (approx_curve.size() == 4) //if i have a gate(a quadratic figure in green)
+      Nver = approx_curve.size();
+      if (minVer > Nver) // save the contours with min vertices
       {
-        for (const auto &pt : approx_curve)
-          scaled_contour_green.emplace_back(pt.x / scale, pt.y / scale);
-
-        gate = scaled_contour_green;
+        minVer = Nver;
+        gateApprox = approx_curve;
       }
-      else if (approx_curve.size() > 4) //  //if i have a number circle and not the gate
+      if (Nver > 6) //if i have a number circle and not the gate
       {
-        contours_approx_array[i] = {approx_curve};          //assosciate the found aprox contour to the same number as the boundingbox (sync the arrays)
-        boundRect[i] = boundingRect(cv::Mat(approx_curve)); // finds bounding box for each green blob
+        contours_approx_array.push_back(approx_curve);                      //assosciate the found aprox contour to the same number as the boundingbox (sync the arrays)
+        boundRect.push_back(boundingRect(cv::Mat(approx_curve))); // finds bounding box for each green blob
       }
     }
+
+    for (const auto &pt : gateApprox)
+      scaled_contour_green.emplace_back(pt.x / scale, pt.y / scale);
+    gate = scaled_contour_green;
+
+    for (int i = 0; i < boundRect.size(); i++)
+      if (contours_approx_array[i].size() == minVer)
+      {
+        contours_approx_array.erase(contours_approx_array.begin() + i);
+        boundRect.erase(boundRect.begin() + i);
+      }
+
 
     ////////////////TEMPLATEMATCHING//////////////////
     cv::Mat green_mask_inv, filtered(img_in.rows, img_in.cols, CV_8UC3, cv::Scalar(255, 255, 255));
