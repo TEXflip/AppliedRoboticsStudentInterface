@@ -164,7 +164,8 @@ namespace student
       input.close();
     }
 
-    cv::Mat dist_coeffs(1, 4, CV_32F); // coeficients from the cameracalibration;?
+    cv::Mat dist_coeffs;
+    dist_coeffs   = (cv::Mat1d(1,4) << 0, 0, 0, 0, 0);
     bool ok = cv::solvePnP(object_points, image_points, camera_matrix, dist_coeffs, rvec, tvec);
 
     if (!ok)
@@ -178,8 +179,6 @@ namespace student
   void imageUndistort(const cv::Mat &img_in, cv::Mat &img_out,
                       const cv::Mat &cam_matrix, const cv::Mat &dist_coeffs, const std::string &config_folder)
   {
-    // TODO: capire come e dove (nel codice) va a prendersi i parametri per la calibrazione + implementazione del salvataggio dei parametri (da fare in camera_calibration.cpp)
-    //cv::undistort(img_in, img_out, cam_matrix, dist_coeffs);
 
     static bool maps_initialized = false;
     static cv::Mat full_map1, full_map2;
@@ -535,7 +534,7 @@ namespace student
 
     vector<Polygon> rescaled_ob_list = offsetPolygon(obstacle_list, footprint_width / 1.4);
 
-    buildGridGraph(graph, rescaled_ob_list,gate, footprint_width / 1.4, nVert, nOriz, sideLength);
+    buildGridGraph(graph, rescaled_ob_list, gate, footprint_width / 1.4, nVert, nOriz, sideLength);
 
     if (!MISSION_PLANNING)
     {
@@ -646,7 +645,7 @@ namespace student
       float y2 = graph[opti_path[opti_path.size() - 1]].y - graph[opti_path[opti_path.size() - 2]].y;
       p.x = avgGate.x;
       p.y = avgGate.y;
-      p.theta = atan2(y2,x2);
+      p.theta = atan2(y2, x2);
       pose.push_back(p);
 
       // for (Pose p : pose)
