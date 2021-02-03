@@ -25,7 +25,7 @@
 
 namespace student
 {
-  bool MISSION_PLANNING = true;
+  bool MISSION_PLANNING = false;
 
   void loadImage(cv::Mat &img_out, const std::string &config_folder)
   {
@@ -560,9 +560,9 @@ namespace student
       return (int)((coord + sideLength * 0.5) / sideLength);
     };
 
-    vector<Polygon> rescaled_ob_list = offsetPolygon(obstacle_list, footprint_width / 1.4);
+    vector<Polygon> rescaled_ob_list = offsetPolygon(obstacle_list, footprint_width / 1.3);
 
-    buildGridGraph(graph, rescaled_ob_list, gate, footprint_width / 1.4, nVert, nOriz, sideLength);
+    buildGridGraph(graph, rescaled_ob_list, gate, footprint_width / 1.3, nVert, nOriz, sideLength);
 
     if (!MISSION_PLANNING)
     {
