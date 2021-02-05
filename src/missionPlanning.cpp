@@ -68,7 +68,7 @@ pair<float, vector<int>> MissionPlanning::pickDecision(float **costs, vector<dec
 
 MissionPlanning::MissionPlanning(float bonusTime, const float x, const float y, vector<Polygon> &obstacle_list, const vector<pair<int, Polygon>> &victim_list, const Polygon &gate)
 {
-    this->bonusTime = bonusTime;
+    this->bonusTime = bonusTime; // in seconds
     this->start = Point(x, y);
     this->obstacle_list = obstacle_list;
     this->victim_list = victim_list;
@@ -132,7 +132,7 @@ vector<Pose> MissionPlanning::buildDecisionPath(Graph::Graph &graph, int nVert, 
             path_segment.clear();
             smoothed_path.clear();
 
-            costs[i][j] = costs[j][i] = length / this->velocity;
+            costs[i][j] = costs[j][i] = length / this->velocity; // seconds to do this sub-path
 
             // cout << "\t" << costs[i][j];
         }

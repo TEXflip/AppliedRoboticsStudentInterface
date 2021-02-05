@@ -25,7 +25,7 @@
 
 namespace student
 {
-  bool MISSION_PLANNING = false;
+  bool MISSION_PLANNING = true;
 
   void loadImage(cv::Mat &img_out, const std::string &config_folder)
   {
@@ -725,7 +725,7 @@ namespace student
     }
     else
     {
-      MissionPlanning mp(0.5, x, y, rescaled_ob_list, victim_list, gate);
+      MissionPlanning mp(5, x, y, rescaled_ob_list, victim_list, gate);
       vector<Pose> finalPath = mp.buildDecisionPath(graph, nVert, nOriz, sideLength);
 
       ///////////////////////////////////////////////////////////////////////////////

@@ -9,7 +9,7 @@ class MissionPlanning
 {
 private:
     float bonusTime;
-    float velocity = 1;
+    float velocity = 0.1; // (m/sec) avg estimated velocity precedently computed 
     vector<Polygon> obstacle_list;
     vector<pair<int, Polygon>> victim_list;
     Polygon gate;
