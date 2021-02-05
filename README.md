@@ -1,96 +1,263 @@
 # Laboratory of Applied Robotics Student Interface
+
 Group: IncludeMe
 Members: Michele Tessari, David Karbon
 
-
-
 # Documentation of student_inteface
 
+## Computer Vision
+
 ### genericImageListener
+
 ```c++
 void genericImageListener(const cv::Mat &img_in, std::string topic, const std::string &config_folder)
 ```
+
 function to save the images from the camera to be used in a second moment to calculate the distortion parameters of the camera or for other purpose.
 
 The function creates the folder (from the configuration default path) where to save the images and, if it already exists, it continues to try with another name until it will find one. Then it shows the image of the current visual of the camera and (if 's' is pressed) it saves the image in the folder. Otherwise, if 'esc' is pressed, the program will close.
 
 ### extrinsicCalib
+
 ```c++
-bool extrinsicCalib(const cv::Mat &img_in, std::vector<cv::Point3f> object_points, 
+bool extrinsicCalib(const cv::Mat &img_in, std::vector<cv::Point3f> object_points,
                     const cv::Mat &camera_matrix, cv::Mat &rvec, cv::Mat &tvec, const std::string &config_folder)
 ```
+
 estimate the rotation and translation vectors of the camera starting from the undistorted image of the camera and the points of the arena.
 
 First the function check if it already exists the file with the measurement of the points of the arena precedently setted. If the file doesn't exists, it will appear a image of the camera where will be asked to the user to click in the four corner of the arena in counterclockwise order. After, using the function "solvePnP" are computed the rotation and translation vectors of the camera.
 
 ### imageUndistort
+
 ```c++
-void imageUndistort(const cv::Mat &img_in, cv::Mat &img_out, const cv::Mat &cam_matrix, 
+void imageUndistort(const cv::Mat &img_in, cv::Mat &img_out, const cv::Mat &cam_matrix,
                     const cv::Mat &dist_coeffs, const std::string &config_folder)
 ```
+
 It removes the distortion of the lens of the camera from the image in input from the parameters computed during the camera calibration phase.
 
 Since it's sufficient to calculate the calibration matrix to transform the image only one time, The function, when it's called the first time, it uses initUndistortRectifyMap() to compute the two maps of the two axis X and Y of the calibration matrix.
 Finally, everyyime the function is called, it computes the undistorted image with the function "remap()" using the 2 maps precedently calculated.
 
 ### findPlaneTransform
+
 ```c++
-void findPlaneTransform(const cv::Mat &cam_matrix, const cv::Mat &rvec, const cv::Mat &tvec, 
-                        const std::vector<cv::Point3f> &object_points_plane, 
-                        const std::vector<cv::Point2f> &dest_image_points_plane, cv::Mat &plane_transf, 
+void findPlaneTransform(const cv::Mat &cam_matrix, const cv::Mat &rvec, const cv::Mat &tvec,
+                        const std::vector<cv::Point3f> &object_points_plane,
+                        const std::vector<cv::Point2f> &dest_image_points_plane, cv::Mat &plane_transf,
                         const std::string &config_folder)
 ```
+
 It computes the transformation matrix to unwrap the image from the points taken before.
 
 using "projectPoints()" function, findPlaneTransform() projects the 3D points to a 2D image plane and then with "getPerspectiveTransform()" it computes the 3x3 perspective transformation of the corrisponding points.
 
 ### unwarp
+
 ```c++
 void unwarp(const cv::Mat &img_in, cv::Mat &img_out, const cv::Mat &transf, const std::string &config_folder)
 ```
+
 it apply the transformation to convert the 3D points in a 2D plane.
 
 using "warpPerspective()" function it applies the transformation computed by "findPlaneTransform()" to unwrap the image and get a top-view visualization
 
 ### processMap
+
 ```c++
-bool processMap(const cv::Mat &img_in, const double scale, std::vector<Polygon> &obstacle_list, 
+bool processMap(const cv::Mat &img_in, const double scale, std::vector<Polygon> &obstacle_list,
                 std::vector<std::pair<int, Polygon>> &victim_list, Polygon &gate, const std::string &config_folder)
 ```
+
 Process the image to detect victims, obstacles and the gate.
 
 code flow: obstacle list
-0. convert input image in hsv colorspace 
+
+0. convert input image in hsv colorspace
 1. use a colorfilter to sort the objects in different masks (red for obstacles and green for victims and the gate)
-2. apply in the red mask the dilate and erode morphological transformations
-3. extract contour of the obstacles with findContours(), approximate them with approxPolyDP() and finally scale them
-4. Assign the found obstacles in the output list
-5. apply in the green mask the dilate and erode morphological transformations
-6. extract contour of the victims and the gate with findContours(), approximate them with approxPolyDP(), scale them and finally extract the gate by controlling its contour size(=4)
-7. victims elaboration process:
-    - detect round contours (with size > 4)
-    - eliminate the green surrounding using as a mask the not operation of the green mask 
-    - load the template numbers and flip them to match the camera perspective transformation applied in unwarp() 
-    - run the number detection for every boundingBox:
-        * extract the region of interest from the image with the boundingBox
-        * resize it to template size
-        * compare the detected numbers with the templates trying 4 different rotation (90 degrees) and compute the mathing score
-        * select the tamplate according too the heighest matching score
-        * save the pair of matched template number and scaled victim in a map in order to sort them
-        * copy the ordered map into the output vector
-
-
+1. apply in the red mask the dilate and erode morphological transformations
+1. extract contour of the obstacles with findContours(), approximate them with approxPolyDP() and finally scale them
+1. Assign the found obstacles in the output list
+1. apply in the green mask the dilate and erode morphological transformations
+1. extract contour of the victims and the gate with findContours(), approximate them with approxPolyDP(), scale them and finally extract the gate by controlling its contour size(=4)
+1. victims elaboration process:
+   - detect round contours (with size > 4)
+   - eliminate the green surrounding using as a mask the not operation of the green mask
+   - load the template numbers and flip them to match the camera perspective transformation applied in unwarp()
+   - run the number detection for every boundingBox:
+     - extract the region of interest from the image with the boundingBox
+     - resize it to template size
+     - compare the detected numbers with the templates trying 4 different rotation (90 degrees) and compute the mathing score
+     - select the tamplate according too the heighest matching score
+     - save the pair of matched template number and scaled victim in a map in order to sort them
+     - copy the ordered map into the output vector
 
 ### findRobot
+
 ```c++
 bool findRobot(const cv::Mat &img_in, const double scale, Polygon &triangle, double &x, double &y, double &theta, const std::string &config_folder)
 ```
+
 find the position and rotation of the robot
 
-0. convert input image in hsv colorspace 
+0. convert input image in hsv colorspace
 1. filter the blue areas out of the hsv image
-2. find the contour of the robot triangle using findContours()
-4. approximate the contours
-5. look for the triangle contour by taking off all the areas which are too small ot too big and the contours with too edges
-6. scale the found triangle contour 
-7. compute the position and rotation vectors of the robot (center of gravity and rotation relative to the x axis)
+1. find the contour of the robot triangle using findContours()
+1. approximate the contours
+1. look for the triangle contour by taking off all the areas which are too small ot too big and the contours with too edges
+1. scale the found triangle contour
+1. compute the position and rotation vectors of the robot (center of gravity and rotation relative to the x axis)
+
+## Path Planning
+
+### gridBasedPlanning
+
+```c++
+void buildGridGraph(Graph::Graph &graph, const std::vector<Polygon> &obstacle_list,const Polygon& gate, float margin, int nVert, int nOriz, float sideLength);
+```
+
+##### Parameters
+
+- `Graph::Graph &graph` The graph structure defined in graph.h including the nodes
+- `const std::vector<Polygon> &obstacle_list` the obstacle list
+- `const Polygon& gate` The gate
+- `float margin` the safety distance from the border
+- `float sideLength` length of the map #
+- `int nVert` number of squares in vertical direction
+- `int nOriz` number of squares in Orizontal direction
+
+##### Description
+
+1. calculates the neccessary number of nodes
+2. checks if the node is inside an obstacle ( dilated bz the robo radius)
+3. connects the node to its neigbours in linear and diagonal direction as long they are not inside an
+
+---
+
+### A\* Path planning
+
+```c++
+vector<int> Astar::Solve_AStar(Graph::Graph &graph, int nodeStart, int nodeEnd)
+```
+
+##### Parameters
+
+- `Graph::Graph &graph` The graph structure defined in graph.h and already connected with buildGridGraph()
+- `int nodeStart` the number of the start node in the graph
+- `int nodeEnd` the number of the end node in the graph
+
+##### Description
+
+1. resets the navigation graph. Every node:
+   visited = false;
+   fGlobalGoal = INFINITY;
+   fLocalGoal = INFINITY;
+   parent = -1; // No parents
+2. set up of the starting condition for the node start
+3. Loop for all the nodes in the graph until we reach the goal
+   1. calculate the distance to goal for each neighbour
+   2. calculate the ditance to start for each neigbour and set the current node as parent for the neighbour if it is the shortest
+   3. take neighbour node with the shortest global distance to goal in with which we continue this loop
+   4. set the tag visited to the visited node, to not test it again
+4. Once reached the goal we create a vector where we:
+   1. enter the goal node
+   2. go to its parent node
+   3. enter it and go again to its parent nonde
+   4. repeat until we reach the start
+5. Reverse the previous vector to have the nodes in correct order.
+
+---
+
+### Path smoothing
+
+```c++
+void Astar::smoothPath(Graph::Graph &graph, vector<int> &path,
+ vector<int> &newPath, const std::vector<Polygon> &obstacle_list)
+```
+
+##### Parameters
+
+- `Graph::Graph &graph` the graph structure defined in graph.h and already connected with buildGridGraph()
+- `vector<int> &path` the path crated by A\* star
+- `vector<int> &newPath` the smoothed path
+- `const std::vector<Polygon> &obstacle_list` the dilated obstacle list
+
+##### Description
+
+1. Takes the start point and the end point of the A\* path
+2. connects them with a streight line
+3. checks for collision with an obstacle
+4. if an collision is detected take the mid point of the path and repeat the procedure until the smoothed path is collision free
+
+---
+
+### Pictures of path planning
+
+<p float="float">
+      <img src="./imgs/grid_MIssion_1_Astar_raw.jpeg" width="230">
+      <img src="./imgs/grid_Mission_1_Astar_smooth.jpeg" width="230">
+      <img src="./imgs/grid_Mission_1_Astar_dubins.jpeg" width="230">
+      <img src="./imgs/grid_Mission_2_Astar_dubins.jpeg" width="230">
+      <img src="./imgs/Mission_1_simulator.jpeg" width="230">
+      <img src="./imgs/Mission_2_simulator.jpeg" width="230">
+<p!>
+
+---
+
+### Collision detection
+
+```c++
+bool intersect(const Point &a0, const Point &a1, const Point &b0, const Point &b1)
+```
+
+##### Parameters
+
+- `const Point &a0` start point of segment 1
+- `const Point &a1` end point of segment 1
+- `const Point &b0` start point of segment 2
+- `const Point &b1` end point of segment 2
+
+##### Description
+
+1. calcluates the vectors of the segments
+   1. a0->a1
+   2. b0->b1
+   3. b0->a0
+2. Calculates the determinandt of the vectors a0->a1 and b0->b1
+3. calculates the parameters r and s which have to be inside the range of [0,1] if the segments intersect
+
+---
+
+```c++
+bool intersectPolygon(const Point &a0, const Point &a1, const Polygon &p)
+```
+
+##### Parameters
+
+- `const Point &a0` start point of segment 1
+- `const Point &a1` end point of segment 1
+- `const Polygon &p` Polygon for intersection test
+
+##### Description
+
+1. checks the intersection of a segment with all the segments of a Polygon
+
+---
+
+```c++
+bool intersect_Global(const Point &a0, const Point &a1, const std::vector<Polygon> &obstacle_list)
+```
+
+##### Parameters
+
+- `const Point &a0` start point of segment 1
+- `const Point &a1` end point of segment 1
+- `const std::vector<Polygon> &obstacle_list` the dilated obstacle list
+
+##### Description
+
+1. checks the intersection of a segment with all the obstacles in the arena
+
+---
+
