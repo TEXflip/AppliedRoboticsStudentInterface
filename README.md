@@ -125,11 +125,11 @@ find the position and rotation of the robot
 
 ---
 
+### plan Path
+
 ```c++
 bool planPath(const Polygon& borders, const std::vector<Polygon>& obstacle_list,  const std::vector<std::pair<int,Polygon>>& victim_list,  const Polygon& gate, const float x, const float y, const float theta,  Path& path, const std::string& config_folder);
 ```
-
-Plans the path according to chosen mission.
 
 ##### Parameters
 
@@ -142,10 +142,6 @@ Plans the path according to chosen mission.
 - `theta [in]` yaw of the robot in the arena reference system
 - `path [out]` output path of planned path
 - `config_folder [in]` A custom string from config file.
-
-##### Returns
-
-- `bool` true if path is computed correctly, false otherwise
 
 ##### Description
 
@@ -169,11 +165,15 @@ Victim are chosen in in oreder if their number. The robot drives over all victim
 3. the resulting output vector contains the path with the heighest score = lowest time
    <img src="./imgs/Mission_2_simulator.jpeg" width="230">
 
-## for more detail see paragraph missionPlannnig.ccp
+##### Returns
+
+- `bool` true if path is computed correctly, false otherwise
+
+for more detail see paragraph missionPlannnig.ccp
 
 ## Path Planning
 
-### gridBasedPlanning
+### gridBasedPlanning.cpp
 
 ```c++
 void buildGridGraph(Graph::Graph &graph, const std::vector<Polygon> &obstacle_list,const Polygon& gate,
@@ -186,7 +186,7 @@ void buildGridGraph(Graph::Graph &graph, const std::vector<Polygon> &obstacle_li
 - `const std::vector<Polygon> &obstacle_list` the obstacle list
 - `const Polygon& gate` The gate
 - `float margin` the safety distance from the border
-- `float sideLength` length of the map 
+- `float sideLength` length of the map
 - `int nVert` number of squares in vertical direction
 - `int nOriz` number of squares in Orizontal direction
 
@@ -198,7 +198,7 @@ void buildGridGraph(Graph::Graph &graph, const std::vector<Polygon> &obstacle_li
 
 ---
 
-### A\* Path planning
+### Astar_pathplanning.cpp
 
 ```c++
 vector<int> Astar::Solve_AStar(Graph::Graph &graph, int nodeStart, int nodeEnd)
@@ -236,8 +236,6 @@ vector<int> Astar::Solve_AStar(Graph::Graph &graph, int nodeStart, int nodeEnd)
 
 ---
 
-### Path smoothing
-
 ```c++
 void Astar::smoothPath(Graph::Graph &graph, vector<int> &path,
  vector<int> &newPath, const std::vector<Polygon> &obstacle_list)
@@ -256,6 +254,26 @@ void Astar::smoothPath(Graph::Graph &graph, vector<int> &path,
 2. connects them with a streight line
 3. checks for collision with an obstacle
 4. if an collision is detected take the mid point of the path and repeat the procedure until the smoothed path is collision free
+
+---
+
+```c++
+float Astar::distance(Graph::Graph &graph, int a, int b)
+```
+
+##### Parameters
+
+- `Graph::Graph &graph` the graph structure defined in graph.h and already connected with buildGridGraph()
+- `int a` reference int for start
+- `int b` reference int for end
+
+##### Description
+
+1. calculates the heuristic distance from one point to another
+
+##### Return
+
+- `float` the distance between two points
 
 ---
 
