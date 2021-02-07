@@ -12,7 +12,7 @@
 #include <sstream>
 #include <experimental/filesystem>
 #include <cstdlib>
-
+#include <chrono>  // for high_resolution_clock
 #include <opencv2/imgproc.hpp>
 
 #include <vector>
@@ -25,7 +25,7 @@
 
 namespace student
 {
-  bool MISSION_PLANNING = false;
+  bool MISSION_PLANNING = true;
 
   void loadImage(cv::Mat &img_out, const std::string &config_folder)
   {
@@ -417,7 +417,8 @@ namespace student
     victim_list.assign(victim_Map.begin(), victim_Map.end());
 
     std::cout << "victims: " << victim_list.size() << "\tobstacles: " << obstacle_list.size() << std::endl;
-    return victim_list.size() > 0 && obstacle_list.size() > 0;
+    // return victim_list.size() > 0 && obstacle_list.size() > 0;
+    return true;
   }
 
   bool findRobot(const cv::Mat &img_in, const double scale, Polygon &triangle, double &x, double &y, double &theta, const std::string &config_folder)
@@ -507,6 +508,26 @@ namespace student
       y = cy;
       theta = std::atan2(dy, dx);
 
+      // VELOCITY ESTIMATION
+      // static std::chrono::_V2::system_clock::time_point lastTime;
+      // static bool second = false;
+      // static double precX, precY;
+
+      // if (second){
+      //   auto now = std::chrono::high_resolution_clock::now();
+        
+      //   std::chrono::duration<double, std::milli> diff = now - lastTime;
+      //   double dx = x-precX, dy = y-precY;
+      //   double dist = sqrt(dx*dx+dy*dy);
+      //   std::cout << "Estimated velocity: " << (dist/(diff.count()/1000)) << std::endl;
+      // }
+      // second = true;
+      
+      // precX = x;
+      // precY = y;
+
+      // lastTime = std::chrono::high_resolution_clock::now();
+  
       // std::cout << "x: " << x << "\ty: " << y << "\ttheta: " << theta * 180 / M_PI << "°" << std::endl;
     }
     return found;
@@ -561,7 +582,7 @@ namespace student
     };
 
     vector<Polygon> rescaled_ob_list = offsetPolygon(obstacle_list, footprint_width / 1.3);
-
+    
     buildGridGraph(graph, rescaled_ob_list, gate, footprint_width / 1.3, nVert, nOriz, sideLength);
 
     if (!MISSION_PLANNING)
@@ -583,8 +604,8 @@ namespace student
       //convert the position of a point in the grid reference system
       int victim1x = toGraphCoord(victim_centers[0].x);
       int victim1y = toGraphCoord(victim_centers[0].y);
-      int victim2x;
-      int victim2y;
+      int victim2x = toGraphCoord(victim_centers[0].x);
+      int victim2y = toGraphCoord(victim_centers[0].y);
       int robotX = toGraphCoord(x);
       int robotY = toGraphCoord(y);
 
@@ -704,7 +725,7 @@ namespace student
     }
     else
     {
-      MissionPlanning mp(0.5, x, y, rescaled_ob_list, victim_list, gate);
+      MissionPlanning mp(5, x, y, rescaled_ob_list, victim_list, gate);
       vector<Pose> finalPath = mp.buildDecisionPath(graph, nVert, nOriz, sideLength);
 
       ///////////////////////////////////////////////////////////////////////////////

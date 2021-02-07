@@ -15,7 +15,7 @@ void buildGridGraph(Graph::Graph &graph, const std::vector<Polygon> &obstacle_li
             Graph::node newNode;
             newNode.x = sideLength * j;
             newNode.y = sideLength * i;
-            if (isInside_Global(Point(newNode.x, newNode.y), obstacle_list))
+            if (obstacle_list.size() > 0 && isInside_Global(Point(newNode.x, newNode.y), obstacle_list))
             {
                 newNode.obstacle = true;
                 newNode.removed = true;
