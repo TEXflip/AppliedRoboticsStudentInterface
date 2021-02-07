@@ -5,6 +5,20 @@ Members: Michele Tessari, David Karbon
 
 # Documentation of student_inteface
 
+## Ovewview
+
+| Main Functions                                                                                                                                                                                                                                                                  | Descriptions                                                                                                        |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| `void`[`loadImage`]`(cv::Mat & img_out,const std::string & config_folder)`                                                                                                                                                                                                      | This function can be used to replace the simulator camera and test the developed pipeline on a set of custom image. |
+| `void`[`genericImageListener`]`(const cv::Mat & img_in,std::string topic,const std::string & config_folder)`                                                                                                                                                                    | Generic listener used from the image listener node.                                                                 |
+| `bool`[`extrinsicCalib`]`(const cv::Mat & img_in,std::vector< cv::Point3f > object_points,const cv::Mat & camera_matrix,cv::Mat & rvec,cv::Mat & tvec,const std::string & config_folder)`                                                                                       | Finds arena pose from 3D(object_points)-2D(image_in) point correspondences.                                         |
+| `void`[`imageUndistort`]`(const cv::Mat & img_in,cv::Mat & img_out,const cv::Mat & cam_matrix,const cv::Mat & dist_coeffs,const std::string & config_folder)`                                                                                                                   | Transforms an image to compensate for lens distortion.                                                              |
+| `void`[`findPlaneTransform`]`(const cv::Mat & cam_matrix,const cv::Mat & rvec,const cv::Mat & tvec,const std::vector< cv::Point3f > & object_points_plane,const std::vector< cv::Point2f > & dest_image_points_plane,cv::Mat & plane_transf,const std::string & config_folder)` | Calculates a perspective transform from four pairs of the corresponding points.                                     |
+| `void`[`unwarp`]`(const cv::Mat & img_in,cv::Mat & img_out,const cv::Mat & transf,const std::string & config_folder)`                                                                                                                                                           | Applies a perspective transformation to an image.                                                                   |
+| `bool`[`processMap`]`(const cv::Mat & img_in,const double scale,std::vector< Polygon > & obstacle_list,std::vector< std::pair< int, Polygon >> & victim_list,Polygon & gate,const std::string & config_folder)`                                                                 | Process the image to detect victims, obtacles and the gate                                                          |
+| `bool`[`findRobot`]`(const cv::Mat & img_in,const double scale,Polygon & triangle,double & x,double & y,double & theta,const std::string & config_folder)`                                                                                                                      | Process the image to detect the robot pose                                                                          |
+| `bool planPath(const Polygon& borders, const std::vector<Polygon>& obstacle_list, const std::vector<std::pair<int,Polygon>>& victim_list, const Polygon& gate, const float x, const float y, const float theta, Path& path, const std::string& config_folder)`                  | Plan the path according to chosen mission.                                                                          |
+
 ## Computer Vision
 
 ### genericImageListener
@@ -59,7 +73,7 @@ using "projectPoints()" function, findPlaneTransform() projects the 3D points to
 void unwarp(const cv::Mat &img_in, cv::Mat &img_out, const cv::Mat &transf, const std::string &config_folder)
 ```
 
-it apply the transformation to convert the 3D points in a 2D plane.
+it applys the transformation to convert the 3D points in a 2D plane.
 
 using "warpPerspective()" function it applies the transformation computed by "findPlaneTransform()" to unwrap the image and get a top-view visualization
 
@@ -109,12 +123,61 @@ find the position and rotation of the robot
 1. scale the found triangle contour
 1. compute the position and rotation vectors of the robot (center of gravity and rotation relative to the x axis)
 
+---
+
+```c++
+bool planPath(const Polygon& borders, const std::vector<Polygon>& obstacle_list,  const std::vector<std::pair<int,Polygon>>& victim_list,  const Polygon& gate, const float x, const float y, const float theta,  Path& path, const std::string& config_folder);
+```
+
+Plans the path according to chosen mission.
+
+##### Parameters
+
+- `borders [in]` border of the arena [m]
+- `obstacle_list [in]` list of obstacle polygon [m]
+- `victim_list [in]` list of pair victim_id and polygon [m]
+- `gate [in]` polygon representing the gate [m]
+- `x [in]` x position of the robot in the arena reference system
+- `y [in]` y position of the robot in the arena reference system
+- `theta [in]` yaw of the robot in the arena reference system
+- `path [out]` output path of planned path
+- `config_folder [in]` A custom string from config file.
+
+##### Returns
+
+- `bool` true if path is computed correctly, false otherwise
+
+##### Description
+
+To selsect the desired Mission change the bool in line 28 in student_interface.cpp
+
+- bool MISSION_PLANNING = false; for Mission 1
+- bool MISSION_PLANNING = true; for Mission 2
+
+**MISSION 1:**
+Victim are chosen in in oreder if their number. The robot drives over all victims in order from lowest number to the heighest
+<img src="./imgs/Mission_1_simulator.jpeg" width="230">
+
+**MISSION 2:**
+
+1. a table with the corresponding distances is created (calculated with smoothed path) [simetric]
+   <img src="./imgs/M2Table.jpeg" width="230">
+
+2. From this table a tree is created which holds each possible combination. The cost and the reward is summed to obtain the best desiction. When we arrive at a gate node, the result is saved.
+   <img src="./imgs/M2Tree.jpeg" width="230">
+
+3. the resulting output vector contains the path with the heighest score = lowest time
+   <img src="./imgs/Mission_2_simulator.jpeg" width="230">
+
+## for more detail see paragraph missionPlannnig.ccp
+
 ## Path Planning
 
 ### gridBasedPlanning
 
 ```c++
-void buildGridGraph(Graph::Graph &graph, const std::vector<Polygon> &obstacle_list,const Polygon& gate, float margin, int nVert, int nOriz, float sideLength);
+void buildGridGraph(Graph::Graph &graph, const std::vector<Polygon> &obstacle_list,const Polygon& gate,
+ float margin, int nVert, int nOriz, float sideLength);
 ```
 
 ##### Parameters
@@ -167,6 +230,10 @@ vector<int> Astar::Solve_AStar(Graph::Graph &graph, int nodeStart, int nodeEnd)
    4. repeat until we reach the start
 5. Reverse the previous vector to have the nodes in correct order.
 
+##### Return
+
+- vector<int> Vector of the nodes where the path passes trough
+
 ---
 
 ### Path smoothing
@@ -203,6 +270,13 @@ void Astar::smoothPath(Graph::Graph &graph, vector<int> &path,
       <img src="./imgs/Mission_2_simulator.jpeg" width="230">
 <p!>
 
+1. raw Astar path with grid real arena
+2. smoothed path real arena
+3. dubins curve of Mission 1 real arena
+4. dubins curve of Mission 2 real arena
+5. dubins curve of Mission 1 simulator
+6. dubins curve of Mission 2 simulator
+
 ---
 
 ### Collision detection
@@ -227,6 +301,10 @@ bool intersect(const Point &a0, const Point &a1, const Point &b0, const Point &b
 2. Calculates the determinandt of the vectors a0->a1 and b0->b1
 3. calculates the parameters r and s which have to be inside the range of [0,1] if the segments intersect
 
+#### Return
+
+`bool` if a collision was detected -> true
+
 ---
 
 ```c++
@@ -242,6 +320,10 @@ bool intersectPolygon(const Point &a0, const Point &a1, const Polygon &p)
 ##### Description
 
 1. checks the intersection of a segment with all the segments of a Polygon
+
+#### Return
+
+`bool` if a collision was detected -> true
 
 ---
 
@@ -259,5 +341,197 @@ bool intersect_Global(const Point &a0, const Point &a1, const std::vector<Polygo
 
 1. checks the intersection of a segment with all the obstacles in the arena
 
+#### Return
+
+`bool` if a collision was detected -> true
+
 ---
 
+### Dubins curve
+
+```c++
+DubinsCurve DubinsCurvesHandler::findShortestPath(double x0, double y0, double th0,
+double xf, double yf, double thf)
+```
+
+##### Parameters
+
+- `double x0` x coordinate of initial position
+- `double y0` y coordinate of initial position
+- `double th0` orientation of the robot in the initial position
+- `double x1` x coordinate of initial position
+- `double y1` y coordinate of initial position
+- `double th1` orientation of the robot in the final position
+
+##### Description
+
+- Solve the Dubins problem for the given input parameters.
+- The function tries all the possible primitives to find the optimal solution
+
+---
+
+#### Return
+
+- Return the type and the parameters of the optimal curve
+
+````c++
+ ScaledParams scaleToStandard(double x0, double y0, double th0, double xf, double yf, double thf);```
+````
+
+##### Parameters
+
+- `double x0` x coordinate of initial position
+- `double y0` y coordinate of initial position
+- `double th0` orientation of the robot in the initial position
+- `double x1` x coordinate of initial position
+- `double y1` y coordinate of initial position
+- `double th1` orientation of the robot in the final position
+
+##### Description
+
+- Scale the input problem to standard form
+- finds the transform parameters
+- calculate phi, the normalised angel
+- scale and normalize angles and curvature
+
+##### Return
+
+- `ScaledParams`
+
+````c++
+ ScaledParams scaleFromStandard(double x0, double y0, double th0, double xf, double yf, double thf);```
+````
+
+##### Parameters
+
+- `double x0` x coordinate of initial position
+- `double y0` y coordinate of initial position
+- `double th0` orientation of the robot in the initial position
+- `double x1` x coordinate of initial position
+- `double y1` y coordinate of initial position
+- `double th1` orientation of the robot in the final position
+
+##### Description
+
+- Scale the solution to the standard problem back to the original problem
+
+##### Return
+
+---
+
+```c++
+ ScaledCurveSegments LSL(double sc_th0, double sc_thf, double sc_k_max, double sc_k_max_inv);
+```
+
+Same for RSR, LSR,RSL, RLR,LRL
+
+##### Parameters
+
+- `double sc_th0`
+- `double sc_thf`
+- `double sc_k_max`
+- `double sc_k_max_inv`
+
+##### Description
+
+- calculate the path
+
+##### Return
+
+`ScaledCurveSegments`
+
+```c++
+DubinsLine computeDubinsLine(double L, double x0, double y0, double th0, double k);
+```
+
+##### Parameters
+
+- `double L`
+- `double x0`
+- `double y0`
+- `double th0`
+- `double k`
+
+##### Description
+
+1.
+
+##### Return
+
+`DubinsLine`
+
+```c++
+DubinsArc computeDubinsArc(double x0, double y0, double th0, double k, double L);
+```
+
+##### Parameters
+
+- `double L`
+- `double x0`
+- `double y0`
+- `double th0`
+- `double k`
+
+##### Description
+
+- Create a structure representing an arc of a Dubins curve (straight or circular)
+
+##### Return
+
+`DubinsLine`
+
+```c++
+DubinsCurve computeDubinsCurve(double x0, double y0, double th0, double s1, double s2,
+double s3, double k1, double k2, double k3);
+```
+
+##### Parameters
+
+- `double x0`
+- `double y0`
+- `double th0`
+- `double s1`
+- `double s2`
+- `double s3`
+- `double k1`
+- `double k2`
+- `double k3`
+
+##### Description
+
+- Create a structure representing a Dubins curve (composed by three arcs)
+
+##### Return
+
+`DubinsCurve`
+
+    ```c++
+    bool check(double s1, double s2, double s3, double k0,
+    double k1, double k2, double th0, double thf);
+
+```
+
+##### Parameters
+
+
+- `double s1`
+- `double s2`
+- `double s3`
+- `double k0`
+- `double k1`
+- `double k2`
+- `double th0`
+- `double thf`
+
+
+
+##### Description
+
+- Check validity of a solution by evaluating explicitly the 3 equations
+ defining a Dubins problem (in standard form)
+
+##### Return
+ ` bool`
+```
+
+##
