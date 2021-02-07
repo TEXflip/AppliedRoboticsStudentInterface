@@ -186,7 +186,7 @@ void buildGridGraph(Graph::Graph &graph, const std::vector<Polygon> &obstacle_li
 - `const std::vector<Polygon> &obstacle_list` the obstacle list
 - `const Polygon& gate` The gate
 - `float margin` the safety distance from the border
-- `float sideLength` length of the map #
+- `float sideLength` length of the map 
 - `int nVert` number of squares in vertical direction
 - `int nOriz` number of squares in Orizontal direction
 
@@ -279,7 +279,7 @@ void Astar::smoothPath(Graph::Graph &graph, vector<int> &path,
 
 ---
 
-### Collision detection
+### collision_detection.cpp
 
 ```c++
 bool intersect(const Point &a0, const Point &a1, const Point &b0, const Point &b1)
@@ -347,7 +347,7 @@ bool intersect_Global(const Point &a0, const Point &a1, const std::vector<Polygo
 
 ---
 
-### Dubins curve
+### DubinsCurves.cpp
 
 ```c++
 DubinsCurve DubinsCurvesHandler::findShortestPath(double x0, double y0, double th0,
@@ -508,11 +508,9 @@ double s3, double k1, double k2, double k3);
     ```c++
     bool check(double s1, double s2, double s3, double k0,
     double k1, double k2, double th0, double thf);
-
-```
+    ```
 
 ##### Parameters
-
 
 - `double s1`
 - `double s2`
@@ -523,15 +521,114 @@ double s3, double k1, double k2, double k3);
 - `double th0`
 - `double thf`
 
-
-
 ##### Description
 
 - Check validity of a solution by evaluating explicitly the 3 equations
- defining a Dubins problem (in standard form)
+  defining a Dubins problem (in standard form)
 
 ##### Return
- ` bool`
+
+`bool`
+
+### MissionPLanning.cpp
+
+    ```c++
+       explicit MissionPlanning(float bonusTime, const float x, const float y, vector<Polygon> &obstacle_list,
+       const vector<pair<int, Polygon>> &victim_list, const Polygon &gate);
+    ```
+
+##### Parameters
+
+- `float bonusTime` bonus time in second for passing over a victim
+- `float x` Robot x coordinate
+- `float y` Robot x coordinate
+- `std::vector<Polygon> &obstacle_list` the dilated obstacle vector
+- `const vector<pair<int, Polygon>> &victim_list` victim vector
+- `Polygon &gate` gate
+
+-
+
+##### Description
+
+- constructer of the class MissionPlanning
+
+  ```c++
+  vector<Pose> buildDecisionPath(Graph::Graph &graph, int nVert, int nOriz, float sideLength);
+  ```
+
+##### Parameters
+
+- `Graph::Graph &graph` The graph structure defined in graph.h including the nodes
+- `float sideLength` length of the map
+- `int nVert` number of squares in vertical direction
+- `int nOriz` number of squares in Orizontal direction
+
+##### Description
+
+- creates the table including the distance between the possible targets using astar and path smoothing
+- calls the function pickDesition in a recursive way in order to create a desition tree.
+
+```c++
+  pair<float, vector<int>> MissionPlanning::pickDecision(float \*\*costs, vector<decision> &decisions, set<int> remaining, float currCost, int curr)
 ```
 
-##
+##### Parameters
+
+- `float **costs` The graph structure defined in graph.h including the nodes
+- `vector<decision> &decisions` length of the map
+- `set<int> remaining` number of squares in vertical direction
+- `float currCost` number of squares in Orizontal direction
+- `int curr` number of squares in Orizontal direction
+
+##### Description
+
+- creates a desition tree with all possible combination of paths
+
+##### Return
+
+- array of int containng the nodes for the path with the heighest score
+
+```c++
+void initDecisions(vector<decision> &decisions);
+```
+
+##### Parameters
+
+- `vector<decision> &decisions`
+
+##### Description
+
+-??????????
+
+```c++
+float MissionPlanning::pathLength(Graph::Graph &graph, vector<int> path)
+```
+
+##### Parameters
+
+- `Graph::Graph &graph` The graph structure defined in graph.h including the nodes
+- `vector<int> path` the path to check
+
+##### Description
+
+- calculates the length of a smoothed path with A\* algorithm
+
+##### Return
+
+`float` length of the path
+
+```c++
+Point MissionPlanning::avgPoint(const Polygon &polygon)
+```
+
+##### Parameters
+
+- `const Polygon &polygon` Polygon
+
+##### Description
+
+- calculates the center point of a polygon
+
+##### Return
+
+`Point` center point of a polygon
