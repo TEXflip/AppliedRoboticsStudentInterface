@@ -27,6 +27,16 @@ Members: Michele Tessari, David Karbon
 void genericImageListener(const cv::Mat &img_in, std::string topic, const std::string &config_folder)
 ```
 
+##### Parameters
+
+- `image_in [in]` Input image to store
+
+- `topic [in]` Topic from where the image is taken
+
+- `config_folder [in]` A custom string from config file.
+
+##### Description
+
 function to save the images from the camera to be used in a second moment to calculate the distortion parameters of the camera or for other purpose.
 
 The function creates the folder (from the configuration default path) where to save the images and, if it already exists, it continues to try with another name until it will find one. Then it shows the image of the current visual of the camera and (if 's' is pressed) it saves the image in the folder. Otherwise, if 'esc' is pressed, the program will close.
@@ -38,9 +48,29 @@ bool extrinsicCalib(const cv::Mat &img_in, std::vector<cv::Point3f> object_point
                     const cv::Mat &camera_matrix, cv::Mat &rvec, cv::Mat &tvec, const std::string &config_folder)
 ```
 
-estimate the rotation and translation vectors of the camera starting from the undistorted image of the camera and the points of the arena.
+##### Parameters
+
+- `image_in [in]` Input image to store
+
+- `object_points [in]` 3D position of the 4 corners of the arena, following a counterclockwise order starting from the one near the red line.
+
+- `camera_matrix [in]` 3x3 floating-point camera matrix
+
+- `rvec [out]` Rotation vectors estimated linking the camera and the arena
+
+- `tvec [out]` Translation vectors estimated for the arena
+
+- `config_folder [in]` A custom string from config file.
+
+##### Description
 
 First the function check if it already exists the file with the measurement of the points of the arena precedently setted. If the file doesn't exists, it will appear a image of the camera where will be asked to the user to click in the four corner of the arena in counterclockwise order. After, using the function "solvePnP" are computed the rotation and translation vectors of the camera.
+
+##### Returns
+
+`[bool]` false if there are some errors, true otherwise
+
+---
 
 ### imageUndistort
 
@@ -49,10 +79,34 @@ void imageUndistort(const cv::Mat &img_in, cv::Mat &img_out, const cv::Mat &cam_
                     const cv::Mat &dist_coeffs, const std::string &config_folder)
 ```
 
+##### Parameters
+
+- `image_in [in]` distorted image
+
+- `image_out [out]` undistorted image
+
+- `camera_matrix [in]` 3x3 floating-point camera matrix
+
+- `dist_coeffs [out]` distortion coefficients [k1,k2,p1,p2,k3]
+
+- `config_folder [in]` A custom string from config file.
+
+##### Description
+
 It removes the distortion of the lens of the camera from the image in input from the parameters computed during the camera calibration phase.
 
 Since it's sufficient to calculate the calibration matrix to transform the image only one time, The function, when it's called the first time, it uses initUndistortRectifyMap() to compute the two maps of the two axis X and Y of the calibration matrix.
 Finally, everyyime the function is called, it computes the undistorted image with the function "remap()" using the 2 maps precedently calculated.
+
+##### Results
+
+1. Distorted image
+   <img src="imgs/imageUndistort_1.png" width="250">
+
+2. Undistorted image
+   <img src="imgs/imageUndistort_2.png" width="250">
+
+---
 
 ### findPlaneTransform
 
@@ -63,6 +117,24 @@ void findPlaneTransform(const cv::Mat &cam_matrix, const cv::Mat &rvec, const cv
                         const std::string &config_folder)
 ```
 
+##### Parameters
+
+- `camera_matrix [in]` 3x3 floating-point camera matrix
+
+- `rvec [in]` Rotation vectors estimated linking the camera and the arena
+
+- `tvec [in]` Translation vectors estimated for the arena
+
+- `object_points_plane [in]` 3D position of the 4 corners of the arena, following a counterclockwise order starting from the one near the red line.
+
+- `dest_image_points_plane [in]` destinatino point in px of the object_points_plane
+
+- `plane_transf [out]` plane perspective trasform (3x3 matrix)
+
+- `config_folder [in]` A custom string from config file.
+
+##### Description
+
 It computes the transformation matrix to unwrap the image from the points taken before.
 
 using "projectPoints()" function, findPlaneTransform() projects the 3D points to a 2D image plane and then with "getPerspectiveTransform()" it computes the 3x3 perspective transformation of the corrisponding points.
@@ -72,6 +144,18 @@ using "projectPoints()" function, findPlaneTransform() projects the 3D points to
 ```c++
 void unwarp(const cv::Mat &img_in, cv::Mat &img_out, const cv::Mat &transf, const std::string &config_folder)
 ```
+
+##### Parameters
+
+- `image_in [in]` input image
+
+- `image_out [out]` unwarped image
+
+- `transf [in]` plane perspective trasform (3x3 matrix)
+
+- `config_folder [in]` A custom string from config file.
+
+##### Description
 
 it applys the transformation to convert the 3D points in a 2D plane.
 
@@ -84,6 +168,22 @@ bool processMap(const cv::Mat &img_in, const double scale, std::vector<Polygon> 
                 std::vector<std::pair<int, Polygon>> &victim_list, Polygon &gate, const std::string &config_folder)
 ```
 
+##### Parameters
+
+- `image_in [in]` input image
+
+- `scale [in]` scale parameter to bring a pixel in meters
+
+- `obstacle_list [out]` list of obstacle polygon (vertex in meters)
+
+- `victim_list [out]` list of pair victim_id and polygon (vertex in meters)
+
+- `gate [out]` polygon representing the gate (vertex in meters)
+
+- `config_folder [in]` A custom string from config file.
+
+##### Description
+
 Process the image to detect victims, obstacles and the gate.
 
 code flow: obstacle list
@@ -92,11 +192,12 @@ code flow: obstacle list
 1. use a colorfilter to sort the objects in different masks (red for obstacles and green for victims and the gate)
 1. apply in the red mask the dilate and erode morphological transformations
 1. extract contour of the obstacles with findContours(), approximate them with approxPolyDP() and finally scale them
+   1.controll the area of the obstacles. If it is too small, delet it
 1. Assign the found obstacles in the output list
 1. apply in the green mask the dilate and erode morphological transformations
-1. extract contour of the victims and the gate with findContours(), approximate them with approxPolyDP(), scale them and finally extract the gate by controlling its contour size(=4)
+1. extract contour of the victims and the gate with findContours(), approximate them with approxPolyDP(), scale them and finally extract the gate by controlling its contour size. The smallest contour is the gate
 1. victims elaboration process:
-   - detect round contours (with size > 4)
+   - consider the obstacles with a min area of 500 and contour size greater than the smallest one
    - eliminate the green surrounding using as a mask the not operation of the green mask
    - load the template numbers and flip them to match the camera perspective transformation applied in unwarp()
    - run the number detection for every boundingBox:
@@ -107,21 +208,43 @@ code flow: obstacle list
      - save the pair of matched template number and scaled victim in a map in order to sort them
      - copy the ordered map into the output vector
 
+##### Return
+
+- `bool` True if one gate is found, otherwise return false
+
+---
+
 ### findRobot
 
 ```c++
 bool findRobot(const cv::Mat &img_in, const double scale, Polygon &triangle, double &x, double &y, double &theta, const std::string &config_folder)
 ```
 
+##### Parameters
+
+- `image_in [in]` input image
+
+- `scale [in]` 1px/scale = X meters
+
+- `x [out]` x position of the robot in the arena reference system
+
+- `y [out]` y position of the robot in the arena reference system
+
+- `theta [out]` yaw of the robot in the arena reference system
+
+- `config_folder [in]` A custom string from config file.
+
+##### Description
+
 find the position and rotation of the robot
 
-0. convert input image in hsv colorspace
-1. filter the blue areas out of the hsv image
-1. find the contour of the robot triangle using findContours()
-1. approximate the contours
-1. look for the triangle contour by taking off all the areas which are too small ot too big and the contours with too edges
-1. scale the found triangle contour
-1. compute the position and rotation vectors of the robot (center of gravity and rotation relative to the x axis)
+1. convert input image in hsv colorspace
+2. filter the blue areas out of the hsv image
+3. find the contour of the robot triangle using findContours()
+4. approximate the contours
+5. look for the triangle contour by taking off all the areas which are too small ot too big and the contours with too edges
+6. scale the found triangle contour
+7. compute the position and rotation vectors of the robot (center of gravity and rotation relative to the x axis)
 
 ---
 
@@ -151,7 +274,7 @@ To selsect the desired Mission change the bool in line 28 in student_interface.c
 - bool MISSION_PLANNING = true; for Mission 2
 
 **MISSION 1:**
-Victim are chosen in in oreder if their number. The robot drives over all victims in order from lowest number to the heighest
+Victim are chosen in in oreder of their number. The robot drives over all victims in order from lowest number to the heighest
 <img src="./imgs/Mission_1_simulator.jpeg" width="230">
 
 **MISSION 2:**
@@ -160,7 +283,7 @@ Victim are chosen in in oreder if their number. The robot drives over all victim
    <img src="./imgs/M2Table.jpeg" width="230">
 
 2. From this table a tree is created which holds each possible combination. The cost and the reward is summed to obtain the best desiction. When we arrive at a gate node, the result is saved.
-   <img src="./imgs/M2Tree.jpeg" width="230">
+   <img src="./imgs/M2Tree.jpeg" width="">
 
 3. the resulting output vector contains the path with the heighest score = lowest time
    <img src="./imgs/Mission_2_simulator.jpeg" width="230">
@@ -392,9 +515,9 @@ double xf, double yf, double thf)
 
 - Return the type and the parameters of the optimal curve
 
-````c++
- ScaledParams scaleToStandard(double x0, double y0, double th0, double xf, double yf, double thf);```
-````
+```c++
+ ScaledParams scaleToStandard(double x0, double y0, double th0, double xf, double yf, double thf);
+```
 
 ##### Parameters
 
@@ -407,18 +530,19 @@ double xf, double yf, double thf)
 
 ##### Description
 
-- Scale the input problem to standard form
-- finds the transform parameters
+- finds the transform parameter lambda
 - calculate phi, the normalised angel
-- scale and normalize angles and curvature
+- scales and normalizes angles and curvature
 
 ##### Return
 
-- `ScaledParams`
+- `ScaledParams` struct with theta final
 
-````c++
- ScaledParams scaleFromStandard(double x0, double y0, double th0, double xf, double yf, double thf);```
-````
+---
+
+```c++
+ ScaledParams scaleFromStandard(double x0, double y0, double th0, double xf, double yf, double thf);
+```
 
 ##### Parameters
 
@@ -435,6 +559,8 @@ double xf, double yf, double thf)
 
 ##### Return
 
+- `ScaledParams` returns the length of the single segments in real length
+
 ---
 
 ```c++
@@ -445,18 +571,20 @@ Same for RSR, LSR,RSL, RLR,LRL
 
 ##### Parameters
 
-- `double sc_th0`
-- `double sc_thf`
-- `double sc_k_max`
-- `double sc_k_max_inv`
+- `double sc_th0` scaled theta 0
+- `double sc_thf`scaled theta final
+- `double sc_k_max`scaled max curvature
+- `double sc_k_max_inv`scaled max radius
 
 ##### Description
 
-- calculate the path
+- calculate the curve LSL or RSL or...
 
 ##### Return
 
-`ScaledCurveSegments`
+`ScaledCurveSegments` length of the 3 curves and a bool to check the correctness
+
+---
 
 ```c++
 DubinsLine computeDubinsLine(double L, double x0, double y0, double th0, double k);
@@ -464,19 +592,19 @@ DubinsLine computeDubinsLine(double L, double x0, double y0, double th0, double 
 
 ##### Parameters
 
-- `double L`
-- `double x0`
-- `double y0`
-- `double th0`
-- `double k`
+- `double L` desired Length of my line
+- `double x0` initial point x coordinate
+- `double y0`initial point y coordinat
+- `double th0` intital orientation
+- `double k` max curvature??
 
 ##### Description
 
-1.
+discretizes a piece of the curvature into a segment
 
-##### Return
+`DubinsLine` returns the length the position, theta and the curvature of a single segment of the curvature
 
-`DubinsLine`
+---
 
 ```c++
 DubinsArc computeDubinsArc(double x0, double y0, double th0, double k, double L);
@@ -484,11 +612,11 @@ DubinsArc computeDubinsArc(double x0, double y0, double th0, double k, double L)
 
 ##### Parameters
 
-- `double L`
-- `double x0`
-- `double y0`
-- `double th0`
-- `double k`
+- `double L` desired Length of my line
+- `double x0`initial point x coordinate
+- `double y0`initial point y coordinat
+- `double th0` intital orientation
+- `double k` max curvature??
 
 ##### Description
 
@@ -496,7 +624,9 @@ DubinsArc computeDubinsArc(double x0, double y0, double th0, double k, double L)
 
 ##### Return
 
-`DubinsLine`
+`DubinsArc` intitial and final points, Length curvature and thetas of an arc
+
+---
 
 ```c++
 DubinsCurve computeDubinsCurve(double x0, double y0, double th0, double s1, double s2,
@@ -505,15 +635,15 @@ double s3, double k1, double k2, double k3);
 
 ##### Parameters
 
-- `double x0`
-- `double y0`
-- `double th0`
-- `double s1`
-- `double s2`
-- `double s3`
-- `double k1`
-- `double k2`
-- `double k3`
+- `double x0`initial point x coordinate
+- `double y0`initial point y coordinat
+- `double th0` intital orientation
+- `double s1` length of the first curve segment
+- `double s2`length of the second curve segment
+- `double s3`length of thee third curve segment
+- `double k1` curvature of the fist segment
+- `double k2`curvature of the second segment
+- `double k3`curvature of the third segment
 
 ##### Description
 
@@ -521,23 +651,25 @@ double s3, double k1, double k2, double k3);
 
 ##### Return
 
-`DubinsCurve`
+`DubinsCurve` array of three `DubinsArc`, the length of the curve and the type of the curve
 
-    ```c++
-    bool check(double s1, double s2, double s3, double k0,
-    double k1, double k2, double th0, double thf);
-    ```
+---
+
+```c++
+bool check(double s1, double s2, double s3, double k0,
+ double k1, double k2, double th0, double thf);
+```
 
 ##### Parameters
 
-- `double s1`
-- `double s2`
-- `double s3`
-- `double k0`
-- `double k1`
-- `double k2`
-- `double th0`
-- `double thf`
+- `double s1` length of the first curve segment
+- `double s2`length of the second curve segment
+- `double s3`length of thee third curve segment
+- `double k0` curvature of the fist segment
+- `double k1`curvature of the second segment
+- `double k2`curvature of the third segment
+- `double th0` initial orientation
+- `double thf` final orientation
 
 ##### Description
 
@@ -546,14 +678,16 @@ double s3, double k1, double k2, double k3);
 
 ##### Return
 
-`bool`
+`bool` returns true if the conditions of a dubins are respected
+
+---
 
 ### MissionPLanning.cpp
 
-    ```c++
-       explicit MissionPlanning(float bonusTime, const float x, const float y, vector<Polygon> &obstacle_list,
-       const vector<pair<int, Polygon>> &victim_list, const Polygon &gate);
-    ```
+```c++
+explicit MissionPlanning(float bonusTime, const float x, const float y, vector<Polygon> &obstacle_list,
+const vector<pair<int, Polygon>> &victim_list, const Polygon &gate);
+```
 
 ##### Parameters
 
@@ -563,8 +697,6 @@ double s3, double k1, double k2, double k3);
 - `std::vector<Polygon> &obstacle_list` the dilated obstacle vector
 - `const vector<pair<int, Polygon>> &victim_list` victim vector
 - `Polygon &gate` gate
-
--
 
 ##### Description
 
@@ -586,25 +718,29 @@ double s3, double k1, double k2, double k3);
 - creates the table including the distance between the possible targets using astar and path smoothing
 - calls the function pickDesition in a recursive way in order to create a desition tree.
 
+---
+
 ```c++
   pair<float, vector<int>> MissionPlanning::pickDecision(float \*\*costs, vector<decision> &decisions, set<int> remaining, float currCost, int curr)
 ```
 
 ##### Parameters
 
-- `float **costs` The graph structure defined in graph.h including the nodes
-- `vector<decision> &decisions` length of the map
-- `set<int> remaining` number of squares in vertical direction
-- `float currCost` number of squares in Orizontal direction
-- `int curr` number of squares in Orizontal direction
+- `float **costs` matrix of costs wrt to the single starts and goals
+- `vector<decision> &decisions` vector of the possible paths
+- `set<int> remaining` for taking trak of the desition check [remaining possibilities]
+- `float currCost` the cost up to the current desition
+- `int curr` current desition
 
 ##### Description
 
-- creates a desition tree with all possible combination of paths
+- tries all the possible routes and returns the one with the smallest cost
 
 ##### Return
 
-- array of int containng the nodes for the path with the heighest score
+- `pair<float, vector<int>>` the cost and the path of the best route
+
+---
 
 ```c++
 void initDecisions(vector<decision> &decisions);
@@ -612,11 +748,14 @@ void initDecisions(vector<decision> &decisions);
 
 ##### Parameters
 
-- `vector<decision> &decisions`
+- `vector<decision> &decisions` contains the choises of the route, initial and final points of the victims
 
 ##### Description
 
--??????????
+- creates an array of all the possible desitions which i can perform
+- each desition has a reward tho coordinates and the gate distance ??
+
+---
 
 ```c++
 float MissionPlanning::pathLength(Graph::Graph &graph, vector<int> path)
@@ -635,6 +774,8 @@ float MissionPlanning::pathLength(Graph::Graph &graph, vector<int> path)
 
 `float` length of the path
 
+---
+
 ```c++
 Point MissionPlanning::avgPoint(const Polygon &polygon)
 ```
@@ -650,3 +791,5 @@ Point MissionPlanning::avgPoint(const Polygon &polygon)
 ##### Return
 
 `Point` center point of a polygon
+
+---
