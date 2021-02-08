@@ -213,12 +213,11 @@ code flow: obstacle list
      - copy the ordered map into the output vector
 
 - Green mask matrix
-  <img src="imgs/Green_mask.png" width="250">
+- <img src="imgs/Green_mask.png" width="250">
 - Shape detection for Green and Red bodies
-  <img src="imgs/Shape_detection.png" width="250">
+- <img src="imgs/Shape_detection.png" width="250">
 - Template matching example
-- <img src="imgs/Template.png" width="250">
--
+- <img src="imgs/Template.png" width="50">
 
 ##### Return
 
