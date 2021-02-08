@@ -5,7 +5,7 @@ Members: Michele Tessari, David Karbon
 
 # Documentation of student_inteface
 
-## Ovewview
+## Overview
 
 | Main Functions                                                                                                                                                                                                                                                                  | Descriptions                                                                                                        |
 | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
@@ -194,9 +194,13 @@ code flow: obstacle list
 1. extract contour of the obstacles with findContours(), approximate them with approxPolyDP() and finally scale them
    1.controll the area of the obstacles. If it is too small, delet it
 1. Assign the found obstacles in the output list
-1. apply in the green mask the dilate and erode morphological transformations
-1. extract contour of the victims and the gate with findContours(), approximate them with approxPolyDP(), scale them and finally extract the gate by controlling its contour size. The smallest contour is the gate
-1. victims elaboration process:
+
+- Red mask matrix, on which the shape detection is done
+  <img src="imgs/red_mask.png" width="250">
+
+2. apply in the green mask the dilate and erode morphological transformations
+3. extract contour of the victims and the gate with findContours(), approximate them with approxPolyDP(), scale them and finally extract the gate by controlling its contour size. The smallest contour is the gate
+4. victims elaboration process:
    - consider the obstacles with a min area of 500 and contour size greater than the smallest one
    - eliminate the green surrounding using as a mask the not operation of the green mask
    - load the template numbers and flip them to match the camera perspective transformation applied in unwarp()
@@ -207,6 +211,14 @@ code flow: obstacle list
      - select the tamplate according too the heighest matching score
      - save the pair of matched template number and scaled victim in a map in order to sort them
      - copy the ordered map into the output vector
+
+- Green mask matrix
+  <img src="imgs/Green_mask.png" width="250">
+- Shape detection for Green and Red bodies
+  <img src="imgs/Shape_detection.png" width="250">
+- Template matching example
+- <img src="imgs/Template.png" width="250">
+-
 
 ##### Return
 
@@ -246,6 +258,9 @@ find the position and rotation of the robot
 6. scale the found triangle contour
 7. compute the position and rotation vectors of the robot (center of gravity and rotation relative to the x axis)
 
+- blue mask
+- <img src="imgs/BLUE_maksk.png" width="250">
+
 ---
 
 ### plan Path
@@ -268,24 +283,24 @@ bool planPath(const Polygon& borders, const std::vector<Polygon>& obstacle_list,
 
 ##### Description
 
-To selsect the desired Mission change the bool in line 28 in student_interface.cpp
+To select the desired Mission change the bool in line 28 in student_interface.cpp
 
 - bool MISSION_PLANNING = false; for Mission 1
 - bool MISSION_PLANNING = true; for Mission 2
 
 **MISSION 1:**
-Victim are chosen in in oreder of their number. The robot drives over all victims in order from lowest number to the heighest
+Victim are chosen in order of their number. The robot drives over all victims and follows the path from the lowest number to the highest
 <img src="./imgs/Mission_1_simulator.jpeg" width="230">
 
 **MISSION 2:**
 
-1. a table with the corresponding distances is created (calculated with smoothed path) [simetric]
+1. a table with the corresponding distances from each waypoint to every other is created (calculated with smoothed path)
    <img src="./imgs/M2Table.jpeg" width="230">
 
-2. From this table a tree is created which holds each possible combination. The cost and the reward is summed to obtain the best desiction. When we arrive at a gate node, the result is saved.
+2. From this table a tree is created which holds each possible combination. The cost and the reward is summed to obtain the best decision. When we arrive at a gate node, the result is saved.
    <img src="./imgs/M2Tree.jpeg" width="">
 
-3. the resulting output vector contains the path with the heighest score = lowest time
+3. the resulting output vector contains the path with the highest score = lowest time
    <img src="./imgs/Mission_2_simulator.jpeg" width="230">
 
 ##### Returns
@@ -311,13 +326,13 @@ void buildGridGraph(Graph::Graph &graph, const std::vector<Polygon> &obstacle_li
 - `float margin` the safety distance from the border
 - `float sideLength` length of the map
 - `int nVert` number of squares in vertical direction
-- `int nOriz` number of squares in Orizontal direction
+- `int nOriz` number of squares in horizontal direction
 
 ##### Description
 
-1. calculates the neccessary number of nodes
-2. checks if the node is inside an obstacle ( dilated bz the robo radius)
-3. connects the node to its neigbours in linear and diagonal direction as long they are not inside an
+1. calculates the necessary number of nodes
+2. checks if the node is inside an obstacle ( dilated by the robots radius)
+3. connects the node to its neighbours in linear and diagonal direction as long they are not inside an
 
 ---
 
@@ -343,13 +358,13 @@ vector<int> Astar::Solve_AStar(Graph::Graph &graph, int nodeStart, int nodeEnd)
 2. set up of the starting condition for the node start
 3. Loop for all the nodes in the graph until we reach the goal
    1. calculate the distance to goal for each neighbour
-   2. calculate the ditance to start for each neigbour and set the current node as parent for the neighbour if it is the shortest
+   2. calculate the distance to start for each neighbour and set the current node as parent for the neighbour if it is the shortest
    3. take neighbour node with the shortest global distance to goal in with which we continue this loop
    4. set the tag visited to the visited node, to not test it again
 4. Once reached the goal we create a vector where we:
    1. enter the goal node
    2. go to its parent node
-   3. enter it and go again to its parent nonde
+   3. enter it and go again to its parent node
    4. repeat until we reach the start
 5. Reverse the previous vector to have the nodes in correct order.
 
@@ -374,7 +389,7 @@ void Astar::smoothPath(Graph::Graph &graph, vector<int> &path,
 ##### Description
 
 1. Takes the start point and the end point of the A\* path
-2. connects them with a streight line
+2. connects them with a straight line
 3. checks for collision with an obstacle
 4. if an collision is detected take the mid point of the path and repeat the procedure until the smoothed path is collision free
 
@@ -600,7 +615,9 @@ DubinsLine computeDubinsLine(double L, double x0, double y0, double th0, double 
 
 ##### Description
 
-discretizes a piece of the curvature into a segment
+- discretizes a piece of the curvature into a segment
+
+##### Return
 
 `DubinsLine` returns the length the position, theta and the curvature of a single segment of the curvature
 
@@ -615,7 +632,7 @@ DubinsArc computeDubinsArc(double x0, double y0, double th0, double k, double L)
 - `double L` desired Length of my line
 - `double x0`initial point x coordinate
 - `double y0`initial point y coordinat
-- `double th0` intital orientation
+- `double th0` initial orientation
 - `double k` max curvature??
 
 ##### Description
@@ -640,8 +657,8 @@ double s3, double k1, double k2, double k3);
 - `double th0` intital orientation
 - `double s1` length of the first curve segment
 - `double s2`length of the second curve segment
-- `double s3`length of thee third curve segment
-- `double k1` curvature of the fist segment
+- `double s3`length of the third curve segment
+- `double k1` curvature of the first segment
 - `double k2`curvature of the second segment
 - `double k3`curvature of the third segment
 
@@ -711,12 +728,12 @@ const vector<pair<int, Polygon>> &victim_list, const Polygon &gate);
 - `Graph::Graph &graph` The graph structure defined in graph.h including the nodes
 - `float sideLength` length of the map
 - `int nVert` number of squares in vertical direction
-- `int nOriz` number of squares in Orizontal direction
+- `int nOriz` number of squares in horizontal direction
 
 ##### Description
 
-- creates the table including the distance between the possible targets using astar and path smoothing
-- calls the function pickDesition in a recursive way in order to create a desition tree.
+- creates the table including the distance between the possible targets using A\* and path smoothing
+- calls the function pickDesition in a recursive way in order to create a decision tree.
 
 ---
 
@@ -728,9 +745,9 @@ const vector<pair<int, Polygon>> &victim_list, const Polygon &gate);
 
 - `float **costs` matrix of costs wrt to the single starts and goals
 - `vector<decision> &decisions` vector of the possible paths
-- `set<int> remaining` for taking trak of the desition check [remaining possibilities]
-- `float currCost` the cost up to the current desition
-- `int curr` current desition
+- `set<int> remaining` for taking track of the decision check [remaining possibilities]
+- `float currCost` the cost up to the current decision
+- `int curr` current decision
 
 ##### Description
 
@@ -748,12 +765,12 @@ void initDecisions(vector<decision> &decisions);
 
 ##### Parameters
 
-- `vector<decision> &decisions` contains the choises of the route, initial and final points of the victims
+- `vector<decision> &decisions` contains the choices of the route, initial and final points of the victims
 
 ##### Description
 
 - creates an array of all the possible desitions which i can perform
-- each desition has a reward tho coordinates and the gate distance ??
+- each desition has a reward, coordinates and the gate distance ??
 
 ---
 
