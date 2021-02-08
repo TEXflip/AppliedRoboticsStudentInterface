@@ -290,18 +290,23 @@ To select the desired Mission change the bool in line 28 in student_interface.cp
 
 **MISSION 1:**
 Victim are chosen in order of their number. The robot drives over all victims and follows the path from the lowest number to the highest
-<img src="./imgs/Mission_1_simulator.jpeg" width="230">
+
+- Mission planning 1 output
+- <img src="./imgs/Mission_1_simulator.jpeg" width="230">
 
 **MISSION 2:**
 
 1. a table with the corresponding distances from each waypoint to every other is created (calculated with smoothed path)
-   <img src="./imgs/M2Table.jpeg" width="230">
+
+- <img src="./imgs/M2Table.jpeg" width="230">
 
 2. From this table a tree is created which holds each possible combination. The cost and the reward is summed to obtain the best decision. When we arrive at a gate node, the result is saved.
-   <img src="./imgs/M2Tree.jpeg" width="">
+
+- <img src="./imgs/M2Tree.jpeg" width="">
 
 3. the resulting output vector contains the path with the highest score = lowest time
-   <img src="./imgs/Mission_2_simulator.jpeg" width="230">
+
+- <img src="./imgs/Mission_2_simulator.jpeg" width="230">
 
 ##### Returns
 
@@ -421,7 +426,6 @@ float Astar::distance(Graph::Graph &graph, int a, int b)
       <img src="./imgs/grid_MIssion_1_Astar_raw.jpeg" width="230">
       <img src="./imgs/grid_Mission_1_Astar_smooth.jpeg" width="230">
       <img src="./imgs/grid_Mission_1_Astar_dubins.jpeg" width="230">
-      <img src="./imgs/grid_Mission_2_Astar_dubins.jpeg" width="230">
       <img src="./imgs/Mission_1_simulator.jpeg" width="230">
       <img src="./imgs/Mission_2_simulator.jpeg" width="230">
 <p!>
@@ -429,9 +433,8 @@ float Astar::distance(Graph::Graph &graph, int a, int b)
 1. raw Astar path with grid real arena
 2. smoothed path real arena
 3. dubins curve of Mission 1 real arena
-4. dubins curve of Mission 2 real arena
-5. dubins curve of Mission 1 simulator
-6. dubins curve of Mission 2 simulator
+4. dubins curve of Mission 1 simulator
+5. dubins curve of Mission 2 simulator
 
 ---
 
