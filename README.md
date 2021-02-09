@@ -102,11 +102,11 @@ Finally, everyyime the function is called, it computes the undistorted image wit
 
 1. Distorted image
 
-- <img src="imgs/imagedistort_1.png" width="250">
+- <img src="imgs/imageUndistort_2.png" width="250">
 
 2. Undistorted image
 
-- <img src="imgs/imageUndistort_2.png" width="250">
+- <img src="imgs/imagedistort_1.png" width="250">
 
 ---
 
@@ -325,6 +325,36 @@ for more detail see paragraph missionPlannnig.ccp
 
 ## Path Planning
 
+### graph.hpp
+
+```c++
+namespace Graph
+{
+
+    struct node
+    {
+        bool visited = false; // Have we searched this node before?
+        bool obstacle = false;
+        bool removed = false;
+        float fGlobalGoal;    // Distance to goal so far
+        float fLocalGoal;     // Distance to goal if we took the alternative route
+        float x;              // Nodes position in 2D space
+        float y;
+        std::vector<int> neighbours; // Connections to neighbours
+        int parent; // Node connecting to this node that offers shortest parent
+    };
+
+    typedef std::vector<node> Graph;
+};
+
+```
+
+#### Description
+
+- provides the structure for the graph
+
+---
+
 ### gridBasedPlanning.cpp
 
 ```c++
@@ -351,6 +381,23 @@ void buildGridGraph(Graph::Graph &graph, const std::vector<Polygon> &obstacle_li
 ---
 
 ### Astar_pathplanning.cpp
+
+```c++
+class Astar
+{
+private:
+	int nodeStart = 0;
+	int nodeEnd = 0;
+
+	static float distance(Graph::Graph &graph, int a, int b);
+	static float heuristic(Graph::Graph &graph, int a, int b);
+
+public:
+	static vector<int> Solve_AStar(Graph::Graph &graph, int start, int end);
+	static void smoothPath(Graph::Graph& graph, vector<int> &path, vector<int> &newPath, const std::vector<Polygon> &obstacle_list);
+};
+
+```
 
 ```c++
 vector<int> Astar::Solve_AStar(Graph::Graph &graph, int nodeStart, int nodeEnd)
@@ -450,6 +497,63 @@ float Astar::distance(Graph::Graph &graph, int a, int b)
 ### collision_detection.cpp
 
 ```c++
+bool collide(Polygon a, Polygon b);
+bool isInside_Global(const Point& p, const std::vector<Polygon> &obstacle_list);
+bool isInside(const Point& point, const Polygon& polygon);
+bool intersect(const Point& a0, const Point& a1, const Point& b0, const Point& b1);
+bool intersectPolygon(const Point& a0, const Point& a1, const Polygon& p);
+bool intersect_Global(const Point& a0, const Point& a1, const std::vector<Polygon> &obstacle_list);
+bool intersectCircle_Global(float a, float b, float r, const std::vector<Polygon> &obstacle_list);
+bool intersectCircleLine(float a, float b,float r, float x1, float x2, float y1, float y2);
+std::vector<Polygon> offsetPolygon(const std::vector<Polygon> &polygons, float offset);
+
+```
+
+#### Functions used in our program
+
+```c++
+bool isInside(const Point& point, const Polygon& polygon);
+```
+
+##### Parameters
+
+- `const Point &point` Point on which I want to check
+- `const Polygon &polygon` Polygon
+
+##### Description
+
+1. reveals if a point is inside a polygon
+   1. from the point it draws a infinite line to the right
+   2. it counts how many times the line intersects a segment of a polygon
+      1. if it is even the point is outside
+      2. if it is odd the point is inside
+
+#### Return
+
+`bool` if a collision was detected -> true
+
+---
+
+```c++
+bool isInside_Global(const Point& p, const std::vector<Polygon> &obstacle_list);
+```
+
+##### Parameters
+
+- `const Point &point` Point on which I want to check
+- `const std::vector<Polygon> &obstacle_list` The obstacle list of the map
+
+##### Description
+
+1. reveals if a point is any Polygon of the map
+
+#### Return
+
+`bool` if a collision was detected -> true
+
+---
+
+```c++
 bool intersect(const Point &a0, const Point &a1, const Point &b0, const Point &b1)
 ```
 
@@ -462,11 +566,13 @@ bool intersect(const Point &a0, const Point &a1, const Point &b0, const Point &b
 
 ##### Description
 
+- reveals if a segment intersects with a polygon
+
 1. calcluates the vectors of the segments
    1. a0->a1
    2. b0->b1
    3. b0->a0
-2. Calculates the determinandt of the vectors a0->a1 and b0->b1
+2. Calculates the determinant of the vectors a0->a1 and b0->b1
 3. calculates the parameters r and s which have to be inside the range of [0,1] if the segments intersect
 
 #### Return
@@ -487,7 +593,7 @@ bool intersectPolygon(const Point &a0, const Point &a1, const Polygon &p)
 
 ##### Description
 
-1. checks the intersection of a segment with all the segments of a Polygon
+1. reveals the intersection of a segment with all the segments of a Polygon
 
 #### Return
 
@@ -515,7 +621,184 @@ bool intersect_Global(const Point &a0, const Point &a1, const std::vector<Polygo
 
 ---
 
+```c++
+std::vector<Polygon> offsetPolygon(const std::vector<Polygon> &polygons, float offset)
+```
+
+##### Parameters
+
+- `float offset` the offset of the polygons (radius of the robot + some safety)
+- `const std::vector<Polygon> &obstacle_list` the dilated obstacle list
+
+##### Description
+
+1. resizes each point of the Polygons by using the clipper library
+
+#### Return
+
+`std::vector<Polygon>` returns the dilated obstacle list
+
+---
+
+#### Functions not used but implemented nevertheless
+
+```c++
+bool collide(Polygon a, Polygon b);
+```
+
+##### Parameters
+
+- `Polygon a` First Polygon
+- `Polygon b` Second Polygon
+
+##### Description
+
+1. test the intersection of 2 Polygons
+   1. broad phase
+      1. creates 2 boundingboxes around the Polygons and reveals the intersection of them
+   2. narrow phase
+      1. projects step wise each segment of Polygon a on one segment of Polygon b
+      2. if there is an overlap of the projections and the segment the loop goes on
+      3. if there is no intersection in one case, the polygons do not intersect
+      4. This is don for polygon a on b and later for polygon b on a
+
+#### Return
+
+`bool` if a collision was detected -> true
+
+---
+
+```c++
+bool intersectCircleLine(float a, float b,float r, float x1, float x2, float y1, float y2);
+```
+
+##### Parameters
+
+- `float a` x coordinate the circles center
+- `float b` y coordinate the circles center
+- `float r` radius of the circle
+- `float x1` segment x coordinate of Point 1
+- `float x2` segment x coordinate of Point 2
+- `float y1` segment y coordinate of Point 1
+- `float y2` segment y coordinate of Point 2
+
+##### Description
+
+1. reveals the intersection of an arc and a segment
+
+#### Return
+
+`bool` if a collision was detected -> true
+
+---
+
+```c++
+bool intersectCircle_Global(float a, float b, float r, const std::vector<Polygon> &obstacle_list);
+```
+
+##### Parameters
+
+- `float a` x coordinate the circles center
+- `float b` y coordinate the circles center
+- `float r` radius of the circle
+- `const std::vector<Polygon> &obstacle_list` the dilated obstacle list
+
+##### Description
+
+1. reveals the intersection of an arc and the Obstacles present in the arena
+
+#### Return
+
+`bool` if a collision was detected -> true
+
+---
+
 ### DubinsCurves.cpp
+
+```c++
+enum curve_type
+{
+    LSL,
+    RSR,
+    LSR,
+    RSL,
+    RLR,
+    LRL,
+    N_OF_POSSIBLE_CURVES
+};
+
+struct ScaledParams
+{
+    double sc_th0, sc_thf, sc_k_max, sc_k_max_inv, lambda;
+};
+
+struct ScaledCurveSegments
+{
+    double s1, s2, s3;
+    bool ok = false;
+};
+
+struct DubinsLine
+{
+    double s, x, y, th, k;
+};
+
+struct DubinsArc
+{
+    double k, L,
+    x0, y0, th0,
+    xf, yf, thf,
+    xc, yc;
+};
+
+struct DubinsCurve
+{
+    DubinsArc arcs[3];
+    double L;
+    curve_type type;
+};
+
+class DubinsCurvesHandler
+{
+private:
+    double k_max = 10;
+
+    int8_t curves_arguments[6][3] = {
+        {1, 0, 1},
+        {-1, 0, -1},
+        {1, 0, -1},
+        {-1, 0, 1},
+        {-1, 1 - 1},
+        {1, -1, 1}};
+
+    DubinsLine computeDubinsLine(double L, double x0, double y0, double th0, double k);
+    DubinsArc computeDubinsArc(double x0, double y0, double th0, double k, double L);
+    DubinsCurve computeDubinsCurve(double x0, double y0, double th0, double s1, double s2, double s3, double k1, double k2, double k3);
+    bool check(double s1, double s2, double s3, double k0, double k1, double k2, double th0, double thf);
+
+    double sinc(double t);
+    double mod2pi(double angle);
+    double rangeSymm(double angle);
+    ScaledParams scaleToStandard(double x0, double y0, double th0, double xf, double yf, double thf);
+    ScaledCurveSegments scaleFromStandard(ScaledCurveSegments& sc_curve_segments, double lambda);
+    ScaledCurveSegments LSL(double sc_th0, double sc_thf, double sc_k_max, double sc_k_max_inv);
+    ScaledCurveSegments RSR(double sc_th0, double sc_thf, double sc_k_max, double sc_k_max_inv);
+    ScaledCurveSegments LSR(double sc_th0, double sc_thf, double sc_k_max, double sc_k_max_inv);
+    ScaledCurveSegments RSL(double sc_th0, double sc_thf, double sc_k_max, double sc_k_max_inv);
+    ScaledCurveSegments RLR(double sc_th0, double sc_thf, double sc_k_max, double sc_k_max_inv);
+    ScaledCurveSegments LRL(double sc_th0, double sc_thf, double sc_k_max, double sc_k_max_inv);
+
+public:
+    DubinsCurvesHandler() = default;
+    explicit DubinsCurvesHandler(double k_max);
+    DubinsCurve findShortestPath(double x0, double y0, double th0, double x1, double y1, double th1);
+    float findShortestTheta(double x0, double y0,double th0, double x1, double y1, std::vector<float> &theta0,
+                                                               const std::vector<Polygon> &obstacle_list,
+                                                               bool (*circleIntersection)(float a, float b, float r, const std::vector<Polygon> &obstacle_list),
+                                                               bool (*lineIntersection)(const Point &a0, const Point &a1, const std::vector<Polygon> &obstacle_list));
+    std::vector<DubinsLine> discretizeDubinsCurve(DubinsCurve& curve, float minLength, float currLength);
+};
+```
 
 ```c++
 DubinsCurve DubinsCurvesHandler::findShortestPath(double x0, double y0, double th0,
@@ -712,6 +995,40 @@ bool check(double s1, double s2, double s3, double k0,
 ---
 
 ### MissionPLanning.cpp
+
+```c++
+class MissionPlanning
+{
+private:
+    float bonusTime;
+    float velocity = 0.1; // (m/sec) avg estimated velocity precedently computed
+    vector<Polygon> obstacle_list;
+    vector<pair<int, Polygon>> victim_list;
+    Polygon gate;
+    Point start;
+
+    struct decision
+    {
+        float reward;
+        bool isGate;
+        float x, y;
+    };
+    Point avgPoint(const Polygon &polygon);
+    float pathLength(Graph::Graph &graph, vector<int> path);
+    pair<float, vector<int>> pickDecision(float **costs, vector<decision> &decisions, set<int> remaining, float currCost, int next);
+    void initDecisions(vector<decision> &decisions);
+
+public:
+    explicit MissionPlanning(float bonusTime, const float x, const float y, vector<Polygon> &obstacle_list,const vector<pair<int, Polygon>> &victim_list, const Polygon &gate);
+    vector<Pose> buildDecisionPath(Graph::Graph &graph, int nVert, int nOriz, float sideLength);
+};
+
+
+
+
+
+
+```
 
 ```c++
 explicit MissionPlanning(float bonusTime, const float x, const float y, vector<Polygon> &obstacle_list,
