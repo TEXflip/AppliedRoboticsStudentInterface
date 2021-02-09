@@ -101,10 +101,12 @@ Finally, everyyime the function is called, it computes the undistorted image wit
 ##### Results
 
 1. Distorted image
-   <img src="imgs/imageUndistort_1.png" width="250">
+
+- <img src="imgs/imagedistort_1.png" width="250">
 
 2. Undistorted image
-   <img src="imgs/imageUndistort_2.png" width="250">
+
+- <img src="imgs/imageUndistort_2.png" width="250">
 
 ---
 
@@ -139,6 +141,8 @@ It computes the transformation matrix to unwrap the image from the points taken 
 
 using "projectPoints()" function, findPlaneTransform() projects the 3D points to a 2D image plane and then with "getPerspectiveTransform()" it computes the 3x3 perspective transformation of the corrisponding points.
 
+---
+
 ### unwarp
 
 ```c++
@@ -160,6 +164,12 @@ void unwarp(const cv::Mat &img_in, cv::Mat &img_out, const cv::Mat &transf, cons
 it applys the transformation to convert the 3D points in a 2D plane.
 
 using "warpPerspective()" function it applies the transformation computed by "findPlaneTransform()" to unwrap the image and get a top-view visualization
+
+1. unwraped image
+
+- <img src="imgs/imageUnwrap_1.png" width="250">
+
+---
 
 ### processMap
 
@@ -196,7 +206,7 @@ code flow: obstacle list
 1. Assign the found obstacles in the output list
 
 - Red mask matrix, on which the shape detection is done
-  <img src="imgs/red_mask.png" width="250">
+- <img src="imgs/red_mask.png" width="250">
 
 2. apply in the green mask the dilate and erode morphological transformations
 3. extract contour of the victims and the gate with findContours(), approximate them with approxPolyDP(), scale them and finally extract the gate by controlling its contour size. The smallest contour is the gate
@@ -809,6 +819,6 @@ Point MissionPlanning::avgPoint(const Polygon &polygon)
 
 ##### Return
 
-`Point` center point of a polygon
+- `Point` center point of a polygon
 
 ---
