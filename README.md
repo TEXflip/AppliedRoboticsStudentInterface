@@ -217,7 +217,7 @@ code flow: obstacle list
 - Shape detection for Green and Red bodies
 - <img src="imgs/Shape_detection.png" width="250">
 - Template matching example
-- <img src="imgs/Template.png" width="50">
+- <img src="imgs/Template.png" width="100">
 
 ##### Return
 
