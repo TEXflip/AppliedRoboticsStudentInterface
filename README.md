@@ -325,7 +325,7 @@ It's made by computing the distance of the smoothed A*'s path and dividing by th
 
 2. From this table a decision tree of all possible path is explored in order to pick the best path
 
-<img src="./imgs/M2Tree.jpeg" width="">
+<img src="./imgs/decision_path.png" width="500">
 
 3. the resulting output vector contains the path with the lowest time
 
