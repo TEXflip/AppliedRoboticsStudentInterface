@@ -31,39 +31,37 @@ vector<int> Astar::Solve_AStar(Graph::Graph &graph, int nodeStart, int nodeEnd)
 		graph[x].visited = false;
 		graph[x].fGlobalGoal = INFINITY;
 		graph[x].fLocalGoal = INFINITY;
-		graph[x].parent = -1; // No parents
+		graph[x].parent = -1; 
 	}
 
-	// Setup starting conditions
+	// Initialise the start node
 	int nodeCurrent = nodeStart;
 	graph[nodeStart].fLocalGoal = 0.0f;
 	graph[nodeStart].fGlobalGoal = Astar::heuristic(graph, nodeStart, nodeEnd);
 
-	// Add start node to not tested map - this will ensure it gets tested.
-	// As the algorithm progresses, newly discovered nodes get added to this
+	// Add start node to not tested map
+	// As the algorithm progresses, new discovered nodes get added to this
 	// map, and will themselves be tested later(soted by global)
-	// list<int> listNotTestedNodes;
 	multimap<float, int> mapNotTestedNodes;
 	mapNotTestedNodes.insert(std::pair<float, int>(graph[nodeStart].fGlobalGoal, nodeStart));
 	std::multimap<float, int>::const_iterator it_NotTestedNodes = mapNotTestedNodes.begin();
 
 	// if the not tested map contains nodes, there may be better paths
-	// which have not yet been explored. However, we will also stop
-	// searching when we reaach the target - there may well be better
-	// paths but this one will do - it wont be the longest.
-	while (!mapNotTestedNodes.empty() && nodeCurrent != nodeEnd) // Find absolutely shortest path // && nodeCurrent != nodeEnd)
+	// which have not yet been explored. We stop when we reach the target.
+	// Maybe it is not the best path but we found it fast and it is not the longest
+	while (!mapNotTestedNodes.empty() && nodeCurrent != nodeEnd) // if we would like to fint the shortest, simply comment && nodeCurrent != nodeEnd
 	{
 		// cout << nodeCurrent << endl;
 		it_NotTestedNodes = mapNotTestedNodes.begin();
 		// Front of mapNotTestedNodes is potentially the lowest distance node. Our
-		// map may also contain nodes that have been visited, so ditch these...
+		// map may also contain nodes that have been visited, so delete these out of our map
 		while (!mapNotTestedNodes.empty() && graph[it_NotTestedNodes->second].visited)
 		{
 			mapNotTestedNodes.erase(it_NotTestedNodes);
 			it_NotTestedNodes = mapNotTestedNodes.begin();
 		}
 
-		// ...or abort because there are no valid nodes left to test
+		//abort because there are no valid nodes left to test
 		if (mapNotTestedNodes.empty())
 			break;
 
@@ -87,7 +85,7 @@ vector<int> Astar::Solve_AStar(Graph::Graph &graph, int nodeStart, int nodeEnd)
 
 			// If choosing to path through this node is a lower distance than what
 			// the neighbour currently has set, update the neighbour to use this node
-			// as the path source, and set its distance scores as necessary
+			// as the path source, and set its distance scores
 			if (fPossiblyLowerGoal < graph[neighNode].fLocalGoal)
 			{
 				graph[neighNode].parent = nodeCurrent;
@@ -102,7 +100,7 @@ vector<int> Astar::Solve_AStar(Graph::Graph &graph, int nodeStart, int nodeEnd)
 			}
 		}
 	}
-
+	//go to the end node insert the node in the optimalPath and go to  the parent. Repeat until the end
 	vector<int> optimalPath;
 	int curr = nodeEnd;
 	optimalPath.emplace_back(curr);
@@ -121,7 +119,9 @@ vector<int> Astar::Solve_AStar(Graph::Graph &graph, int nodeStart, int nodeEnd)
 	}
 	return optimalPath;
 }
-
+// select the start and end node of the optimalPath
+// if there is a collision with the segment which goes directli from start to end, choose the mid point of the optimalPath and repeat
+//until the path is collision free
 void Astar::smoothPath(Graph::Graph &graph, vector<int> &path, vector<int> &newPath, const std::vector<Polygon> &obstacle_list)
 {
 	list<pair<int, int>> selected;

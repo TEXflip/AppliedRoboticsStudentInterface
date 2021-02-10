@@ -177,7 +177,7 @@ bool collide(Polygon a, Polygon b)
 
     return collided;
 }
-
+//determins if a point is inside a polygon
 bool isInside(const Point &point, const Polygon &polygon)
 {
     int i, j, n = polygon.size();
@@ -192,7 +192,7 @@ bool isInside(const Point &point, const Polygon &polygon)
 
     return c;
 }
-
+//determins if a point is inside any of the arenas polygons
 bool isInside_Global(const Point &p, const std::vector<Polygon> &obstacle_list)
 {
     for (int i = 0; i < obstacle_list.size(); i++)
@@ -204,7 +204,7 @@ bool isInside_Global(const Point &p, const std::vector<Polygon> &obstacle_list)
     }
     return false;
 }
-
+//determins if 2 segments intersect
 bool intersect(const Point &a0, const Point &a1, const Point &b0, const Point &b1)
 {
     float dax = a1.x - a0.x;
@@ -226,7 +226,7 @@ bool intersect(const Point &a0, const Point &a1, const Point &b0, const Point &b
 
     return !(r < 0 || r > 1 || s < 0 || s > 1);
 }
-
+// determins if a segment intersects with a polygon
 bool intersectPolygon(const Point &a0, const Point &a1, const Polygon &p)
 {
     int i, j, n = p.size();
@@ -243,7 +243,7 @@ bool intersect_Global(const Point &a0, const Point &a1, const std::vector<Polygo
             return true;
     return false;
 }
-
+// calculates if a circle or an arc intersects with a segment
 bool intersectCircleLine(float a, float b, float r, float x1, float y1, float x2, float y2)
 {
     /*

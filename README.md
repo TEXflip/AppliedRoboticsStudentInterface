@@ -225,7 +225,7 @@ code flow: obstacle list
 - Green mask matrix
 - <img src="imgs/Green_mask.png" width="250">
 - Shape detection for Green and Red bodies
-- <img src="imgs/Shape_detection.png" width="250">
+- <img src="imgs/Red_green_shapes.png" width="250">
 - Template matching example
 - <img src="imgs/Template.png" width="100">
 
@@ -263,12 +263,16 @@ find the position and rotation of the robot
 2. filter the blue areas out of the hsv image
 3. find the contour of the robot triangle using findContours()
 4. approximate the contours
-5. look for the triangle contour by taking off all the areas which are too small ot too big and the contours with too edges
+5. look for the triangle contour by ignoring all the areas which are too small or too big and the contours with the wrong number of edges
 6. scale the found triangle contour
 7. compute the position and rotation vectors of the robot (center of gravity and rotation relative to the x axis)
 
 - blue mask
 - <img src="imgs/BLUE_maksk.png" width="250">
+
+##### Return
+
+- `bool` True if the robot was found
 
 ---
 
@@ -292,7 +296,7 @@ bool planPath(const Polygon& borders, const std::vector<Polygon>& obstacle_list,
 
 ##### Description
 
-To select the desired Mission change the bool in line 28 in student_interface.cpp
+To select the desired Mission by changing the bool in line 28 in student_interface.cpp
 
 - bool MISSION_PLANNING = false; for Mission 1
 - bool MISSION_PLANNING = true; for Mission 2
@@ -376,7 +380,7 @@ void buildGridGraph(Graph::Graph &graph, const std::vector<Polygon> &obstacle_li
 
 1. calculates the necessary number of nodes
 2. checks if the node is inside an obstacle ( dilated by the robots radius)
-3. connects the node to its neighbours in linear and diagonal direction as long they are not inside an
+3. connects the node to its neighbours in linear and diagonal direction
 
 ---
 
@@ -398,6 +402,8 @@ public:
 };
 
 ```
+
+---
 
 ```c++
 vector<int> Astar::Solve_AStar(Graph::Graph &graph, int nodeStart, int nodeEnd)
@@ -431,7 +437,7 @@ vector<int> Astar::Solve_AStar(Graph::Graph &graph, int nodeStart, int nodeEnd)
 
 ##### Return
 
-- vector<int> Vector of the nodes where the path passes trough
+- `vector <int>` Vector of the nodes where the path passes trough
 
 ---
 
@@ -462,9 +468,9 @@ float Astar::distance(Graph::Graph &graph, int a, int b)
 
 ##### Parameters
 
-- `Graph::Graph &graph` the graph structure defined in graph.h and already connected with buildGridGraph()
-- `int a` reference int for start
-- `int b` reference int for end
+- `Graph::Graph &graph` the graph structure defined in graph.hpp and already connected with buildGridGraph()
+- `int a` reference int for startnode
+- `int b` reference int for endnode
 
 ##### Description
 
@@ -799,6 +805,7 @@ public:
     std::vector<DubinsLine> discretizeDubinsCurve(DubinsCurve& curve, float minLength, float currLength);
 };
 ```
+
 ---
 
 ```c++
@@ -819,8 +826,6 @@ double xf, double yf, double thf)
 
 - Solve the Dubins problem for the given input parameters.
 - The function tries all the possible primitives to find the optimal solution
-
----
 
 #### Return
 

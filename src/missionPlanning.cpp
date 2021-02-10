@@ -5,7 +5,7 @@
 #include <list>
 #include <tuple>
 #include <iostream>
-
+// calculate the center point of a Polygon
 Point MissionPlanning::avgPoint(const Polygon &polygon)
 {
     float avgX = 0, avgY = 0;
@@ -19,6 +19,7 @@ Point MissionPlanning::avgPoint(const Polygon &polygon)
     return Point(avgX, avgY);
 }
 
+//calculate the path length
 float MissionPlanning::pathLength(Graph::Graph &graph, vector<int> path)
 {
     float x1, y1, x2, y2, dx, dy, length = 0;
@@ -34,7 +35,7 @@ float MissionPlanning::pathLength(Graph::Graph &graph, vector<int> path)
     }
     return length;
 }
-
+//take the cost table and trz all possiblle combination is order to calculate the shortest path( path with the best cost)
 pair<float, vector<int>> MissionPlanning::pickDecision(float **costs, vector<decision> &decisions, set<int> remaining, float currCost, int curr)
 {
     // cout << curr << "\t" << remaining.size() << endl;
@@ -65,7 +66,7 @@ pair<float, vector<int>> MissionPlanning::pickDecision(float **costs, vector<dec
 
     return pair<float, vector<int>>(min, bestPath);
 }
-
+// constructor of the class
 MissionPlanning::MissionPlanning(float bonusTime, const float x, const float y, vector<Polygon> &obstacle_list, const vector<pair<int, Polygon>> &victim_list, const Polygon &gate)
 {
     this->bonusTime = bonusTime; // in seconds
@@ -74,7 +75,7 @@ MissionPlanning::MissionPlanning(float bonusTime, const float x, const float y, 
     this->victim_list = victim_list;
     this->gate = gate;
 }
-
+// creates an array of all the possible desitions which i can perform
 void MissionPlanning::initDecisions(vector<decision> &decisions)
 {
     decision d;
@@ -99,7 +100,7 @@ void MissionPlanning::initDecisions(vector<decision> &decisions)
     d.y = avg.y;
     decisions.push_back(d);
 }
-
+// create a table with all the possible cost to go from one waypoint to another
 vector<Pose> MissionPlanning::buildDecisionPath(Graph::Graph &graph, int nVert, int nOriz, float sideLength)
 {
     vector<decision> decisions;

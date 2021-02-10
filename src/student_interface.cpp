@@ -12,7 +12,7 @@
 #include <sstream>
 #include <experimental/filesystem>
 #include <cstdlib>
-#include <chrono>  // for high_resolution_clock
+#include <chrono> // for high_resolution_clock
 #include <opencv2/imgproc.hpp>
 
 #include <vector>
@@ -274,7 +274,6 @@ namespace student
       approxPolyDP(contours[i], approx_curve, 8, true); // approxPolyDP( InputArray curve,OutputArray approxCurve,double epsilon, bool closed )
                                                         //function that closes eventual opend contoures ???
 
-
       //scaling loop
 
       Polygon scaled_contour; //typedev vector
@@ -285,7 +284,6 @@ namespace student
       obstacle_list.push_back(scaled_contour); //add the aprox and scaled object to the list
     }
     contours.clear();
-
 
     //process GREEN_VICTIMS AND GATE///////////////////////////////////////
     // eventual filtering on green_victim_mask
@@ -321,7 +319,7 @@ namespace student
       }
       if (Nver > 6) //if i have a number circle and not the gate
       {
-        contours_approx_array.push_back(approx_curve);                      //assosciate the found aprox contour to the same number as the boundingbox (sync the arrays)
+        contours_approx_array.push_back(approx_curve);            //assosciate the found aprox contour to the same number as the boundingbox (sync the arrays)
         boundRect.push_back(boundingRect(cv::Mat(approx_curve))); // finds bounding box for each green blob
       }
     }
@@ -336,7 +334,6 @@ namespace student
         contours_approx_array.erase(contours_approx_array.begin() + i);
         boundRect.erase(boundRect.begin() + i);
       }
-
 
     ////////////////TEMPLATEMATCHING//////////////////
     cv::Mat green_mask_inv, filtered(img_in.rows, img_in.cols, CV_8UC3, cv::Scalar(255, 255, 255));
@@ -501,6 +498,7 @@ namespace student
           vertex = item;
         }
       }
+      // theta is calculated. vertex is the point connected the 2 longer edges
       double dx = cx - vertex.x;
       double dy = cy - vertex.y;
 
@@ -515,19 +513,19 @@ namespace student
 
       // if (second){
       //   auto now = std::chrono::high_resolution_clock::now();
-        
+
       //   std::chrono::duration<double, std::milli> diff = now - lastTime;
       //   double dx = x-precX, dy = y-precY;
       //   double dist = sqrt(dx*dx+dy*dy);
       //   std::cout << "Estimated velocity: " << (dist/(diff.count()/1000)) << std::endl;
       // }
       // second = true;
-      
+
       // precX = x;
       // precY = y;
 
       // lastTime = std::chrono::high_resolution_clock::now();
-  
+
       // std::cout << "x: " << x << "\ty: " << y << "\ttheta: " << theta * 180 / M_PI << "°" << std::endl;
     }
     return found;
@@ -538,9 +536,9 @@ namespace student
                 const Polygon &gate, const float x, const float y, const float theta, Path &path, const std::string &config_folder)
   {
     std::vector<Point> printPoints;
-    DubinsCurvesHandler dcHandler(45);
+    DubinsCurvesHandler dcHandler(45); // initialisye dubins curve with the max curvature
     printPoints.emplace_back(x, y);
-
+    // little formula in order to calculate the center point of any polygon
     auto avgPoint = [](const Polygon &polygon) {
       float avgX = 0, avgY = 0;
       for (int i = 0; i < polygon.size(); i++)
@@ -552,7 +550,7 @@ namespace student
       avgY /= polygon.size();
       return Point(avgX, avgY);
     };
-
+    // calculation of the thetaf when we create the whole dubins curve
     auto tangentAngle = [](float x1, float y1, float x2, float y2) {
       float dot = x1 * x2 + y1 * y2; // dot product between [x1, y1] and [x2, y2]
       float mag = sqrt(x1 * x1 + y1 * y1) * sqrt(x2 * x2 + y2 * y2);
@@ -560,7 +558,7 @@ namespace student
       float b = x1 * y2 - x2 * y1;                      // cross product
       int sign = b > 0 ? 1 : -1;                        // sign of cross product
       float av = atan2(y2, x2);                         // angle between exit direction and x -axis
-      float a_seg = M_PI - acos(dot / mag);             // angle between entrz and exit direction
+      float a_seg = M_PI - acos(dot / mag);             // angle between entry and exit direction
       float theta_f = sign * a_seg / 2 + av + M_PI / 2; // theta f
 
       if (sign > 0)
@@ -576,13 +574,13 @@ namespace student
     float sideLength = 0.02;
     int nOriz = max(max(borders[0].x, borders[1].x), max(borders[2].x, borders[3].x)) / sideLength;
     int nVert = max(max(borders[0].y, borders[1].y), max(borders[2].y, borders[3].y)) / sideLength;
-
+    // function which converts us the real map coordinates in to the graph domain
     auto toGraphCoord = [sideLength](float coord) {
       return (int)((coord + sideLength * 0.5) / sideLength);
     };
-
+    // rescale the obstacles bz the robots radius + some margin for colission detection purposes
     vector<Polygon> rescaled_ob_list = offsetPolygon(obstacle_list, footprint_width / 1.3);
-    
+    //create the graph
     buildGridGraph(graph, rescaled_ob_list, gate, footprint_width / 1.3, nVert, nOriz, sideLength);
 
     if (!MISSION_PLANNING)
@@ -701,7 +699,9 @@ namespace student
       // {
       //   std::cout << "angle " << p.theta * 180 / M_PI << "\tx " << p.x << "\ty " << p.y << endl;
       // }
+      ///////////////////////////////////////////////
 
+      //connecting the single points from the pose vector with the dubins in order to create a feasable path
       DubinsCurve dubin;
       std::vector<DubinsLine> lines, currLines;
       float totLength = 0;
@@ -714,7 +714,7 @@ namespace student
 
         totLength += dubin.L;
       }
-
+      //insert the found segments calculated by dubins in Paath which is a sequence of sampled robot configurations composing a (discretization of the) path
       for (int i = 0; i < lines.size(); i++)
       {
         path.points.emplace_back(lines[i].s, lines[i].x, lines[i].y, lines[i].th, lines[i].k);
@@ -725,6 +725,8 @@ namespace student
     }
     else
     {
+      //////////////////////////////////////
+      //solve the mission planning and return a pose vector of the optimal solution
       MissionPlanning mp(5, x, y, rescaled_ob_list, victim_list, gate);
       vector<Pose> finalPath = mp.buildDecisionPath(graph, nVert, nOriz, sideLength);
 
@@ -736,6 +738,7 @@ namespace student
       vector<int> smoothed_path;
       vector<int> path_segment;
 
+      //convert the poses into nodes in order to solve the A star path plannig
       for (int i = 0; i < finalPath.size() - 1; i++)
       {
         int x1 = toGraphCoord(finalPath[i].x);
@@ -766,7 +769,7 @@ namespace student
       pose[0].x = x;
       pose[0].y = y;
       pose[0].theta = theta;
-
+      //calculate each individual pose for the dubins
       for (int i = 1; i < size - 1; i++)
       {
         float x1 = graph[opti_path[i]].x - graph[opti_path[i - 1]].x;
@@ -783,7 +786,7 @@ namespace student
       pose[size - 1].x = avgGate.x;
       pose[size - 1].y = avgGate.y;
       pose[size - 1].theta = atan2f(y2, x2);
-
+      //solve the dubins problen and return the segments for the path
       DubinsCurve dubin;
       std::vector<DubinsLine> lines, currLines;
       float totLength = 0;
