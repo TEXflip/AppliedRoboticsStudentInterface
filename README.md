@@ -674,8 +674,8 @@ bool intersectCircleLine(float a, float b,float r, float x1, float x2, float y1,
 
 ##### Parameters
 
-- `float a` x coordinate the circles center
-- `float b` y coordinate the circles center
+- `float a` x coordinate of the circles center
+- `float b` y coordinate of the circles center
 - `float r` radius of the circle
 - `float x1` segment x coordinate of Point 1
 - `float x2` segment x coordinate of Point 2
@@ -799,6 +799,7 @@ public:
     std::vector<DubinsLine> discretizeDubinsCurve(DubinsCurve& curve, float minLength, float currLength);
 };
 ```
+---
 
 ```c++
 DubinsCurve DubinsCurvesHandler::findShortestPath(double x0, double y0, double th0,
@@ -824,6 +825,8 @@ double xf, double yf, double thf)
 #### Return
 
 - Return the type and the parameters of the optimal curve
+
+---
 
 ```c++
  ScaledParams scaleToStandard(double x0, double y0, double th0, double xf, double yf, double thf);
@@ -851,7 +854,7 @@ double xf, double yf, double thf)
 ---
 
 ```c++
- ScaledParams scaleFromStandard(double x0, double y0, double th0, double xf, double yf, double thf);
+ScaledParams scaleFromStandard(double x0, double y0, double th0, double xf, double yf, double thf);
 ```
 
 ##### Parameters
@@ -874,7 +877,7 @@ double xf, double yf, double thf)
 ---
 
 ```c++
- ScaledCurveSegments LSL(double sc_th0, double sc_thf, double sc_k_max, double sc_k_max_inv);
+ScaledCurveSegments LSL(double sc_th0, double sc_thf, double sc_k_max, double sc_k_max_inv);
 ```
 
 Same for RSR, LSR,RSL, RLR,LRL
@@ -1022,13 +1025,9 @@ public:
     explicit MissionPlanning(float bonusTime, const float x, const float y, vector<Polygon> &obstacle_list,const vector<pair<int, Polygon>> &victim_list, const Polygon &gate);
     vector<Pose> buildDecisionPath(Graph::Graph &graph, int nVert, int nOriz, float sideLength);
 };
-
-
-
-
-
-
 ```
+
+---
 
 ```c++
 explicit MissionPlanning(float bonusTime, const float x, const float y, vector<Polygon> &obstacle_list,
@@ -1039,7 +1038,7 @@ const vector<pair<int, Polygon>> &victim_list, const Polygon &gate);
 
 - `float bonusTime` bonus time in second for passing over a victim
 - `float x` Robot x coordinate
-- `float y` Robot x coordinate
+- `float y` Robot y coordinate
 - `std::vector<Polygon> &obstacle_list` the dilated obstacle vector
 - `const vector<pair<int, Polygon>> &victim_list` victim vector
 - `Polygon &gate` gate
@@ -1048,9 +1047,11 @@ const vector<pair<int, Polygon>> &victim_list, const Polygon &gate);
 
 - constructer of the class MissionPlanning
 
-  ```c++
-  vector<Pose> buildDecisionPath(Graph::Graph &graph, int nVert, int nOriz, float sideLength);
-  ```
+---
+
+```c++
+vector<Pose> buildDecisionPath(Graph::Graph &graph, int nVert, int nOriz, float sideLength);
+```
 
 ##### Parameters
 
@@ -1062,7 +1063,7 @@ const vector<pair<int, Polygon>> &victim_list, const Polygon &gate);
 ##### Description
 
 - creates the table including the distance between the possible targets using A\* and path smoothing
-- calls the function pickDesition in a recursive way in order to create a decision tree.
+- calls the function pickDesition in a recursive way in order to create a decision tree.??
 
 ---
 
