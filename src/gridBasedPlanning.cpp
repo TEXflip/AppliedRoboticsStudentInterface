@@ -33,6 +33,8 @@ void buildGridGraph(Graph::Graph &graph, const std::vector<Polygon> &obstacle_li
     for (int i = 0; i < nVert; i++)
         for (int j = 0; j < nOriz; j++)
         {
+            // possible check to avoid connection of nodes which are inside an obstacle
+            
             if (i + 1 != nVert)                                                    //           Connect to:
                 graph[i * nOriz + j].neighbours.emplace_back((i + 1) * nOriz + j); //       bottom cell
             if (i - 1 != -1)

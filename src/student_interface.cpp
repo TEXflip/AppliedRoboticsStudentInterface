@@ -414,8 +414,8 @@ namespace student
     victim_list.assign(victim_Map.begin(), victim_Map.end());
 
     std::cout << "victims: " << victim_list.size() << "\tobstacles: " << obstacle_list.size() << std::endl;
-    // return victim_list.size() > 0 && obstacle_list.size() > 0;
-    return true;
+    
+    return victim_list.size() > 0 && obstacle_list.size() > 0;
   }
 
   bool findRobot(const cv::Mat &img_in, const double scale, Polygon &triangle, double &x, double &y, double &theta, const std::string &config_folder)

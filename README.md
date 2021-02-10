@@ -27,7 +27,7 @@ Members: Michele Tessari, David Karbon
 void genericImageListener(const cv::Mat &img_in, std::string topic, const std::string &config_folder)
 ```
 
-##### Parameters
+#### Parameters
 
 - `image_in [in]` Input image to store
 
@@ -35,7 +35,7 @@ void genericImageListener(const cv::Mat &img_in, std::string topic, const std::s
 
 - `config_folder [in]` A custom string from config file.
 
-##### Description
+#### Description
 
 function to save the images from the camera to be used in a second moment to calculate the distortion parameters of the camera or for other purpose.
 
@@ -48,7 +48,7 @@ bool extrinsicCalib(const cv::Mat &img_in, std::vector<cv::Point3f> object_point
                     const cv::Mat &camera_matrix, cv::Mat &rvec, cv::Mat &tvec, const std::string &config_folder)
 ```
 
-##### Parameters
+#### Parameters
 
 - `image_in [in]` Input image to store
 
@@ -62,11 +62,11 @@ bool extrinsicCalib(const cv::Mat &img_in, std::vector<cv::Point3f> object_point
 
 - `config_folder [in]` A custom string from config file.
 
-##### Description
+#### Description
 
 First the function check if it already exists the file with the measurement of the points of the arena precedently setted. If the file doesn't exists, it will appear a image of the camera where will be asked to the user to click in the four corner of the arena in counterclockwise order. After, using the function "solvePnP" are computed the rotation and translation vectors of the camera.
 
-##### Returns
+#### Returns
 
 `[bool]` false if there are some errors, true otherwise
 
@@ -79,7 +79,7 @@ void imageUndistort(const cv::Mat &img_in, cv::Mat &img_out, const cv::Mat &cam_
                     const cv::Mat &dist_coeffs, const std::string &config_folder)
 ```
 
-##### Parameters
+#### Parameters
 
 - `image_in [in]` distorted image
 
@@ -91,22 +91,22 @@ void imageUndistort(const cv::Mat &img_in, cv::Mat &img_out, const cv::Mat &cam_
 
 - `config_folder [in]` A custom string from config file.
 
-##### Description
+#### Description
 
 It removes the distortion of the lens of the camera from the image in input from the parameters computed during the camera calibration phase.
 
 Since it's sufficient to calculate the calibration matrix to transform the image only one time, The function, when it's called the first time, it uses initUndistortRectifyMap() to compute the two maps of the two axis X and Y of the calibration matrix.
 Finally, everyyime the function is called, it computes the undistorted image with the function "remap()" using the 2 maps precedently calculated.
 
-##### Results
+#### Results
 
-1. Distorted image
+1. Distorted image:  
 
-- <img src="imgs/imageUndistort_2.png" width="250">
+<img src="imgs/imageUndistort_2.png" width="250">
 
-2. Undistorted image
+2. Undistorted image:  
 
-- <img src="imgs/imagedistort_1.png" width="250">
+<img src="imgs/imagedistort_1.png" width="250">
 
 ---
 
@@ -119,7 +119,7 @@ void findPlaneTransform(const cv::Mat &cam_matrix, const cv::Mat &rvec, const cv
                         const std::string &config_folder)
 ```
 
-##### Parameters
+#### Parameters
 
 - `camera_matrix [in]` 3x3 floating-point camera matrix
 
@@ -135,7 +135,7 @@ void findPlaneTransform(const cv::Mat &cam_matrix, const cv::Mat &rvec, const cv
 
 - `config_folder [in]` A custom string from config file.
 
-##### Description
+#### Description
 
 It computes the transformation matrix to unwrap the image from the points taken before.
 
@@ -149,7 +149,7 @@ using "projectPoints()" function, findPlaneTransform() projects the 3D points to
 void unwarp(const cv::Mat &img_in, cv::Mat &img_out, const cv::Mat &transf, const std::string &config_folder)
 ```
 
-##### Parameters
+#### Parameters
 
 - `image_in [in]` input image
 
@@ -159,15 +159,15 @@ void unwarp(const cv::Mat &img_in, cv::Mat &img_out, const cv::Mat &transf, cons
 
 - `config_folder [in]` A custom string from config file.
 
-##### Description
+#### Description
 
 it applys the transformation to convert the 3D points in a 2D plane.
 
 using "warpPerspective()" function it applies the transformation computed by "findPlaneTransform()" to unwrap the image and get a top-view visualization
 
-1. unwraped image
+1. unwraped image:  
 
-- <img src="imgs/imageUnwrap_1.png" width="250">
+<img src="imgs/imageUnwrap_1.png" width="250">
 
 ---
 
@@ -178,7 +178,7 @@ bool processMap(const cv::Mat &img_in, const double scale, std::vector<Polygon> 
                 std::vector<std::pair<int, Polygon>> &victim_list, Polygon &gate, const std::string &config_folder)
 ```
 
-##### Parameters
+#### Parameters
 
 - `image_in [in]` input image
 
@@ -192,56 +192,60 @@ bool processMap(const cv::Mat &img_in, const double scale, std::vector<Polygon> 
 
 - `config_folder [in]` A custom string from config file.
 
-##### Description
+#### Description
 
 Process the image to detect victims, obstacles and the gate.
 
-code flow: obstacle list
+**code flow: obstacles detection**
 
 0. convert input image in hsv colorspace
 1. use a colorfilter to sort the objects in different masks (red for obstacles and green for victims and the gate)
 1. apply in the red mask the dilate and erode morphological transformations
 1. extract contour of the obstacles with findContours(), approximate them with approxPolyDP() and finally scale them
-   1.controll the area of the obstacles. If it is too small, delet it
+   - control the area of the obstacles. If it is too small, discard it
 1. Assign the found obstacles in the output list
 
-- Red mask matrix, on which the shape detection is done
-- <img src="imgs/red_mask.png" width="250">
+- Red mask matrix, on which the shape detection is done:  
+<img src="imgs/red_mask.png" width="250">
 
-2. apply in the green mask the dilate and erode morphological transformations
-3. extract contour of the victims and the gate with findContours(), approximate them with approxPolyDP(), scale them and finally extract the gate by controlling its contour size. The smallest contour is the gate
-4. victims elaboration process:
+**code flow: victims detection**
+
+1. apply in the green mask the dilate and erode morphological transformations
+1. extract contour of the victims and the gate with findContours(), approximate them with approxPolyDP(), 
+scale them and finally extract the gate by controlling its contour size: The contour with minium number of vertices is the gate
+1. victims elaboration process:
    - consider the obstacles with a min area of 500 and contour size greater than the smallest one
-   - eliminate the green surrounding using as a mask the not operation of the green mask
+   - remove the green surrounding using as a mask the not operation of the green mask
    - load the template numbers and flip them to match the camera perspective transformation applied in unwarp()
    - run the number detection for every boundingBox:
      - extract the region of interest from the image with the boundingBox
      - resize it to template size
-     - compare the detected numbers with the templates trying 4 different rotation (90 degrees) and compute the mathing score
-     - select the tamplate according too the heighest matching score
-     - save the pair of matched template number and scaled victim in a map in order to sort them
+     - compare the detected numbers with the templates trying 4 different rotation (90 degrees) and compute the matching score
+     - select the template according to the heighest matching score
+     - save the pair of the matched template numbers and scaled victims in a ordered map to sort them
      - copy the ordered map into the output vector
 
-- Green mask matrix
-- <img src="imgs/Green_mask.png" width="250">
-- Shape detection for Green and Red bodies
-- <img src="imgs/Red_green_shapes.png" width="250">
-- Template matching example
-- <img src="imgs/Template.png" width="100">
+- Green mask matrix:  
+<img src="imgs/Green_mask.png" width="250">
+- Shape detection for Green and Red bodies:  
+<img src="imgs/Red_green_shapes.png" width="250">
+- Template matching example:  
+<img src="imgs/Template.png" width="100">
 
-##### Return
+#### Return
 
-- `bool` True if one gate is found, otherwise return false
+`bool` True if one gate is found, otherwise return false
 
 ---
 
 ### findRobot
 
 ```c++
-bool findRobot(const cv::Mat &img_in, const double scale, Polygon &triangle, double &x, double &y, double &theta, const std::string &config_folder)
+bool findRobot(const cv::Mat &img_in, const double scale, Polygon &triangle, 
+		double &x, double &y, double &theta, const std::string &config_folder)
 ```
 
-##### Parameters
+#### Parameters
 
 - `image_in [in]` input image
 
@@ -255,7 +259,7 @@ bool findRobot(const cv::Mat &img_in, const double scale, Polygon &triangle, dou
 
 - `config_folder [in]` A custom string from config file.
 
-##### Description
+#### Description
 
 find the position and rotation of the robot
 
@@ -267,22 +271,25 @@ find the position and rotation of the robot
 6. scale the found triangle contour
 7. compute the position and rotation vectors of the robot (center of gravity and rotation relative to the x axis)
 
-- blue mask
-- <img src="imgs/BLUE_maksk.png" width="250">
+- blue mask:  
+<img src="imgs/BLUE_maksk.png" width="250">
 
-##### Return
+#### Return
 
-- `bool` True if the robot was found
+`bool` True if the robot was found
 
 ---
 
 ### plan Path
 
 ```c++
-bool planPath(const Polygon& borders, const std::vector<Polygon>& obstacle_list,  const std::vector<std::pair<int,Polygon>>& victim_list,  const Polygon& gate, const float x, const float y, const float theta,  Path& path, const std::string& config_folder);
+bool planPath(const Polygon& borders, const std::vector<Polygon>& obstacle_list,  
+		const std::vector<std::pair<int,Polygon>>& victim_list,  
+		const Polygon& gate, const float x, const float y, const float theta,  
+		Path& path, const std::string& config_folder);
 ```
 
-##### Parameters
+#### Parameters
 
 - `borders [in]` border of the arena [m]
 - `obstacle_list [in]` list of obstacle polygon [m]
@@ -294,36 +301,39 @@ bool planPath(const Polygon& borders, const std::vector<Polygon>& obstacle_list,
 - `path [out]` output path of planned path
 - `config_folder [in]` A custom string from config file.
 
-##### Description
+#### Description
 
 To select the desired Mission by changing the bool in line 28 in student_interface.cpp
-
-- bool MISSION_PLANNING = false; for Mission 1
-- bool MISSION_PLANNING = true; for Mission 2
+```c++
+bool MISSION_PLANNING = false; // for Mission 1
+bool MISSION_PLANNING = true; // for Mission 2
+```
 
 **MISSION 1:**
+
 Victim are chosen in order of their number. The robot drives over all victims and follows the path from the lowest number to the highest
 
-- Mission planning 1 output
-- <img src="./imgs/Mission_1_simulator.jpeg" width="230">
+Mission planning 1 output:  
+<img src="./imgs/Mission_1_simulator.jpeg" width="230">
 
 **MISSION 2:**
 
-1. a table with the corresponding distances from each waypoint to every other is created (calculated with smoothed path)
+1. a table with the corresponding time cost from each waypoint to every other is created.
+It's made by computing the distance of the smoothed A*'s path and dividing by the velocity of the robot (estimated 10 cm/sec with a test simulation):  
 
-- <img src="./imgs/M2Table.jpeg" width="230">
+<img src="./imgs/M2Table.jpeg" width="230">
 
-2. From this table a tree is created which holds each possible combination. The cost and the reward is summed to obtain the best decision. When we arrive at a gate node, the result is saved.
+2. From this table a decision tree of all possible path is explored in order to pick the best path
 
-- <img src="./imgs/M2Tree.jpeg" width="">
+<img src="./imgs/M2Tree.jpeg" width="">
 
-3. the resulting output vector contains the path with the highest score = lowest time
+3. the resulting output vector contains the path with the lowest time
 
-- <img src="./imgs/Mission_2_simulator.jpeg" width="230">
+<img src="./imgs/Mission_2_simulator.jpeg" width="230">
 
-##### Returns
+#### Returns
 
-- `bool` true if path is computed correctly, false otherwise
+`bool` true if path is computed correctly, false otherwise
 
 for more detail see paragraph missionPlannnig.ccp
 
@@ -355,7 +365,7 @@ namespace Graph
 
 #### Description
 
-- provides the structure for the graph
+provides the structure for the graph
 
 ---
 
@@ -378,8 +388,8 @@ void buildGridGraph(Graph::Graph &graph, const std::vector<Polygon> &obstacle_li
 
 ##### Description
 
-1. calculates the necessary number of nodes
-2. checks if the node is inside an obstacle ( dilated by the robots radius)
+1. create the graph nodes
+2. checks if the node is inside an obstacle or too near to the border and it marks it ( dilated by the robots radius)
 3. connects the node to its neighbours in linear and diagonal direction
 
 ---
@@ -398,12 +408,15 @@ private:
 
 public:
 	static vector<int> Solve_AStar(Graph::Graph &graph, int start, int end);
-	static void smoothPath(Graph::Graph& graph, vector<int> &path, vector<int> &newPath, const std::vector<Polygon> &obstacle_list);
+	static void smoothPath(Graph::Graph& graph, vector<int> &path, 
+				vector<int> &newPath, const std::vector<Polygon> &obstacle_list);
 };
 
 ```
 
 ---
+
+#### Solve_AStar function
 
 ```c++
 vector<int> Astar::Solve_AStar(Graph::Graph &graph, int nodeStart, int nodeEnd)
@@ -424,22 +437,24 @@ vector<int> Astar::Solve_AStar(Graph::Graph &graph, int nodeStart, int nodeEnd)
    parent = -1; // No parents
 2. set up of the starting condition for the node start
 3. Loop for all the nodes in the graph until we reach the goal
-   1. calculate the distance to goal for each neighbour
-   2. calculate the distance to start for each neighbour and set the current node as parent for the neighbour if it is the shortest
-   3. take neighbour node with the shortest global distance to goal in with which we continue this loop
+   1. calculate the distance to the goal for each neighbour
+   2. calculate the distance to the start for each neighbour and set the current node as parent for the neighbour if it is the shortest
+   3. take neighbour node with the shortest global distance (node-goal) and select it for the next visit
    4. set the tag visited to the visited node, to not test it again
 4. Once reached the goal we create a vector where we:
    1. enter the goal node
    2. go to its parent node
-   3. enter it and go again to its parent node
+   3. visit it and go again to its parent node
    4. repeat until we reach the start
 5. Reverse the previous vector to have the nodes in correct order.
 
 ##### Return
 
-- `vector <int>` Vector of the nodes where the path passes trough
+`vector <int>` Vector of the nodes where the path passes trough
 
 ---
+
+#### smoothPath function
 
 ```c++
 void Astar::smoothPath(Graph::Graph &graph, vector<int> &path,
@@ -461,6 +476,7 @@ void Astar::smoothPath(Graph::Graph &graph, vector<int> &path,
 4. if an collision is detected take the mid point of the path and repeat the procedure until the smoothed path is collision free
 
 ---
+#### distance function
 
 ```c++
 float Astar::distance(Graph::Graph &graph, int a, int b)
@@ -478,7 +494,7 @@ float Astar::distance(Graph::Graph &graph, int a, int b)
 
 ##### Return
 
-- `float` the distance between two points
+`float` the distance between two points
 
 ---
 
@@ -638,7 +654,7 @@ std::vector<Polygon> offsetPolygon(const std::vector<Polygon> &polygons, float o
 
 ##### Description
 
-1. resizes each point of the Polygons by using the clipper library
+1. extends the Polygons by using the clipper library
 
 #### Return
 
@@ -849,7 +865,7 @@ double xf, double yf, double thf)
 ##### Description
 
 - finds the transform parameter lambda
-- calculate phi, the normalised angel
+- calculate phi, the normalised angle
 - scales and normalizes angles and curvature
 
 ##### Return
@@ -914,7 +930,7 @@ DubinsLine computeDubinsLine(double L, double x0, double y0, double th0, double 
 - `double x0` initial point x coordinate
 - `double y0`initial point y coordinat
 - `double th0` intital orientation
-- `double k` max curvature??
+- `double k` max curvature
 
 ##### Description
 
@@ -922,7 +938,7 @@ DubinsLine computeDubinsLine(double L, double x0, double y0, double th0, double 
 
 ##### Return
 
-`DubinsLine` returns the length the position, theta and the curvature of a single segment of the curvature
+`DubinsLine` returns the length, the position, theta and the curvature of a single segment of the curvature
 
 ---
 
@@ -936,7 +952,7 @@ DubinsArc computeDubinsArc(double x0, double y0, double th0, double k, double L)
 - `double x0`initial point x coordinate
 - `double y0`initial point y coordinat
 - `double th0` initial orientation
-- `double k` max curvature??
+- `double k` max curvature
 
 ##### Description
 
@@ -967,7 +983,7 @@ double s3, double k1, double k2, double k3);
 
 ##### Description
 
-- Create a structure representing a Dubins curve (composed by three arcs)
+- compute the dubins curve with the optimal settings (composed by three arcs)
 
 ##### Return
 
@@ -1002,7 +1018,7 @@ bool check(double s1, double s2, double s3, double k0,
 
 ---
 
-### MissionPLanning.cpp
+### MissionPlanning.cpp
 
 ```c++
 class MissionPlanning
@@ -1036,7 +1052,7 @@ public:
 
 ```c++
 explicit MissionPlanning(float bonusTime, const float x, const float y, vector<Polygon> &obstacle_list,
-const vector<pair<int, Polygon>> &victim_list, const Polygon &gate);
+				const vector<pair<int, Polygon>> &victim_list, const Polygon &gate);
 ```
 
 ##### Parameters
@@ -1050,7 +1066,7 @@ const vector<pair<int, Polygon>> &victim_list, const Polygon &gate);
 
 ##### Description
 
-- constructer of the class MissionPlanning
+- constructor of the class MissionPlanning
 
 ---
 
@@ -1067,13 +1083,17 @@ vector<Pose> buildDecisionPath(Graph::Graph &graph, int nVert, int nOriz, float 
 
 ##### Description
 
-- creates the table including the distance between the possible targets using A\* and path smoothing
-- calls the function pickDesition in a recursive way in order to create a decision tree.??
+- creates the table including the cost between all the possible targets (and the gate) using A\* and path smoothing. 
+- The cost is computed as: (distance of the path)/(avg velocity of the robot)
+- the average velocity has been estimated with a test computing the time and the space in the find robot function (estimated ~10 cm/sec)
+- call the recursive function ```pickDecision``` that returns the best path to do
+- reverse the output of the function in order to have the robot in the first position and the gate in the last building a vector of poses
 
 ---
 
 ```c++
-  pair<float, vector<int>> MissionPlanning::pickDecision(float \*\*costs, vector<decision> &decisions, set<int> remaining, float currCost, int curr)
+  pair<float, vector<int>> MissionPlanning::pickDecision(float \*\*costs, vector<decision> &decisions, 
+							 set<int> remaining, float currCost, int curr)
 ```
 
 ##### Parameters
@@ -1086,7 +1106,18 @@ vector<Pose> buildDecisionPath(Graph::Graph &graph, int nVert, int nOriz, float 
 
 ##### Description
 
-- tries all the possible routes and returns the one with the smallest cost
+- From the cost table a decision tree is explored, where a node is a possible decision of the path 
+(a node corresponds to a victim where the robot can decides to go, the leafs are the gate and the root node is the starting point of the robot).  
+	- a path from the root to a leaf, corresponds to a possible path that the robot can do
+	- when the tree is visited in the top-down direction, it's computed the cost to go from a victim (or the starting point) to another victim (or the gate)
+	- the cost is calculated as:  
+		```cost = currCost + costs[curr][i] - decisions[i].reward	```  
+		where: 
+		- ```currCost``` is the totalcost of the father node
+		- ```costs[curr][i]``` is the precedently computed cost from the current decision to the i-th child decision
+		- ```decisions[i].reward``` is the bonus time of i-th child (bonus time if a victim and 0 if the gate)
+	- when I reach a leaf (gate), it returns the total cost of the decision path and the path itself
+	- at the end the tree is visited bottom-up and the minimum cost is saved paired with the list of the decisions
 
 ##### Return
 
@@ -1104,8 +1135,8 @@ void initDecisions(vector<decision> &decisions);
 
 ##### Description
 
-- creates an array of all the possible desitions which i can perform
-- each desition has a reward, coordinates and the gate distance ??
+- creates an array of all the possible decisions which i can perform
+- each decision has a reward (bonus time if a victim, 0 if the gate), the coordinates and if it's the gate 
 
 ---
 
@@ -1120,7 +1151,7 @@ float MissionPlanning::pathLength(Graph::Graph &graph, vector<int> path)
 
 ##### Description
 
-- calculates the length of a smoothed path with A\* algorithm
+- calculates the length of a smoothed A\*'s path
 
 ##### Return
 
