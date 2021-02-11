@@ -345,7 +345,7 @@ namespace student
     for (int i = 0; i <= 9; ++i)
     {
       cv::Mat templImg = cv::imread(home + "/workspace/project/src/01_template_matching/template/" + std::to_string(i) + ".png");
-      cv::flip(templImg, templImg, 1);
+      cv::flip(templImg, templImg, 1); // mirroring the templates to match the unwarping
       templROIs.emplace_back(templImg);
     }
 
@@ -432,13 +432,10 @@ namespace student
 
     cv::inRange(hsv_img, cv::Scalar(85, 103, 19), cv::Scalar(123, 255, 255), blue_mask);
 
-    // Blur Fiilter????
-
     // Process blue mask
     std::vector<std::vector<cv::Point>> contours, contours_approx;
     std::vector<cv::Point> approx_curve;
-    // cv::imshow("blue mask" ,blue_mask);
-    // cv::waitKey(10);
+
     cv::findContours(blue_mask, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
 
     bool found = false;
@@ -449,11 +446,6 @@ namespace student
       contours_approx = {approx_curve};
 
       double area = cv::contourArea(approx_curve);
-      // for (int j = 0; j < approx_curve.size(); j++)
-      // {
-      //   std::cout<< "\tx: " << approx_curve[j].x<< "y: " << approx_curve[j].y <<std::endl;
-      // }
-      // std::cout<< "area: " << area << std::endl;
 
       if (approx_curve.size() != 3)
         continue;
@@ -570,20 +562,20 @@ namespace student
     Point avgGate = avgPoint(gate);
 
     Graph::Graph graph;
-    // VoronoiHandler::buildVoronoi(borders, obstacle_list, graph, 100, 1e6);
+
     float sideLength = 0.02;
     int nOriz = max(max(borders[0].x, borders[1].x), max(borders[2].x, borders[3].x)) / sideLength;
     int nVert = max(max(borders[0].y, borders[1].y), max(borders[2].y, borders[3].y)) / sideLength;
-    // function which converts us the real map coordinates in to the graph domain
+    // function which converts us the real map coordinates in to the graph node index
     auto toGraphCoord = [sideLength](float coord) {
       return (int)((coord + sideLength * 0.5) / sideLength);
     };
-    // rescale the obstacles bz the robots radius + some margin for colission detection purposes
+    // rescale the obstacles by the robots radius + some margin for colission detection purposes
     vector<Polygon> rescaled_ob_list = offsetPolygon(obstacle_list, footprint_width / 1.3);
     //create the graph
     buildGridGraph(graph, rescaled_ob_list, gate, footprint_width / 1.3, nVert, nOriz, sideLength);
 
-    if (!MISSION_PLANNING)
+    if (!MISSION_PLANNING) // MISSION 1
     {
       /////////////////////////////////////////////////////////////////////////
       //calculate center of victims in order to calculate the path
@@ -652,14 +644,6 @@ namespace student
       path_segment.clear();
       smoothed_path.clear();
 
-      // showPath(graph, opti_path_unsmoothed, printPoints, true);
-      // showPath(graph, opti_path, printPoints, true);
-
-      // for (int p : opti_path)
-      // {
-      //   std::cout << "x: " << graph[p].x << "\ty: " << graph[p].y << std::endl;
-      // }
-
       ///////////////////////////////////////////////////////////////
 
       //create pose vector for dubins curve
@@ -695,10 +679,6 @@ namespace student
       p.theta = atan2(y2, x2);
       pose.push_back(p);
 
-      // for (Pose p : pose)
-      // {
-      //   std::cout << "angle " << p.theta * 180 / M_PI << "\tx " << p.x << "\ty " << p.y << endl;
-      // }
       ///////////////////////////////////////////////
 
       //connecting the single points from the pose vector with the dubins in order to create a feasable path
@@ -723,7 +703,7 @@ namespace student
 
       // showPath(graph, opti_path, path.points, true);
     }
-    else
+    else // MISSION 2
     {
       //////////////////////////////////////
       //solve the mission planning and return a pose vector of the optimal solution
